@@ -20,14 +20,14 @@ from spyne.model.primitive import Decimal
 from spyne.model.primitive import AnyDict
 from spyne.model.primitive import Double
 from decimal import Decimal as Dec
-from HydraLib.hydra_dateutil import ordinal_to_timestamp
+from hydra_base.util.hydra_dateutil import ordinal_to_timestamp
 import pandas as pd
 import logging
 from hydra_base.util import generate_data_hash
 import json
 import zlib
-from HydraLib import config
-from HydraLib.HydraException import HydraError
+from hydra_base import config
+from hydra_base.exceptions import HydraError
 
 from hydra_base.lib.objects import Dataset
 
