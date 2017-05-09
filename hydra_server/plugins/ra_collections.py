@@ -45,11 +45,11 @@ import logging
 log = logging.getLogger(__name__)
 
 
-from hydra_base.db import DeclarativeBase as Base, DBSession
+from hydra_base import db
 from ..server.complexmodels import HydraComplexModel, NS
 from hydra_base.db.model import ResourceAttr, Node, Link, ResourceGroup
 
-class ResourceAttrCollection(Base):
+class ResourceAttrCollection(db.DeclarativeBase):
     """
     """
 
@@ -61,7 +61,7 @@ class ResourceAttrCollection(Base):
     cr_date          = Column(TIMESTAMP(),  nullable=False, server_default=text(u'CURRENT_TIMESTAMP'))
 
 
-class ResourceAttrCollectionItem(Base):
+class ResourceAttrCollectionItem(db.DeclarativeBase):
     """
     """
 
@@ -99,7 +99,7 @@ class HydraResourceAttrCollection(HydraComplexModel):
 
 
 from hydra_base.db import engine
-Base.metadata.create_all(engine)
+db.DeclarativeBase.metadata.create_all(engine)
 
 class Service(HydraService):
     """
@@ -122,9 +122,9 @@ class Service(HydraService):
             item_i = ResourceAttrCollectionItem()
             item_i.resource_attr_id = ra_id
             ra_i.items.append(item_i)
-
-        DBSession.add(ra_i)
-        DBSession.flush()
+        
+        db.DBSession.add(ra_i)
+        db.DBSession.flush()
 
         return HydraResourceAttrCollection(ra_i)
 
@@ -133,7 +133,7 @@ class Service(HydraService):
         """
             Add new items to a resource attribute collection
         """
-        collection_i = DBSession.query(ResourceAttrCollection).filter(ResourceAttrCollection.collection_id==collection_id).first()
+        collection_i = db.DBSession.query(ResourceAttrCollection).filter(ResourceAttrCollection.collection_id==collection_id).first()
 
         if collection_i is None:
             raise HydraError("No collection with ID %s", collection_id)
@@ -143,8 +143,8 @@ class Service(HydraService):
             item_i.resource_attr_id = ra_id
             collection_i.items.append(item_i)
 
-        DBSession.add(collection_i)
-        DBSession.flush()
+        db.DBSession.add(collection_i)
+        db.DBSession.flush()
 
         return HydraResourceAttrCollection(collection_i)
 
@@ -199,7 +199,7 @@ class Service(HydraService):
             Delete a resource attribute collection
         """
 
-        collection_i = DBSession.query(ResourceAttrCollection).filter(ResourceAttrCollection.collection_id==resourceattrcollection.id).first()
+        collection_i = db.DBSession.query(ResourceAttrCollection).filter(ResourceAttrCollection.collection_id==resourceattrcollection.id).first()
         
         if collection_i is None:
             raise HydraError("No collection with ID %s", resourceattrcollection.id)
@@ -207,7 +207,7 @@ class Service(HydraService):
         collection_i.layout = resourceattrcollection.get_layout()
         collection_i.name   = resourceattrcollection.name
 
-        DBSession.flush()
+        db.DBSession.flush()
 
         return HydraResourceAttrCollection(collection_i) 
 
@@ -216,7 +216,7 @@ class Service(HydraService):
         """
             Get all resource attribute collections
         """
-        collections_i = DBSession.query(ResourceAttrCollection).all()
+        collections_i = db.DBSession.query(ResourceAttrCollection).all()
 
         return [HydraResourceAttrCollection(collection_i) for collection_i in collections_i] 
 
@@ -225,7 +225,7 @@ class Service(HydraService):
         """
             Get all resource attribute collections containing an attribute on the specified node.
         """
-        collections_i = DBSession.query(ResourceAttrCollection).filter(
+        collections_i = db.DBSession.query(ResourceAttrCollection).filter(
                     ResourceAttrCollection.collection_id == ResourceAttrCollectionItem.collection_id,
                     ResourceAttrCollectionItem.resource_attr_id==ResourceAttr.resource_attr_id,
                     ResourceAttr.node_id == node_id
@@ -239,7 +239,7 @@ class Service(HydraService):
         """
             Get all resource attribute collections containing an attribute on the specified link.
         """
-        collections_i = DBSession.query(ResourceAttrCollection).filter(
+        collections_i = db.DBSession.query(ResourceAttrCollection).filter(
                     ResourceAttrCollection.collection_id == ResourceAttrCollectionItem.collection_id,
                     ResourceAttrCollectionItem.resource_attr_id==ResourceAttr.resource_attr_id,
                     ResourceAttr.link_id == link_id
@@ -253,7 +253,7 @@ class Service(HydraService):
         """
             Get all resource attribute collections containing the specified attribute.
         """
-        collections_i = DBSession.query(ResourceAttrCollection).distinct(ResourceAttrCollection.collection_id).filter(
+        collections_i = db.DBSession.query(ResourceAttrCollection).distinct(ResourceAttrCollection.collection_id).filter(
             and_(
                 ResourceAttrCollection.collection_id == ResourceAttrCollectionItem.collection_id,
                 and_(
@@ -270,7 +270,7 @@ class Service(HydraService):
         """
             Get all resource attribute collections containing an resource attribute of a resource in that network.
         """
-        node_collection_qry = DBSession.query(ResourceAttrCollection).filter(
+        node_collection_qry = db.DBSession.query(ResourceAttrCollection).filter(
                            ResourceAttrCollection.collection_id==ResourceAttrCollectionItem.collection_id,
                             ResourceAttrCollectionItem.resource_attr_id == ResourceAttr.resource_attr_id,
                             ResourceAttr.ref_key == 'NODE',
@@ -278,14 +278,14 @@ class Service(HydraService):
                             Node.network_id == network_id
                     ).all()
 
-        link_collection_qry = DBSession.query(ResourceAttrCollection).filter(
+        link_collection_qry = db.DBSession.query(ResourceAttrCollection).filter(
                            ResourceAttrCollection.collection_id==ResourceAttrCollectionItem.collection_id,
                             ResourceAttrCollectionItem.resource_attr_id == ResourceAttr.resource_attr_id,
                             ResourceAttr.ref_key == 'LINK',
                             ResourceAttr.link_id == Link.link_id,
                             Link.network_id == network_id
                     ).all()
-        grp_collection_qry = DBSession.query(ResourceAttrCollection).filter(
+        grp_collection_qry = db.DBSession.query(ResourceAttrCollection).filter(
                            ResourceAttrCollection.collection_id==ResourceAttrCollectionItem.collection_id,
                             ResourceAttrCollectionItem.resource_attr_id == ResourceAttr.resource_attr_id,
                             ResourceAttr.ref_key == 'GROUP',
@@ -293,7 +293,7 @@ class Service(HydraService):
                             ResourceGroup.network_id == network_id
                     ).all()
 
-        net_collection_qry = DBSession.query(ResourceAttrCollection).filter(
+        net_collection_qry = db.DBSession.query(ResourceAttrCollection).filter(
                            ResourceAttrCollection.collection_id==ResourceAttrCollectionItem.collection_id,
                             ResourceAttrCollectionItem.resource_attr_id == ResourceAttr.resource_attr_id,
                             ResourceAttr.ref_key == 'NETWORK',
