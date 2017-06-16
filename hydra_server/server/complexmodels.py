@@ -1295,7 +1295,7 @@ class User(HydraComplexModel):
         if parent is None:
             return
 
-        self.id = parent.user_id
+        self.id = parent.id
         self.username = parent.username
         self.display_name = parent.display_name
         self.password     = parent.password
@@ -1335,7 +1335,7 @@ class RoleUser(HydraComplexModel):
         if parent is None:
             return
 
-        self.user_id = parent.user.user_id
+        self.user_id = parent.user.id
 
 class RolePerm(HydraComplexModel):
     """
