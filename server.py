@@ -77,6 +77,7 @@ import socket
 
 from beaker.middleware import SessionMiddleware
 
+from hwi import app as ui_app
 
 applications = [
     AuthenticationService,
@@ -285,6 +286,7 @@ wsgi_application = WsgiMounter({
     config.get('hydra_server', 'json_path', 'json'): json_application,
     'jsonp': jsonp_application,
     config.get('hydra_server', 'http_path', 'http'): http_application,
+    '': ui_app,
 })
 
 for server in wsgi_application.mounts.values():
