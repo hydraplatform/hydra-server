@@ -17,7 +17,8 @@
 #
 
 import bcrypt
-bcrypt.hashpw('', bcrypt.gensalt())
+password = ''
+bcrypt.hashpw(password.encode('utf8'), bcrypt.gensalt())
 
 
 import sys
@@ -304,7 +305,7 @@ if __name__ == '__main__':
 
     args = sys.argv
     
-    print args
+    print(args)
 
     if len(args) > 1:
         port = int(args[1])

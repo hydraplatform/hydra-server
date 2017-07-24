@@ -19,9 +19,9 @@ log = logging.getLogger(__name__)
 import os
 import glob
 import importlib
-import advanced_dataset_retrieval
-import timeseries_functions
-import ra_collections
+from . import advanced_dataset_retrieval
+from . import timeseries_functions
+from . import ra_collections
 services = [advanced_dataset_retrieval.Service, timeseries_functions.Service, ra_collections.Service]
 #modules = glob.glob(os.path.dirname(__file__)+"/*.py")
 #mods = []
