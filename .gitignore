@@ -18,12 +18,10 @@ downloads/
 lib64/
 parts/
 sdist/
+dist/
 var/
 *.egg-info/
 .installed.cfg
-HydraPlugins/WaterML/ImportWML/dist/
-HydraPlugins/CSVplugin/ExportCSV/dist/
-HydraPlugins/CSVplugin/ImportCSV/dist/
 hydra.wsgi
 # PyInstaller
 #  Usually these files are written by a python script from a template
