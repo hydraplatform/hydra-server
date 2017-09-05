@@ -136,7 +136,7 @@ class AuthenticationService(ServiceBase):
             password = password.encode('utf-8')
 
             user_id = login_user(username, password)
-        except HydraError, e:
+        except HydraError as e:
             raise AuthenticationError(e)
 
         ctx.transport.req_env['beaker.session']['user_id'] = user_id

@@ -18,7 +18,8 @@
 #
 
 import bcrypt
-bcrypt.hashpw('', bcrypt.gensalt())
+password = ''
+bcrypt.hashpw(password.encode('utf8'), bcrypt.gensalt())
 
 
 import sys
