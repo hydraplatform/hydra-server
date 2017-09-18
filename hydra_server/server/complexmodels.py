@@ -236,10 +236,13 @@ class Dataset(HydraComplexModel, Dataset):
                 self.value = parent.value
 
         if include_metadata is True:
-            metadata = {}
-            for m in parent.metadata:
-                metadata[m.metadata_name] = m.metadata_val
-            self.metadata = json.dumps(metadata)
+            if isinstance(parent.metadata, dict):
+                self.metadata = json.dumps(parent.metadata)
+            else:
+                metadata = {}
+                for m in parent.metadata:
+                    metadata[m.metadata_name] = m.metadata_val
+                self.metadata = json.dumps(metadata)
 
     def parse_value(self):
         """
