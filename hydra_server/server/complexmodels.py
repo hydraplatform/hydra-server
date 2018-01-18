@@ -1166,9 +1166,9 @@ class Network(Resource):
         if parent is None:
             return
         self.project_id = parent.project_id
-        self.id         = parent.network_id
-        self.name       = parent.network_name
-        self.description = parent.network_description
+        self.id         = parent.id
+        self.name       = parent.name
+        self.description = parent.description
         self.created_by  = parent.created_by
         self.cr_date     = str(parent.cr_date)
         self.layout = self.get_outgoing_layout(parent.layout)
