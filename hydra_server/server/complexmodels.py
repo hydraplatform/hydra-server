@@ -234,6 +234,9 @@ class Dataset(HydraComplexModel, Dataset):
                 self.value = zlib.decompress(parent.value)
             except:
                 self.value = parent.value
+	
+	if isinstance(self.value, dict) or isinstance(self.value, list):
+            self.value = json.dumps(self.value)
 
         if include_metadata is True:
             if isinstance(parent.metadata, dict):
@@ -278,7 +281,9 @@ class Dataset(HydraComplexModel, Dataset):
                 # supported in read_json. Ridiculous.
                 ts = timeseries_pd.to_json(date_format='iso', date_unit='ns')
                 if len(data) > int(config.get('db', 'compression_threshold', 1000)):
-                    return zlib.compress(ts)
+                    log.info("Compressing value. Data is %s. Threshold is %s", len(data), config.get('db', 'compression_threshold'))
+		    log.info('value is: %s', ts[0:200])
+                    return zlib.compress(ts.encode('utf-8'))
                 else:
                     return ts
             elif self.type == 'array':
@@ -286,7 +291,9 @@ class Dataset(HydraComplexModel, Dataset):
                 log.info(data)
                 json.loads(data)
                 if len(data) > int(config.get('db', 'compression_threshold', 1000)):
-                    return zlib.compress(data)
+                    log.info("Compressing value. Data is %s. Threshold is %s", len(data), config.get('db', 'compression_threshold'))
+		    log.info('value is: %s', data[0:200])
+                    return zlib.compress(data.encode('utf-8'))
                 else:
                     return data
         except Exception as e:
@@ -632,7 +639,7 @@ class TypeSummary(HydraComplexModel):
 
         self.name          = parent.type_name
         self.id            = parent.type_id
-        self.template_name = parent.template.template_name
+        self.template_name = parent.template_name
         self.template_id   = parent.template_id
 
 class ValidationError(HydraComplexModel):
@@ -738,7 +745,7 @@ class ResourceSummary(HydraComplexModel):
             self.description = parent.group_description
 
         self.attributes = [ResourceAttr(ra) for ra in parent.attributes]
-        self.types = [TypeSummary(t.templatetype) for t in parent.types]
+        self.types = [TypeSummary(t) for t in parent.types]
 
 class Node(Resource):
     """
@@ -783,7 +790,7 @@ class Node(Resource):
         self.status = parent.status
         if summary is False:
             self.attributes = [ResourceAttr(a) for a in parent.attributes]
-        self.types = [TypeSummary(t.templatetype) for t in parent.types]
+        self.types = [TypeSummary(t) for t in parent.types]
 
 
 
@@ -832,7 +839,7 @@ class Link(Resource):
 
 
             self.attributes = [ResourceAttr(a) for a in parent.attributes]
-        self.types = [TypeSummary(t.templatetype) for t in parent.types]
+        self.types = [TypeSummary(t) for t in parent.types]
 
 
 class AttributeData(HydraComplexModel):
@@ -913,7 +920,7 @@ class ResourceGroup(HydraComplexModel):
         self.network_id  = parent.network_id
         self.cr_date     = str(parent.cr_date)
 
-        self.types       = [TypeSummary(t.templatetype) for t in parent.types]
+        self.types       = [TypeSummary(t) for t in parent.types]
 
         if summary is False:
             self.attributes  = [ResourceAttr(a) for a in parent.attributes]
@@ -1177,7 +1184,7 @@ class Network(Resource):
         self.nodes       = [Node(n, summary) for n in parent.nodes]
         self.links       = [Link(l, summary) for l in parent.links]
         self.resourcegroups = [ResourceGroup(rg, summary) for rg in parent.resourcegroups]
-        self.types          = [TypeSummary(t.templatetype) for t in parent.types]
+        self.types          = [TypeSummary(t) for t in parent.types]
         self.projection  = parent.projection
 
         if summary is False:
