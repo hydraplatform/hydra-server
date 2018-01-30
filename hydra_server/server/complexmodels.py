@@ -27,6 +27,7 @@ from hydra_base.util import generate_data_hash
 import json
 import zlib
 from hydra_base import config
+from hydra_base.util import get_layout_as_dict
 from hydra_base.exceptions import HydraError
 
 from hydra_base.lib.objects import Dataset
@@ -63,13 +64,7 @@ class HydraComplexModel(ComplexModel):
     __namespace__ = 'server.complexmodels'
 
     def get_outgoing_layout(self, resource_layout):
-        layout = {}
-        if resource_layout not in (None, ""):
-            db_layout    = eval(resource_layout)
-            for k, v in db_layout.items():
-                layout[k] = v
-
-        return layout
+        return get_layout_as_dict(resource_layout)
 
 class LoginResponse(HydraComplexModel):
     """
@@ -235,8 +230,10 @@ class Dataset(HydraComplexModel, Dataset):
             except:
                 self.value = parent.value
 	
-	if isinstance(self.value, dict) or isinstance(self.value, list):
-            self.value = json.dumps(self.value)
+        if isinstance(self.value, dict) or isinstance(self.value, list):
+                self.value = json.dumps(self.value)
+        else:
+            self.value = unicode(self.value)
 
         if include_metadata is True:
             if isinstance(parent.metadata, dict):
@@ -1178,7 +1175,7 @@ class Network(Resource):
         self.description = parent.description
         self.created_by  = parent.created_by
         self.cr_date     = str(parent.cr_date)
-        self.layout = self.get_outgoing_layout(parent.layout)
+        self.layout      = self.get_outgoing_layout(parent.layout)
         self.status      = parent.status
         self.scenarios   = [Scenario(s, summary) for s in parent.scenarios]
         self.nodes       = [Node(n, summary) for n in parent.nodes]
