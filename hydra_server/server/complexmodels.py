@@ -346,6 +346,58 @@ class Attr(HydraComplexModel):
         self.description = parent.attr_description
         self.cr_date = str(parent.cr_date)
 
+
+class AttrGroup(HydraComplexModel):
+    """
+       - **id** Integer(default=None)
+       - **project_id** Integer(default=None)
+       - **name** Unicode(default=None)
+       - **layout** AnyDict(min_occurs=0, max_occurs=1, default=None))
+       - **description** Unicode(default=None)
+       - **exclusive** Unicode(min_occurs=0, default='N')
+       - **cr_date** Unicode(default=None)
+    """
+    _type_info = [
+        ('id', Integer(default=None)),
+        ('project_id', Integer(default=None)),
+        ('name', Unicode(default=None)),
+        ('layout',      AnyDict(min_occurs=0, max_occurs=1, default=None)),
+        ('description', Unicode(default=None)),
+        ('exclusive', Unicode(min_occurs=0, default='N')),
+        ('cr_date', Unicode(default=None)),
+    ]
+
+    def __init__(self, parent=None):
+        super(AttrGroup, self).__init__()
+        if  parent is None:
+            return
+        self.id          = parent.attr_id
+        self.project_id  = parent.project_id
+        self.name        = parent.name
+        self.description = parent.description
+        self.exclusive   = parent.exclusive
+        self.cr_date     = str(parent.cr_date)
+
+class AttrGroupItem(HydraComplexModel):
+    """
+       - **group_id** Integer(default=None)
+       - **attr_id** Integer(default=None)
+       - **network_id** Integer(default=None)
+    """
+    _type_info = [
+        ('group_id', Integer(default=None)),
+        ('attr_id', Integer(default=None)),
+        ('network_id', Integer(default=None)),
+    ]
+
+    def __init__(self, parent=None):
+        super(AttrGroupItem, self).__init__()
+        if  parent is None:
+            return
+        self.group_id    = parent.group_id
+        self.network_id  = parent.network_id
+        self.attr_id     = parent.attr_id
+
 class ResourceScenario(HydraComplexModel):
     """
        - **resource_attr_id** Integer(default=None)

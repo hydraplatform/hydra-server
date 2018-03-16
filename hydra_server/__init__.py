@@ -53,7 +53,7 @@ from hydra_base.util.hdb import make_root_user
 
 from hydra_server.server.network import NetworkService
 from hydra_server.server.project import ProjectService
-from hydra_server.server.attributes import AttributeService
+from hydra_server.server.attributes import AttributeService, AttributeGroupService
 from hydra_server.server.scenario import ScenarioService
 from hydra_server.server.data import DataService
 from hydra_server.server.plugins import PluginService
@@ -85,6 +85,7 @@ applications = [
     ProjectService,
     ResourceGroupService,
     AttributeService,
+    AttributeGroupService,
     ScenarioService,
     DataService,
     PluginService,

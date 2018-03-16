@@ -19,6 +19,8 @@ from spyne.decorator import rpc
 from .complexmodels import Attr
 from .complexmodels import ResourceAttr
 from .complexmodels import ResourceAttrMap
+from .complexmodels import AttrGroup 
+from .complexmodels import AttrGroupItem
 
 from .service import HydraService
 
@@ -766,3 +768,146 @@ class AttributeService(HydraService):
         is_mapped = attributes.check_attribute_mapping_exists(resource_attr_id_source, resource_attr_id_target,**ctx.in_header.__dict__)
 
         return is_mapped
+
+class AttributeGroupService(HydraService):
+    @rpc(Integer, _returns=AttrGroup)
+    def get_attribute_group(ctx, group_id):
+        """
+
+        """
+        group_i = attributes.get_attribute_group(group_id, **ctx.in_header.__dict__)
+
+        return AttrGroup(group_i)
+
+    @rpc(AttrGroup, _returns=AttrGroup)
+    def add_attribute_group(ctx, attributegroup):
+        """
+            Add a new attribute group.
+            
+            An attribute group is a container for attributes which need to be grouped
+            in some logical way. For example, if the 'attr_is_var' flag isn't expressive
+            enough to delineate different groupings.
+
+            an attribute group looks like:
+                {
+                    'project_id' : XXX,
+                    'name'       : 'my group name'
+                    'description : 'my group description' (optional)
+                    'layout'     : 'my group layout'      (optional)
+                    'exclusive'  : 'N' (or 'Y' )          (optional, default to 'N')
+                }
+        """
+
+        newgroup_i = attributes.add_attribute_group(attributegroup, **ctx.in_header.__dict__)
+        
+        return AttrGroup(newgroup_i)
+
+    @rpc(AttrGroup, _returns=AttrGroup)
+    def update_attribute_group(ctx, attributegroup):
+        """
+            Update an existing attribute group.
+            
+            An attribute group is a container for attributes which need to be grouped
+            in some logical way. For example, if the 'attr_is_var' flag isn't expressive
+            enough to delineate different groupings.
+
+            an attribute group looks like:
+                {
+                    'project_id' : XXX,
+                    'name'       : 'my group name'
+                    'description : 'my group description' (optional)
+                    'layout'     : 'my group layout'      (optional)
+                    'exclusive'  : 'N' (or 'Y' )          (optional, default to 'N')
+                }
+        """
+
+        updated_group_i = attributes.update_attribute_group(attributegroup, **ctx.in_header.__dict__)
+        return AttrGroup(updated_group_i)
+
+    @rpc(Integer, _returns=Unicode)
+    def delete_attribute_group(ctx, group_id):
+        """
+            Delete an attribute group.
+        """
+
+        status = attributes.delete_attribute_group(group_id, **ctx.in_header.__dict__)
+
+        return status
+
+    @rpc(Integer, _returns=SpyneArray(AttrGroupItem))
+    def get_network_attributegroup_items(ctx, network_id):
+        """
+            Get all the group items in a network
+        """
+
+        agis = attributes.get_network_attributegroup_items(network_id, **ctx.in_header.__dict__)
+
+        complex_agis = [AttrGroupItem(agi) for agi in agis]
+
+        return complex_agis
+
+    @rpc(Integer, Integer, _returns=SpyneArray(AttrGroupItem))
+    def get_group_attributegroup_items(ctx, network_id, group_id):
+        """
+            Get all the items in a specified group, within a network
+        """
+
+        agis = attributes.get_group_attributegroup_items(network_id, group_id, **ctx.in_header.__dict__)
+
+        complex_agis = [AttrGroupItem(agi) for agi in agis]
+
+        return complex_agis
+
+    @rpc(Integer, Integer, _returns=SpyneArray(AttrGroupItem))
+    def get_attribute_item_groups(ctx, network_id, attr_id):
+        """
+            Get all the group items in a network with a given attribute_id 
+        """
+
+        agis = attributes.get_attribute_item_groups(network_id, attr_id, **ctx.in_header.__dict__)
+
+        complex_agis = [AttrGroupItem(agi) for agi in agis]
+
+        return complex_agis
+
+    @rpc(SpyneArray(AttrGroupItem), _returns=SpyneArray(AttrGroupItem))
+    def add_attribute_group_items(ctx, attributegroupitems):
+        """
+            Populate attribute groups with items.
+            ** attributegroupitems : a list of items, of the form:
+                ```{
+                        'attr_id'    : X,
+                        'group_id'   : Y,
+                        'network_id' : Z,
+                   }```
+
+            Note that this approach supports the possibility of populating groups
+            within multiple networks at the same time.
+
+            When adding a group item, the function checks whether it can be added,
+            based on the 'exclusivity' setup of the groups -- if a group is specified
+            as being 'exclusive', then any attributes within that group cannot appear
+            in any other group (within a network).
+        """
+
+        agis = attributes.add_attribute_group_items(attributegroupitems, **ctx.in_header.__dict__)
+
+        complex_agis = [AttrGroupItem(agi) for agi in agis]
+
+        return complex_agis
+
+    @rpc(SpyneArray(AttrGroupItem), _returns=Unicode)
+    def delete_attribute_group_items(ctx, attributegroupitems):
+        """
+            remove attribute groups items .
+            ** attributegroupitems : a list of items, of the form:
+                ```{
+                        'attr_id'    : X,
+                        'group_id'   : Y,
+                        'network_id' : Z,
+                   }```
+        """
+
+        status = attributes.delete_attribute_group_items(attributegroupitems, **ctx.in_header.__dict__)
+
+        return status
