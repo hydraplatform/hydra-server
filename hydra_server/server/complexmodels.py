@@ -45,16 +45,6 @@ def get_timestamp(ordinal):
     return timestamp
 
 
-ref_id_map = {
-    'NODE'     : 'node_id',
-    'LINK'     : 'link_id',
-    'GROUP'    : 'group_id',
-    'NETWORK'  : 'network_id',
-    'SCENARIO' : 'scenario_id',
-    'PROJECT'  : 'project_id'
-}
-
-
 class HydraComplexModel(ComplexModel):
     """
     This is the superclass from which most hydra complex models inherit.
@@ -155,7 +145,7 @@ class ResourceData(HydraComplexModel):
         self.attr_is_var = ra.attr_is_var
         self.resource_attr_id = str(ra.resource_attr_id)
         self.ref_key = str(ra.ref_key)
-        self.ref_id  = str(getattr(ra, ref_id_map[self.ref_key]))
+        self.ref_id  = str(getattr(ra, 'id'))
         self.ref_name  = ra.ref_name
 
         self.source = ra.source
@@ -229,7 +219,7 @@ class Dataset(HydraComplexModel, Dataset):
                 self.value = zlib.decompress(parent.value)
             except:
                 self.value = parent.value
-	
+
         if isinstance(self.value, dict) or isinstance(self.value, list):
                 self.value = json.dumps(self.value)
         else:
@@ -777,21 +767,16 @@ class ResourceSummary(HydraComplexModel):
 
         if parent is None:
             parent
+        self.id   = parent.id
+        self.name = parent.name
+        self.description = parent.description
+
         if hasattr(parent, 'node_id'):
             self.ref_key = 'NODE'
-            self.id   = parent.node_id
-            self.name = parent.node_name
-            self.description = parent.node_description
         elif hasattr(parent, 'link_id'):
             self.ref_key = 'LINK'
-            self.id   = parent.link_id
-            self.name = parent.link_name
-            self.description = parent.link_description
         elif hasattr(parent, 'group_id'):
             self.ref_key = 'GROUP'
-            self.id   = parent.group_id
-            self.name = parent.group_name
-            self.description = parent.group_description
 
         self.attributes = [ResourceAttr(ra) for ra in parent.attributes]
         self.types = [TypeSummary(t) for t in parent.types]
@@ -829,11 +814,11 @@ class Node(Resource):
             return
 
 
-        self.id = parent.node_id
-        self.name = parent.node_name
-        self.x = parent.node_x
-        self.y = parent.node_y
-        self.description = parent.node_description
+        self.id = parent.id
+        self.name = parent.name
+        self.x = parent.x
+        self.y = parent.y
+        self.description = parent.description
         self.cr_date = str(parent.cr_date)
         self.layout = self.get_outgoing_layout(parent.layout)
         self.status = parent.status
@@ -876,11 +861,11 @@ class Link(Resource):
             return
 
 
-        self.id = parent.link_id
-        self.name = parent.link_name
+        self.id = parent.id
+        self.name = parent.name
         self.node_1_id = parent.node_1_id
         self.node_2_id = parent.node_2_id
-        self.description = parent.link_description
+        self.description = parent.description
         self.cr_date = str(parent.cr_date)
         self.layout = self.get_outgoing_layout(parent.layout)
         self.status    = parent.status
@@ -962,9 +947,9 @@ class ResourceGroup(HydraComplexModel):
         if parent is None:
             return
 
-        self.name        = parent.group_name
-        self.id          = parent.group_id
-        self.description = parent.group_description
+        self.name        = parent.name
+        self.id          = parent.id
+        self.description = parent.description
         self.status      = parent.status
         self.network_id  = parent.network_id
         self.cr_date     = str(parent.cr_date)
@@ -1295,9 +1280,9 @@ class Project(Resource):
         if parent is None:
             return
 
-        self.id = parent.project_id
-        self.name = parent.project_name
-        self.description = parent.project_description
+        self.id          = parent.id
+        self.name        = parent.name
+        self.description = parent.description
         self.status      = parent.status
         self.cr_date     = str(parent.cr_date)
         self.created_by  = parent.created_by
@@ -1327,9 +1312,9 @@ class ProjectSummary(Resource):
 
         if parent is None:
             return
-        self.id = parent.project_id
-        self.name = parent.project_name
-        self.description = parent.project_description
+        self.id          = parent.id
+        self.name        = parent.name
+        self.description = parent.description
         self.cr_date = str(parent.cr_date)
         self.created_by = parent.created_by
         self.summary    = parent.summary
@@ -1599,4 +1584,3 @@ class Dimension(HydraComplexModel):
 
         self.name = name
         self.units = units
-
