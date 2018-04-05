@@ -35,8 +35,8 @@ def _get_data(ref_key, resource_ids, attribute_ids, scenario_ids):
     qry = DBSession.query(ResourceScenario).filter(
                     ResourceAttr.attr_id.in_(attribute_ids),
                     ResourceScenario.resource_attr_id==ResourceAttr.resource_attr_id,
-                    Scenario.scenario_id.in_(scenario_ids),
-                    ResourceScenario.scenario_id==Scenario.scenario_id).options(joinedload('dataset'))
+                    Scenario.id.in_(scenario_ids),
+                    ResourceScenario.scenario_id==Scenario.id).options(joinedload('dataset'))
 
     if ref_key == 'NODE':
         qry = qry.filter(ResourceAttr.node_id.in_(resource_ids))

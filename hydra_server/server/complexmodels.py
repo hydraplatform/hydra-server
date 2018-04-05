@@ -998,9 +998,9 @@ class Scenario(Resource):
 
         if parent is None:
             return
-        self.id = parent.scenario_id
-        self.name = parent.scenario_name
-        self.description = parent.scenario_description
+        self.id = parent.id
+        self.name = parent.name
+        self.description = parent.description
         self.layout = self.get_outgoing_layout(parent.layout)
         self.network_id = parent.network_id
         self.status = parent.status
