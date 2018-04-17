@@ -1358,9 +1358,9 @@ class Perm(HydraComplexModel):
         if parent is None:
             return
 
-        self.id   = parent.perm_id
-        self.name = parent.perm_name
-        self.code = parent.perm_code
+        self.id   = parent.id
+        self.name = parent.name
+        self.code = parent.code
 
 class RoleUser(HydraComplexModel):
     """
@@ -1415,9 +1415,9 @@ class Role(HydraComplexModel):
         if parent is None:
             return
 
-        self.id = parent.role_id
-        self.name = parent.role_name
-        self.code = parent.role_code
+        self.id = parent.id
+        self.name = parent.name
+        self.code = parent.code
         self.roleperms = [RolePerm(rp) for rp in parent.roleperms]
         self.roleusers = [RoleUser(ru) for ru in parent.roleusers]
 
