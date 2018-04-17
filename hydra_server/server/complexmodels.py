@@ -437,7 +437,7 @@ class ResourceAttr(HydraComplexModel):
         super(ResourceAttr, self).__init__()
         if  parent is None:
             return
-        self.id = parent.resource_attr_id
+        self.id = parent.id
         self.attr_id = parent.attr_id
         self.ref_key  = parent.ref_key
         self.cr_date = str(parent.cr_date)
