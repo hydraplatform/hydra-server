@@ -1020,7 +1020,7 @@ class Rule(HydraComplexModel):
        - **scenario_id** Integer
        - **ref_key** Unicode
        - **ref_id** Integer
-       - **text** Unicode
+       - **value** Unicode
        - **cr_date** Unicode(default=None)
     """
     _type_info = [
@@ -1053,7 +1053,7 @@ class Rule(HydraComplexModel):
             self.ref_id = parent.group_id
 
         self.scenario_id = parent.scenario_id
-        self.text        = parent.text
+        self.value        = parent.value
         self.cr_date    = str(parent.cr_date)
 
 class Note(HydraComplexModel):
@@ -1061,7 +1061,7 @@ class Note(HydraComplexModel):
        - **id** Integer
        - **ref_key** Unicode
        - **ref_id** Integer
-       - **text** Unicode
+       - **value** Unicode
        - **created_by** Integer
        - **cr_date** Unicode
     """
@@ -1069,7 +1069,7 @@ class Note(HydraComplexModel):
         ('id', Integer),
         ('ref_key', Unicode),
         ('ref_id', Integer),
-        ('text', Unicode),
+        ('value', Unicode),
         ('created_by', Integer),
         ('cr_date', Unicode),
     ]
@@ -1079,7 +1079,7 @@ class Note(HydraComplexModel):
         if parent is None:
             return
 
-        self.id = parent.note_id
+        self.id = parent.id
         self.ref_key = parent.ref_key
         if self.ref_key == 'NETWORK':
             self.ref_id = parent.network_id
@@ -1094,7 +1094,7 @@ class Note(HydraComplexModel):
         elif self.ref_key == 'PROJECT':
             self.ref_id = parent.project_id
 
-        self.text        = parent.note_text
+        self.value        = parent.value
         self.created_by  = parent.created_by
         self.cr_date     = str(parent.cr_date)
 
