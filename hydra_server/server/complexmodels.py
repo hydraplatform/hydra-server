@@ -1039,9 +1039,9 @@ class Rule(HydraComplexModel):
         if parent is None:
             return
 
-        self.id = parent.rule_id
-        self.name = parent.rule_name
-        self.description = parent.rule_description
+        self.id = parent.id
+        self.name = parent.name
+        self.description = parent.description
         self.ref_key = parent.ref_key
         if self.ref_key == 'NETWORK':
             self.ref_id = parent.network_id
@@ -1053,7 +1053,7 @@ class Rule(HydraComplexModel):
             self.ref_id = parent.group_id
 
         self.scenario_id = parent.scenario_id
-        self.text        = parent.rule_text
+        self.text        = parent.text
         self.cr_date    = str(parent.cr_date)
 
 class Note(HydraComplexModel):
