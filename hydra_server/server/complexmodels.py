@@ -300,8 +300,8 @@ class DatasetCollection(HydraComplexModel):
         super(DatasetCollection, self).__init__()
         if  parent is None:
             return
-        self.name = parent.collection_name
-        self.id   = parent.collection_id
+        self.name = parent.name
+        self.id   = parent.id
         self.dataset_ids = [d.dataset_id for d in parent.items]
         self.cr_date = str(parent.cr_date)
 
