@@ -903,7 +903,7 @@ class ResourceGroupItem(HydraComplexModel):
         super(ResourceGroupItem, self).__init__()
         if parent is None:
             return
-        self.id       = parent.item_id
+        self.id       = parent.id
         self.group_id = parent.group_id
         self.ref_key  = parent.ref_key
         self.cr_date  = str(parent.cr_date)
