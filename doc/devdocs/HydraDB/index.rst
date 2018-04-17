@@ -32,10 +32,10 @@ of a network is defined through its links -- a link connects two nodes.
 A network also contains scenarios, which are containers for network data.
 
  * project_id: The project in which this network resides.
- * network_id: Unique identifier
- * network_name: The name of the network. This is UNIQUE within a project.
- * network_description: A non-mandatory description
- * network_layout: Layout parameters for the network.
+ * id: Unique identifier
+ * name: The name of the network. This is UNIQUE within a project.
+ * description: A non-mandatory description
+ * layout: Layout parameters for the network.
  * status: A character, which can be A (active) or X (deleted)
  * projection: A string describing the map projection of the coordinates in the
    network.
@@ -47,15 +47,15 @@ tNode
 Along with the standard id, name, description
 and status, a Node has an X, Y coordinate.
 
- * node_id: Unique identifier
+ * id: Unique identifier
  * network_id: The network in which this link resides.
- * node_name: Node name. This is UNIQUE within a network.
- * node_description: non-mandatory description
+ * name: Node name. This is UNIQUE within a network.
+ * description: non-mandatory description
  * status: A character, which can be A (active) or X (deleted)
- * node_x: The node's X-coordinate on a standard plane
- * node_y: The node's Y-coordinate on a standard plane
- * node_layout: A string describing layout parameters.
- * node_type: The name of the template to which this node belongs. For example, the 'reservoir' node_type refers to the 'reservoir' templates which may reside in multiple groups.
+ * x: The node's X-coordinate on a standard plane
+ * y: The node's Y-coordinate on a standard plane
+ * layout: A string describing layout parameters.
+ * type: The name of the template to which this node belongs. For example, the 'reservoir' node_type refers to the 'reservoir' templates which may reside in multiple groups.
  * cr_date: Creation date
 
 tLink
@@ -64,14 +64,14 @@ tLink
 Links belong inside a network and link two nodes. Links define the topology of the network. Along with the standard id, name and status, a link has two node ids
 and a network_id.
 
- * link_id: Unique identifier
+ * id: Unique identifier
  * network_id: The network in which this link resides.
  * status: A character, which can be A (active) or X (deleted)
  * node_1_id: Link from node 1...
  * node_2_id: ...to node 2
- * link_name: Name of the link. This is UNIQUE for links between the same 2 nodes.
- * link_description: Description of the link..
- * link_layout: A string describing layout parameters. The layout includes
+ * name: Name of the link. This is UNIQUE for links between the same 2 nodes.
+ * description: Description of the link..
+ * layout: A string describing layout parameters. The layout includes
    intermediate points.
  * cr_date: Creation date
 
@@ -84,9 +84,9 @@ tAttr
 A basic attribute definition, with just a name and dimension.
 For example: A reservoir might have this attribute: Name: 'Capacity' Dimension 'Volume'
 
- * attr_id: Unique identifier
- * attr_name: Name (Capacity, Flow)
- * attr_dimen: Dimension of the value that will be stored against this attribute. 
+ * id: Unique identifier
+ * name: Name (Capacity, Flow)
+ * dimension: Dimension of the value that will be stored against this attribute. 
  * cr_date: Creation date
 
 
@@ -167,11 +167,11 @@ network with some node and links, all of which have been assigned some resource 
 can be created per network, meaning multiple different datasets can be used on the 
 same network.
 
- * scenario_id: Unique identifier
+ * id: Unique identifier
  * network_id: The network to which this scenario applies
- * scenario_name: The name of this scenario
- * scenario_description: Non-mandatory description
- * scenario_layout: Used to store layout information for the UI
+ * name: The name of this scenario
+ * description: Non-mandatory description
+ * layout: Used to store layout information for the UI
  * start_time: Scenario start time (required for some models)
  * end_time: Scenario end time
  * time_step: Scenario time step
@@ -203,13 +203,11 @@ in the appropriate data table using data_id. It knows which table to access
 using the data_type column. Ex: data_id = 1 and data_type = 'descriptor' means
 look in tDescriptor for data_id 1.
 
- * dataset_id: Unique identifier
- * data_id: Reference to a row in one of the data tables.
- * data_type: Defines which data table to look in. Must be one of: ('descriptor', 'timeseries', 'eqtimeseries', 'scalar', 'array')
- * data_units: What is this data type measured in?
- * data_name: A name for this data
- * data_dimen: Dimension -- for comparison with dimension in tAttr.
- * data_hash: The hash of the datum. This hash is generated using python's hash() function, as used in hash tables. Allows for easy comparison of data.
+ * id: Unique identifier
+ * type: Defines which data table to look in. Must be one of: ('descriptor', 'timeseries', 'eqtimeseries', 'scalar', 'array')
+ * unit: What is this data type measured in?
+ * name: A name for this data
+ * hash: The hash of the datum. This hash is generated using python's hash() function, as used in hash tables. Allows for easy comparison of data.
  * hidden: Flag to indicate whether this dataset has been hidden by its owner.
  * value: Contains the actual value. This will usually be a single value or a JSON string.
  * cr_date: Creation date
@@ -230,24 +228,14 @@ Keeps track of which piece of data is in which collection.
  * dataset_id : refers to the piece of data in tDataset that is in the collection
  * collection_id   : refers to the collection_id in tDatasetCollection.
 
-tTimeSeriesData
-^^^^^^^^^^^^^^^
-
-Time series data, stored as multiple time - value pairs, all associated with
-a single data_id, which is contained in tTimeSeries.
-
- * dataset_id: Reference to data_id in tTimeSeries
- * ts_time: Timestamp
- * ts_value: a multi-dimensional array, stored as a blob. Can also just be a single value.
-
 tMetaData
 ^^^^^^^^^
 
 Auxiliary information about the data, in name / value pairs.
 
  * dataset_id: Reference to the data about which this info is stored.
- * metadata_name: Name of the auxiliary piece of data
- * metadata_val: Value
+ * key: Name of the auxiliary piece of data
+ * value: Value
 
 User and permission management
 ******************************
@@ -259,7 +247,7 @@ tUser
 
 Save access credentials for each user
 
- * user_id: unique identifier
+ * id: unique identifier
  * username: Username
  * password: Password
  * cr_date: Creation date

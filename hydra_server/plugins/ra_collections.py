@@ -68,7 +68,7 @@ class ResourceAttrCollectionItem(db.DeclarativeBase):
     __tablename__='tResourceAttrCollectionItem'
 
     collection_id    = Column(SAInteger(), ForeignKey('tResourceAttrCollection.collection_id'), primary_key=True, nullable=False)
-    resource_attr_id = Column(SAInteger(), ForeignKey('tResourceAttr.resource_attr_id'), primary_key=True, nullable=False)
+    resource_attr_id = Column(SAInteger(), ForeignKey('tResourceAttr.id'), primary_key=True, nullable=False)
 
     collection = relationship('ResourceAttrCollection', backref=backref('items', uselist=True, cascade="all, delete-orphan"), lazy='joined')
     resourceattr = relationship('ResourceAttr')
@@ -227,7 +227,7 @@ class Service(HydraService):
         """
         collections_i = db.DBSession.query(ResourceAttrCollection).filter(
                     ResourceAttrCollection.collection_id == ResourceAttrCollectionItem.collection_id,
-                    ResourceAttrCollectionItem.resource_attr_id==ResourceAttr.resource_attr_id,
+                    ResourceAttrCollectionItem.resource_attr_id==ResourceAttr.id,
                     ResourceAttr.node_id == node_id
         
         )
@@ -241,7 +241,7 @@ class Service(HydraService):
         """
         collections_i = db.DBSession.query(ResourceAttrCollection).filter(
                     ResourceAttrCollection.collection_id == ResourceAttrCollectionItem.collection_id,
-                    ResourceAttrCollectionItem.resource_attr_id==ResourceAttr.resource_attr_id,
+                    ResourceAttrCollectionItem.resource_attr_id==ResourceAttr.id,
                     ResourceAttr.link_id == link_id
         
         )
@@ -257,7 +257,7 @@ class Service(HydraService):
             and_(
                 ResourceAttrCollection.collection_id == ResourceAttrCollectionItem.collection_id,
                 and_(
-                     ResourceAttrCollectionItem.resource_attr_id==ResourceAttr.resource_attr_id,
+                     ResourceAttrCollectionItem.resource_attr_id==ResourceAttr.id,
                     ResourceAttr.attr_id == attr_id
         
         ) )).all()
@@ -272,7 +272,7 @@ class Service(HydraService):
         """
         node_collection_qry = db.DBSession.query(ResourceAttrCollection).filter(
                            ResourceAttrCollection.collection_id==ResourceAttrCollectionItem.collection_id,
-                            ResourceAttrCollectionItem.resource_attr_id == ResourceAttr.resource_attr_id,
+                            ResourceAttrCollectionItem.resource_attr_id == ResourceAttr.id,
                             ResourceAttr.ref_key == 'NODE',
                             ResourceAttr.node_id == Node.node_id,
                             Node.network_id == network_id
@@ -280,14 +280,14 @@ class Service(HydraService):
 
         link_collection_qry = db.DBSession.query(ResourceAttrCollection).filter(
                            ResourceAttrCollection.collection_id==ResourceAttrCollectionItem.collection_id,
-                            ResourceAttrCollectionItem.resource_attr_id == ResourceAttr.resource_attr_id,
+                            ResourceAttrCollectionItem.resource_attr_id == ResourceAttr.id,
                             ResourceAttr.ref_key == 'LINK',
                             ResourceAttr.link_id == Link.link_id,
                             Link.network_id == network_id
                     ).all()
         grp_collection_qry = db.DBSession.query(ResourceAttrCollection).filter(
                            ResourceAttrCollection.collection_id==ResourceAttrCollectionItem.collection_id,
-                            ResourceAttrCollectionItem.resource_attr_id == ResourceAttr.resource_attr_id,
+                            ResourceAttrCollectionItem.resource_attr_id == ResourceAttr.id,
                             ResourceAttr.ref_key == 'GROUP',
                             ResourceAttr.group_id == ResourceGroup.group_id,
                             ResourceGroup.network_id == network_id
@@ -295,7 +295,7 @@ class Service(HydraService):
 
         net_collection_qry = db.DBSession.query(ResourceAttrCollection).filter(
                            ResourceAttrCollection.collection_id==ResourceAttrCollectionItem.collection_id,
-                            ResourceAttrCollectionItem.resource_attr_id == ResourceAttr.resource_attr_id,
+                            ResourceAttrCollectionItem.resource_attr_id == ResourceAttr.id,
                             ResourceAttr.ref_key == 'NETWORK',
                             ResourceAttr.network_id == network_id
 

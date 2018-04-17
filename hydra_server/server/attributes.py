@@ -19,7 +19,7 @@ from spyne.decorator import rpc
 from .complexmodels import Attr
 from .complexmodels import ResourceAttr
 from .complexmodels import ResourceAttrMap
-from .complexmodels import AttrGroup 
+from .complexmodels import AttrGroup
 from .complexmodels import AttrGroupItem
 
 from .service import HydraService
@@ -52,7 +52,7 @@ class AttributeService(HydraService):
             attr (complexmodels.Attr): An attribute object, as described above.
 
         Returns:
-            complexmodels.Attr: An attribute object, similar to the one sent in but with an ID. 
+            complexmodels.Attr: An attribute object, similar to the one sent in but with an ID.
         """
 
         attr = attributes.add_attribute(attr, **ctx.in_header.__dict__)
@@ -76,7 +76,7 @@ class AttributeService(HydraService):
             attr (complexmodels.Attr): An attribute complex model, as described above.
 
         Returns:
-            complexmodels.Attr: An attribute complex model, reflecting the one sent in. 
+            complexmodels.Attr: An attribute complex model, reflecting the one sent in.
 
         """
         attr = attributes.update_attribute(attr, **ctx.in_header.__dict__)
@@ -88,12 +88,12 @@ class AttributeService(HydraService):
         Add multiple generic attributes
 
         Args:
-            attrs (List[Attr]): A list of attribute complex models, 
+            attrs (List[Attr]): A list of attribute complex models,
                 as described above.
 
         Returns:
             List[Attr]: A list of attribute complex models,
-                reflecting the ones sent in. 
+                reflecting the ones sent in.
 
         """
 
@@ -190,7 +190,7 @@ class AttributeService(HydraService):
 
         Returns:
             List(complexmodels.Attr): List of Attr complex models
-        
+
         """
         ret_attrs = []
         for a in attrs:
@@ -199,11 +199,11 @@ class AttributeService(HydraService):
                                                               a.dimen,
                                                               **ctx.in_header.__dict__)
             if attr:
-                a.id = attr.attr_id
+                a.id = attr.id
                 a.cr_date = str(attr.cr_date)
-                a.name = attr.attr_name
-                a.dimen = attr.attr_dimen
-                a.description = attr.attr_description
+                a.name = attr.name
+                a.dimen = attr.dimen
+                a.description = attr.description
                 ret_attrs.append(a)
             else:
                 ret_attrs.append(None)
@@ -239,7 +239,7 @@ class AttributeService(HydraService):
         ***WILL BE DEPRECATED***
 
         Args:
-            resource_attr_id (int): ID of the complex model to be deleted 
+            resource_attr_id (int): ID of the complex model to be deleted
 
         Returns:
             unicode: 'OK'
@@ -258,7 +258,7 @@ class AttributeService(HydraService):
         Add a resource attribute attribute to a resource (Duplicate of delete_resourceattr)
 
         Args:
-            resource_attr_id (int): ID of the complex model to be deleted 
+            resource_attr_id (int): ID of the complex model to be deleted
 
         Returns:
             unicode: 'OK'
@@ -278,7 +278,7 @@ class AttributeService(HydraService):
         Add a resource attribute to a network.
 
         Args:
-            network_id (int): ID of the network 
+            network_id (int): ID of the network
             attr_id    (int): ID of the attribute to assign to the network
             is_var     (string) 'Y' or 'N'. Indicates whether this attribute is
                 a variable or not. (a variable is typically the result of a model run,
@@ -308,7 +308,7 @@ class AttributeService(HydraService):
 
         Args:
             type_id    (int): ID of the type used to get the resource attributes from
-            network_id (int): ID of the network 
+            network_id (int): ID of the network
 
         Returns:
             List(complexmodels.ResourceAttr): All the newly created network attributes
@@ -330,7 +330,7 @@ class AttributeService(HydraService):
         Get all a network's attributes (not the attributes of the nodes and links. just the network itself).
 
         Args:
-            network_id (int): ID of the network 
+            network_id (int): ID of the network
             type_id    (int) (optional): ID of the type. If specified will only return the resource attributes relative to that type
 
         Returns:
@@ -339,7 +339,7 @@ class AttributeService(HydraService):
         Raises:
             ResourceNotFoundError if the type_id or network_id are not in the DB
 
- 
+
         """
         resource_attrs = attributes.get_resource_attributes(
                 'NETWORK',
@@ -384,14 +384,14 @@ class AttributeService(HydraService):
 
         Args:
             type_id (int): ID of the type used to get the resource attributes from
-            node_id (int): ID of the node 
+            node_id (int): ID of the node
 
         Returns:
             List(complexmodels.ResourceAttr): All the newly created node attributes
 
         Raises:
             ResourceNotFoundError if the type_id or node_id are not in the DB
- 
+
         """
         new_resource_attrs = attributes.add_resource_attrs_from_type(
                                                         type_id,
@@ -406,7 +406,7 @@ class AttributeService(HydraService):
         Get all a node's attributes.
 
         Args:
-            node_id (int): ID of the node 
+            node_id (int): ID of the node
             type_id (int) (optional): ID of the type. If specified will only return the resource attributes relative to that type
 
         Returns:
@@ -415,7 +415,7 @@ class AttributeService(HydraService):
         Raises:
             ResourceNotFoundError if the type_id or node_id do not exist.
         """
- 
+
         resource_attrs = attributes.get_resource_attributes(
                 'NODE',
                 node_id,
@@ -484,7 +484,7 @@ class AttributeService(HydraService):
 
         Raises:
             ResourceNotFoundError if the type_id or link_id are not in the DB
- 
+
         """
 
         new_resource_attrs = attributes.add_resource_attrs_from_type(
@@ -500,7 +500,7 @@ class AttributeService(HydraService):
         Get all a link's attributes.
 
         Args:
-            link_id (int): ID of the link 
+            link_id (int): ID of the link
             type_id (int) (optional): ID of the type. If specified will only return the resource attributes relative to that type
 
         Returns:
@@ -580,7 +580,7 @@ class AttributeService(HydraService):
 
         Raises:
             ResourceNotFoundError if the type_id or group_id are not in the DB
- 
+
         """
         new_resource_attrs = attributes.add_resource_attrs_from_type(
                                                         type_id,
@@ -595,7 +595,7 @@ class AttributeService(HydraService):
         Get all a group's attributes.
 
         Args:
-            group_id (int): ID of the group 
+            group_id (int): ID of the group
             type_id (int) (optional): ID of the type. If specified will only return the resource attributes relative to that type
 
         Returns:
@@ -644,7 +644,7 @@ class AttributeService(HydraService):
         If the attribute says 'volume', make sure every dataset connected
         with this attribute via a resource attribute also has a dimension
         of 'volume'.
-        
+
         Args:
             attr_id (int): The ID of the attribute you want to check
 
@@ -682,7 +682,7 @@ class AttributeService(HydraService):
     @rpc(Integer, Integer, _returns=Unicode)
     def delete_attribute_mapping(ctx, resource_attr_a, resource_attr_b):
         """
-        Delete a mapping which said one resource attribute from one network 
+        Delete a mapping which said one resource attribute from one network
         was the same as the resource attribute in another.
 
         Args:
@@ -690,7 +690,7 @@ class AttributeService(HydraService):
             resource_attr_b (int): The ID of the target resoure attribute
 
         Returns:
-            string: 'OK' if all is well. If the mapping isn't there, it'll still return 'OK', so make sure the IDs are correct! 
+            string: 'OK' if all is well. If the mapping isn't there, it'll still return 'OK', so make sure the IDs are correct!
 
         """
         attributes.delete_attribute_mapping(resource_attr_a, resource_attr_b, **ctx.in_header.__dict__)
@@ -758,7 +758,7 @@ class AttributeService(HydraService):
         This does not check whether a reverse mapping exists, so order is important here.
 
         Args:
-            resource_attr_id_source (int): The source resource attribute 
+            resource_attr_id_source (int): The source resource attribute
             resource_attr_id_target (int) (optional): The target resource attribute
 
         Returns:
@@ -783,7 +783,7 @@ class AttributeGroupService(HydraService):
     def add_attribute_group(ctx, attributegroup):
         """
             Add a new attribute group.
-            
+
             An attribute group is a container for attributes which need to be grouped
             in some logical way. For example, if the 'attr_is_var' flag isn't expressive
             enough to delineate different groupings.
@@ -799,14 +799,14 @@ class AttributeGroupService(HydraService):
         """
 
         newgroup_i = attributes.add_attribute_group(attributegroup, **ctx.in_header.__dict__)
-        
+
         return AttrGroup(newgroup_i)
 
     @rpc(AttrGroup, _returns=AttrGroup)
     def update_attribute_group(ctx, attributegroup):
         """
             Update an existing attribute group.
-            
+
             An attribute group is a container for attributes which need to be grouped
             in some logical way. For example, if the 'attr_is_var' flag isn't expressive
             enough to delineate different groupings.
@@ -861,7 +861,7 @@ class AttributeGroupService(HydraService):
     @rpc(Integer, Integer, _returns=SpyneArray(AttrGroupItem))
     def get_attribute_item_groups(ctx, network_id, attr_id):
         """
-            Get all the group items in a network with a given attribute_id 
+            Get all the group items in a network with a given attribute_id
         """
 
         agis = attributes.get_attribute_item_groups(network_id, attr_id, **ctx.in_header.__dict__)

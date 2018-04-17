@@ -9,7 +9,7 @@
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with HydraPlatform.  If not, see <http://www.gnu.org/licenses/>
 #
@@ -39,8 +39,8 @@ class DataService(HydraService):
 
                     (Dataset){
                         value     = 123,
-                        unit      = 'm^3', 
-                        dimension = 'Volume', 
+                        unit      = 'm^3',
+                        dimension = 'Volume',
                         name      = 'Storage Capacity',
                         type      = 'scalar', #(others are 'descriptor', 'array' and 'timeseries')
                         metadata  = "{'measured_by':'John Doe'}", #Json encoded python dictionary
@@ -63,14 +63,14 @@ class DataService(HydraService):
                                      dataset.name,
                                      ctx.in_header.user_id,
                                     flush=True)
-        
+
         return Dataset(dataset_i)
 
     @rpc(SpyneArray(Integer32), _returns=SpyneArray(Dataset))
     def get_datasets(ctx, dataset_ids):
         """
         Get a list of datasets, by ID
-        
+
         Args:
             dataset_ids (List(int)): A list of dataset IDs
 
@@ -100,14 +100,14 @@ class DataService(HydraService):
         """
 
         dataset_i = data.get_dataset(dataset_id, **ctx.in_header.__dict__)
-        
+
         return Dataset(dataset_i)
 
     @rpc(Integer, _returns=Dataset)
     def clone_dataset(ctx, dataset_id):
         """
         Clone a single dataset, by ID
-    
+
         Args:
             dataset_id (int): THe ID of the dataset to be cloned
 
@@ -150,8 +150,8 @@ class DataService(HydraService):
         """
         Search for datadets that satisfy the criteria specified.
         By default, returns a max of 2000 datasets. To return datasets from 2001 onwards,
-        set page_start to 2001. 
-    
+        set page_start to 2001.
+
         Args:
             dataset_id      (int)    : The ID of the dataset
             name            (string) : The name of the dataset
@@ -212,7 +212,7 @@ class DataService(HydraService):
 
         if type(dataset_ids) == int:
             dataset_ids = [dataset_ids]
-        
+
         metadata = data.get_metadata(dataset_ids)
         metadata_dict = {}
         for m in metadata:
@@ -233,7 +233,7 @@ class DataService(HydraService):
         """
         datasets = data.bulk_insert_data(bulk_data, **ctx.in_header.__dict__)
 
-        return [d.dataset_id for d in datasets]
+        return [d.id for d in datasets]
 
     @rpc(_returns=SpyneArray(DatasetCollection))
     def get_all_dataset_collections(ctx):
@@ -320,7 +320,7 @@ class DataService(HydraService):
     def check_dataset_in_collection(ctx, dataset_id, collection_id):
         """
         Check whether a dataset is contained inside a collection
-   
+
         Args:
             dataset_id (int): The dataset being checked
             collection_id (int): The collection to check in
@@ -331,7 +331,7 @@ class DataService(HydraService):
         Raises:
             ResourceNotFoundError: If the collection does not exist
         """
-        
+
         result = data.check_dataset_in_collection(dataset_id,
                                          collection_id,
                                          **ctx.in_header.__dict__)
@@ -341,7 +341,7 @@ class DataService(HydraService):
     def get_dataset_collection(ctx, collection_id):
         """
         Get a single dataset collection, by ID.
-        
+
         Args:
             collection_id (int): The collection to retrieve
 
@@ -361,12 +361,12 @@ class DataService(HydraService):
     def delete_dataset_collection(ctx, collection_id):
         """
         Delete a single dataset collection, by ID.
-   
+
         Args:
             collection_id (int): The collection to delete
 
         Returns:
-            string: 'OK' 
+            string: 'OK'
 
         Raises:
             ResourceNotFoundError: If the collection does not exist
@@ -496,14 +496,14 @@ class DataService(HydraService):
     def get_val_at_time(ctx, dataset_id, timestamps):
         """
         Get the value of the dataset at a specified time (s).
-        
+
         - If the dataset is not a timeseries, just return the value
-        
+
         - If the dataset is a timeseries, return the value within the timeseries
-        that is closest to the requested time(s). 
-        
-        - If the time specified occurs before the start of the timeseries, return None. 
-        
+        that is closest to the requested time(s).
+
+        - If the time specified occurs before the start of the timeseries, return None.
+
         - If the time specified occurs after the end of the timeseries, return the last value in the timeseries.
 
         Args:
@@ -514,22 +514,22 @@ class DataService(HydraService):
             dict: A dictionary, keyed on the timestamps requested
 
         """
-        return data.get_val_at_time(dataset_id, 
+        return data.get_val_at_time(dataset_id,
                                     timestamps,
                                     **ctx.in_header.__dict__)
-    
+
     @rpc(Integer32(min_occurs=0, max_occurs='unbounded'), Unicode(min_occurs=0, max_occurs='unbounded'), _returns=AnyDict)
     def get_multiple_vals_at_time(ctx, dataset_ids, timestamps):
         """
         Similar to get_val_at_time, but perform the action on multiple datasets at once
-        
+
         - If the dataset is not a timeseries, just return the value
-        
+
         - If the dataset is a timeseries, return the value within the timeseries
-        that is closest to the requested time(s). 
-        
-        - If the time specified occurs before the start of the timeseries, return None. 
-        
+        that is closest to the requested time(s).
+
+        - If the time specified occurs before the start of the timeseries, return None.
+
         - If the time specified occurs after the end of the timeseries, return the last value in the timeseries.
 
         Args:
@@ -541,7 +541,7 @@ class DataService(HydraService):
 
         """
 
-        result = data.get_multiple_vals_at_time(dataset_ids, 
+        result = data.get_multiple_vals_at_time(dataset_ids,
                                     timestamps,
                                     **ctx.in_header.__dict__)
         return result
@@ -577,9 +577,9 @@ class DataService(HydraService):
                         created from the start time and timesteps.
 
         """
-        return data.get_vals_between_times(dataset_id, 
-                                           start_time, 
-                                           end_time, 
+        return data.get_vals_between_times(dataset_id,
+                                           start_time,
+                                           end_time,
                                            timestep,
                                            increment,
                                            **ctx.in_header.__dict__)
@@ -602,5 +602,3 @@ class DataService(HydraService):
             return "Unable to process JSON string. error was: %s"%e
 
         return 'OK'
-
-

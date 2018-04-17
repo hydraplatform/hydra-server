@@ -34,7 +34,7 @@ def _get_data(ref_key, resource_ids, attribute_ids, scenario_ids):
 
     qry = DBSession.query(ResourceScenario).filter(
                     ResourceAttr.attr_id.in_(attribute_ids),
-                    ResourceScenario.resource_attr_id==ResourceAttr.resource_attr_id,
+                    ResourceScenario.resource_attr_id==ResourceAttr.id,
                     Scenario.id.in_(scenario_ids),
                     ResourceScenario.scenario_id==Scenario.id).options(joinedload('dataset'))
 
@@ -186,7 +186,7 @@ def get_attr_dict(ref_key, scenario_ids, resource_ids, attribute_ids, resource_r
         key = ra.node_id if ref_key == 'NODE' else ra.link_id
         r_attrs = all_resource_attrs.get(key, {})
 
-        r_attrs[ra.attr_id] = ra.resource_attr_id
+        r_attrs[ra.attr_id] = ra.id
         all_resource_attrs[key] = r_attrs
 
     resource_attr_dict = {}

@@ -82,7 +82,6 @@ class ResourceData(HydraComplexModel):
         * **dataset_dimension:** The dimension of the dataset (This MUST match the dimension of the attribute)
         * **dataset_unit:** The unit of the dataset.
         * **dataset_name:** The name of the dataset. Most likely used for distinguishing similar datasets or searching for datasets
-        * **dataset_frequency:** The frequency of the timesteps in a timeseries. Only applicable if the dataset has a type 'timeseries'
         * **dataset_hidden:** Indicates whether the dataset is hidden, in which case only authorised users can use the dataset.
         * **dataset_metadata:**: A dictionary of the metadata associated with the dataset. For example: {'created_by': "User 1", "source":"Import from CSV"}
         * **dataset_value:**
@@ -127,7 +126,6 @@ class ResourceData(HydraComplexModel):
         ('dataset_unit',       Unicode(default=None)),
         ('dataset_name',       Unicode(default=None)),
         ('dataset_value',      Unicode(default=None)),
-        ('dataset_frequency',  Unicode(default=None)),
         ('dataset_hidden',     Unicode(default=None)),
         ('dataset_metadata',   Unicode(default=None)),
     ]
@@ -143,7 +141,7 @@ class ResourceData(HydraComplexModel):
         self.attr_id = str(ra.attr_id)
         self.attr_name = ra.attr_name
         self.attr_is_var = ra.attr_is_var
-        self.resource_attr_id = str(ra.resource_attr_id)
+        self.resource_attr_id = str(ra.id)
         self.ref_key = str(ra.ref_key)
         self.ref_id  = str(getattr(ra, 'id'))
         self.ref_name  = ra.ref_name
@@ -153,12 +151,10 @@ class ResourceData(HydraComplexModel):
 
         self.dataset_hidden    = ra.hidden
         self.dataset_id        = str(ra.dataset_id)
-        self.dataset_type      = ra.data_type
-        self.dataset_name      = ra.data_name
+        self.dataset_type      = ra.type
+        self.dataset_name      = ra.name
 
-        self.dataset_dimension = ra.data_dimen
-        self.dataset_unit      = ra.data_units
-        self.dataset_frequency = ra.frequency
+        self.dataset_unit      = ra.units
         if include_value=='Y':
             try:
                 self.dataset_value = zlib.decompress(ra.value)
@@ -204,14 +200,13 @@ class Dataset(HydraComplexModel, Dataset):
             return
 
         self.hidden    = parent.hidden
-        self.id        = parent.dataset_id
-        self.type      = parent.data_type
-        self.name      = parent.data_name
+        self.id        = parent.id
+        self.type      = parent.type
+        self.name      = parent.name
         self.created_by = parent.created_by
         self.cr_date    = str(parent.cr_date)
 
-        self.dimension = parent.data_dimen
-        self.unit      = parent.data_units
+        self.unit      = parent.unit
         self.value = None
 
         if parent.value is not None:
@@ -321,7 +316,7 @@ class Attr(HydraComplexModel):
     _type_info = [
         ('id', Integer(default=None)),
         ('name', Unicode(default=None)),
-        ('dimen', Unicode(default=None)),
+        ('dimension', Unicode(default=None)),
         ('description', Unicode(default=None)),
         ('cr_date', Unicode(default=None)),
     ]
@@ -330,11 +325,11 @@ class Attr(HydraComplexModel):
         super(Attr, self).__init__()
         if  parent is None:
             return
-        self.id = parent.attr_id
-        self.name = parent.attr_name
-        self.dimen = parent.attr_dimen
-        self.description = parent.attr_description
-        self.cr_date = str(parent.cr_date)
+        self.id          = parent.id
+        self.name        = parent.name
+        self.dimension   = parent.dimension
+        self.description = parent.description
+        self.cr_date     = str(parent.cr_date)
 
 
 class AttrGroup(HydraComplexModel):
@@ -561,8 +556,8 @@ class TypeAttr(HydraComplexModel):
         self.attr_id   = parent.attr_id
         attr = parent.get_attr()
         if attr is not None:
-            self.attr_name = attr.attr_name
-            self.dimension = attr.attr_dimen
+            self.attr_name = attr.name
+            self.dimension = attr.dimension
         else:
             self.attr_name = None
             self.dimension = None
@@ -611,8 +606,8 @@ class TemplateType(HydraComplexModel):
         if parent is None:
             return
 
-        self.id        = parent.type_id
-        self.name      = parent.type_name
+        self.id        = parent.id
+        self.name      = parent.name
         self.alias     = parent.alias
         self.resource_type = parent.resource_type
         self.cr_date = str(parent.cr_date)
@@ -646,8 +641,8 @@ class Template(HydraComplexModel):
         if parent is None:
             return
 
-        self.name   = parent.template_name
-        self.id     = parent.template_id
+        self.name   = parent.name
+        self.id     = parent.id
         self.cr_date = str(parent.cr_date)
         self.layout = self.get_outgoing_layout(parent.layout)
 
@@ -676,8 +671,8 @@ class TypeSummary(HydraComplexModel):
         if parent is None:
             return
 
-        self.name          = parent.type_name
-        self.id            = parent.type_id
+        self.name          = parent.name
+        self.id            = parent.id
         self.template_name = parent.template_name
         self.template_id   = parent.template_id
 
