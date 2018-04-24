@@ -13,7 +13,7 @@
 # You should have received a copy of the GNU General Public License
 # along with HydraPlatform.  If not, see <http://www.gnu.org/licenses/>
 #
-from spyne.model.primitive import Mandatory, String, Unicode
+from spyne.model.primitive import Mandatory, String, Unicode, Integer
 from spyne.error import Fault
 from spyne.model.complex import ComplexModel
 from spyne.decorator import rpc
@@ -122,7 +122,7 @@ class LogoutService(HydraService):
 class AuthenticationService(ServiceBase):
     __tns__      = 'hydra.base'
 
-    @rpc(Mandatory.Unicode, Unicode, _returns=Unicode,
+    @rpc(Mandatory.Unicode, Unicode, _returns=LoginResponse,
                                                    _throws=AuthenticationError)
     def login(ctx, username, password):
         try:
@@ -143,4 +143,8 @@ class AuthenticationService(ServiceBase):
         ctx.transport.req_env['beaker.session']['username'] = username
         ctx.transport.req_env['beaker.session'].save()
 
-        return "OK"
+        login_response =  LoginResponse()
+        login_response.user_id = user_id
+        login_response.username = username
+
+        return login_response
