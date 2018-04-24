@@ -9,7 +9,7 @@
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with HydraPlatform.  If not, see <http://www.gnu.org/licenses/>
 #
@@ -31,6 +31,30 @@ class UserService(HydraService):
         The user soap service
     """
 
+    @rpc(_returns=User)
+    def whoami(ctx):
+        """
+
+        Get the user object of the requesting user.
+
+        Args:
+
+        Returns:
+            User: the user object
+
+        Raises:
+            ResourceNotFoundError: If the uid is not found
+
+        """
+        requesting_user_id = ctx.in_header.__dict__.get('user_id')
+        username = User(users.get_user_by_id(uid=requesting_user_id, **ctx.in_header.__dict__))
+        return username
+
+
+    """
+        The user soap service
+    """
+
     @rpc(Integer, _returns=Unicode)
     def get_username(ctx, uid):
         """
@@ -45,7 +69,7 @@ class UserService(HydraService):
 
         Raises:
             ResourceNotFoundError: If the uid is not found
-            
+
         """
         username = users.get_username(uid, **ctx.in_header.__dict__)
         return username
@@ -70,7 +94,7 @@ class UserService(HydraService):
         #u = User()
         #u.__dict__ = user_i.__dict__
         #return u
-        
+
         return User(user_i)
 
     @rpc(User, _returns=User)
@@ -107,7 +131,7 @@ class UserService(HydraService):
         Raises:
             ResourceNotFoundError: If the user_id is not found
         """
-        user_i = users.update_user_password(user_id, 
+        user_i = users.update_user_password(user_id,
                                             new_password,
                                             **ctx.in_header.__dict__)
 
@@ -122,13 +146,13 @@ class UserService(HydraService):
             username (string): The username being searched for
 
         Returns:
-            complexmodels.User: The requested user, or None 
+            complexmodels.User: The requested user, or None
 
         """
         user_i = users.get_user_by_name(username, **ctx.in_header.__dict__)
         if user_i:
             return User(user_i)
-        
+
         return None
 
     @rpc(Integer, _returns=Unicode)
@@ -140,7 +164,7 @@ class UserService(HydraService):
             user_id (int): The ID user to be deleted.
 
         Returns:
-            string: 'OK' 
+            string: 'OK'
 
         Raises:
             ResourceNotFoundError: If the user_id is not found
@@ -158,7 +182,7 @@ class UserService(HydraService):
         gives them the specified permissions
 
         Args:
-            role (complexmodels.Role): The role to be added 
+            role (complexmodels.Role): The role to be added
 
         Returns:
             complexmodels.Role: The newly created role, complete with ID
@@ -173,10 +197,10 @@ class UserService(HydraService):
         Permenantly delete a role (and all its sub-permissions and users)
 
         Args:
-            role_id (int): The role to be deleted 
+            role_id (int): The role to be deleted
 
         Returns:
-            string: 'OK' 
+            string: 'OK'
 
         Raises:
             ResourceNotFoundError: If the role_id is not found
@@ -196,7 +220,7 @@ class UserService(HydraService):
             perm (complexmodels.Perm): The new permission.
 
         Returns:
-            complexmodels.Perm: The new permission 
+            complexmodels.Perm: The new permission
 
         """
         perm_i = users.add_perm(perm, **ctx.in_header.__dict__)
@@ -208,10 +232,10 @@ class UserService(HydraService):
         Permenantly delete a permission
 
         Args:
-            perm_id (int): The permission to be deleted 
+            perm_id (int): The permission to be deleted
 
         Returns:
-            string: 'OK' 
+            string: 'OK'
 
         Raises:
             ResourceNotFoundError: If the perm_id is not found
@@ -223,7 +247,7 @@ class UserService(HydraService):
     @rpc(Integer, Integer, _returns=Role)
     def set_user_role(ctx, user_id, role_id):
         """
-        Assign a user to a role 
+        Assign a user to a role
 
         Args:
             user_id (int): The user to be given the new role
@@ -244,7 +268,7 @@ class UserService(HydraService):
     @rpc(Integer, Integer, _returns=Unicode)
     def delete_user_role(ctx, user_id, role_id):
         """
-        Remove a user from a role 
+        Remove a user from a role
 
         Args:
             user_id (int): The user to be removed from the role
@@ -264,7 +288,7 @@ class UserService(HydraService):
     @rpc(Integer, Integer, _returns=Role)
     def set_role_perm(ctx, role_id, perm_id):
         """
-        Assign a permission to a role 
+        Assign a permission to a role
 
         Args:
             role_id (int): The role to receive the permission
@@ -274,7 +298,7 @@ class UserService(HydraService):
             complexmodels.Role: The newly updated role, complete with new permission
 
         Raises:
-            ResourceNotFoundError: If the role or permission do not exist 
+            ResourceNotFoundError: If the role or permission do not exist
         """
         role_i = users.set_role_perm(role_id,
                                      perm_id,
@@ -284,10 +308,10 @@ class UserService(HydraService):
     @rpc(Integer, Integer, _returns=Unicode)
     def delete_role_perm(ctx, role_id, perm_id):
         """
-        Remove a permission from a role 
+        Remove a permission from a role
 
         Args:
-            role_id (int): The role to lose the permission 
+            role_id (int): The role to lose the permission
             perm_id (int): The permission being removed from the role
 
         Returns:
@@ -321,7 +345,7 @@ class UserService(HydraService):
         role_i = users.update_role(role, **ctx.in_header.__dict__)
         return Role(role_i)
 
-            
+
     @rpc(_returns=SpyneArray(User))
     def get_all_users(ctx):
         """
@@ -390,7 +414,7 @@ class UserService(HydraService):
             ResourceNotFoundError: If the role does not exist
 
         """
-        role_i = users.get_role(role_id, **ctx.in_header.__dict__)        
+        role_i = users.get_role(role_id, **ctx.in_header.__dict__)
         return Role(role_i)
 
 
@@ -420,7 +444,7 @@ class UserService(HydraService):
         Get the roles assigned to a user. (A user can have multiple roles)
 
         Args:
-            user_id (int): The ID of the user whose roles you want 
+            user_id (int): The ID of the user whose roles you want
 
         Returns:
             List(complexmodels.Role): The roles of the user
@@ -441,7 +465,7 @@ class UserService(HydraService):
             perm_id (int): The ID of the permission
 
         Returns:
-            complexmodels.Perm: The permission 
+            complexmodels.Perm: The permission
 
         Raises:
             ResourceNotFoundError: If the permission does not exist
@@ -460,7 +484,7 @@ class UserService(HydraService):
             perm_id (int): The code of the permission.
 
         Returns:
-            complexmodels.Perm: The permission 
+            complexmodels.Perm: The permission
 
         Raises:
             ResourceNotFoundError: If the permission does not exist
@@ -478,7 +502,7 @@ class UserService(HydraService):
             user_id (int): The user whose permissions you want
 
         Returns:
-            List(complexmodels.Perm): The user's permissions 
+            List(complexmodels.Perm): The user's permissions
 
         Raises:
             ResourceNotFoundError: If the user does not exist
