@@ -168,7 +168,7 @@ class ResourceData(HydraComplexModel):
         if ra.metadata:
             self.metadata = {}
             for m in ra.metadata:
-                self.metadata[m.metadata_name] = m.metadata_val
+                self.metadata[m.key] = m.value
 
             self.dataset_metadata = json.dumps(self.metadata)
 
@@ -217,7 +217,7 @@ class Dataset(HydraComplexModel, Dataset):
             try:
                 self.value = zlib.decompress(parent.value)
             except:
-                self.value = parent.value
+                self.value = unicode(parent.value)
 
         if isinstance(self.value, dict) or isinstance(self.value, list):
                 self.value = json.dumps(self.value)
@@ -230,7 +230,7 @@ class Dataset(HydraComplexModel, Dataset):
             else:
                 metadata = {}
                 for m in parent.metadata:
-                    metadata[m.metadata_name] = m.metadata_val
+                    metadata[m.key] = str(m.value)
                 self.metadata = json.dumps(metadata)
 
     def parse_value(self):
@@ -401,6 +401,7 @@ class ResourceScenario(HydraComplexModel):
         ('attr_id',          Integer(default=None)),
         ('dataset_id',       Integer(default=None)),
         ('value',            Dataset),
+        ('dataset',          Dataset),
         ('source',           Unicode),
         ('cr_date',          Unicode(default=None)),
     ]
@@ -413,7 +414,11 @@ class ResourceScenario(HydraComplexModel):
         self.attr_id          = attr_id if attr_id is not None else parent.resourceattr.attr_id
         self.dataset_id       = parent.dataset_id
 
-        self.value = Dataset(parent.dataset)
+        self.dataset = Dataset(parent.dataset)
+        if hasattr(parent, 'value'):
+            self.dataset = Dataset(parent.value)
+            self.value = Dataset(parent.value)
+
         self.source = parent.source
         self.cr_date = str(parent.cr_date)
 
