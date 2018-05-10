@@ -321,6 +321,7 @@ class Attr(HydraComplexModel):
         ('id', Integer(default=None)),
         ('name', Unicode(default=None)),
         ('dimension', Unicode(default=None)),
+        ('dimen', Unicode(default=None)),
         ('description', Unicode(default=None)),
         ('cr_date', Unicode(default=None)),
     ]
@@ -332,6 +333,10 @@ class Attr(HydraComplexModel):
         self.id          = parent.id
         self.name        = parent.name
         self.dimension   = parent.dimension
+        if hasattr(parent, 'dimen'):
+            self.dimension   = parent.dimen
+
+        self.dimen       = parent.dimension
         self.description = parent.description
         self.cr_date     = str(parent.cr_date)
 
@@ -418,7 +423,6 @@ class ResourceScenario(HydraComplexModel):
         if hasattr(parent, 'value'):
             self.dataset = Dataset(parent.value)
             self.value = Dataset(parent.value)
-
         self.source = parent.source
         self.cr_date = str(parent.cr_date)
 
