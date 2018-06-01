@@ -18,13 +18,13 @@
 import sys
 from hydra_server import s
 
-#To kill this process, use this command:
-#ps -ef | grep 'server.py' | grep 'python' | awk '{print $2}' | xargs kill
+# To kill this process, use this command:
+# ps -ef | grep 'server.py' | grep 'python' | awk '{print $2}' | xargs kill
 if __name__ == '__main__':
 
     args = sys.argv
-    
-    print args
+
+    print (args)
 
     if len(args) > 1:
         port = int(args[1])

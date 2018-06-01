@@ -268,7 +268,7 @@ class Dataset(HydraComplexModel, Dataset):
                 ts = timeseries_pd.to_json(date_format='iso', date_unit='ns')
                 if len(data) > int(config.get('db', 'compression_threshold', 1000)):
                     log.info("Compressing value. Data is %s. Threshold is %s", len(data), config.get('db', 'compression_threshold'))
-		    log.info('value is: %s', ts[0:200])
+                    log.info('value is: %s', ts[0:200])
                     return zlib.compress(ts.encode('utf-8'))
                 else:
                     return ts
@@ -278,7 +278,7 @@ class Dataset(HydraComplexModel, Dataset):
                 json.loads(data)
                 if len(data) > int(config.get('db', 'compression_threshold', 1000)):
                     log.info("Compressing value. Data is %s. Threshold is %s", len(data), config.get('db', 'compression_threshold'))
-		    log.info('value is: %s', data[0:200])
+                    log.info('value is: %s', data[0:200])
                     return zlib.compress(data.encode('utf-8'))
                 else:
                     return data
