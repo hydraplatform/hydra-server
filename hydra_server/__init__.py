@@ -194,8 +194,8 @@ class HydraServer():
     def __init__(self):
 
         hdb.create_default_users_and_perms()
-        hdb.create_default_net()
         make_root_user()
+        hdb.create_default_net()
 
     def create_soap_application(self):
 
