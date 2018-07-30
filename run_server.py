@@ -23,7 +23,7 @@ from hydra_server import s
 if __name__ == '__main__':
 
     args = sys.argv
-    
+
     print(args)
 
     if len(args) > 1:
