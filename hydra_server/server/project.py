@@ -85,7 +85,7 @@ class ProjectService(HydraService):
 
         return Project(proj_dict)
  
-    @rpc(Unicode, _returns=Project)
+    @rpc(Unicode, _returns=SpyneArray(Project))
     def get_project_by_name(ctx, project_name):
         """
         If you don't know the ID of the project in question, but do know
@@ -101,9 +101,9 @@ class ProjectService(HydraService):
             ResourceNotFoundError: If the project is not found.
 
         """
-        proj_dict = project_lib.get_project_by_name(project_name,  **ctx.in_header.__dict__) 
+        proj_dicts = project_lib.get_project_by_name(project_name,  **ctx.in_header.__dict__) 
 
-        return Project(proj_dict)
+        return [Project(proj_dict) for proj_dict in proj_dicts]
 
     @rpc(Integer, _returns=SpyneArray(ProjectSummary))
     def get_projects(ctx, user_id):

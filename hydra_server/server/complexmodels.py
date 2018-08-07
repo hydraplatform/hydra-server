@@ -188,7 +188,6 @@ class Dataset(HydraComplexModel, Dataset):
     _type_info = [
         ('id',               Integer(min_occurs=0, default=None)),
         ('type',             Unicode),
-        ('dimension',        Unicode(min_occurs=1, default='dimensionless')),
         ('unit',             Unicode(min_occurs=1, default=None)),
         ('name',             Unicode(min_occurs=1, default=None)),
         ('value',            Unicode(min_occurs=1, default=None)),
@@ -233,58 +232,6 @@ class Dataset(HydraComplexModel, Dataset):
                     metadata[m.key] = str(m.value)
                 self.metadata = json.dumps(metadata)
 
-    def parse_value(self):
-        """
-            Turn the value of an incoming dataset into a hydra-friendly value.
-        """
-        try:
-            #attr_data.value is a dictionary,
-            #but the keys have namespaces which must be stripped.
-
-
-            if self.value is None:
-                log.warn("Cannot parse dataset. No value specified.")
-                return None
-
-            data = str(self.value)
-
-            if data == 'NULL':
-                return 'NULL'
-
-            if len(data) > 100:
-                log.debug("Parsing %s", data[0:100])
-            else:
-                log.debug("Parsing %s", data)
-
-            if self.type == 'descriptor':
-                return data
-            elif self.type == 'scalar':
-                return data
-            elif self.type == 'timeseries':
-                timeseries_pd = pd.read_json(data)
-
-                #Epoch doesn't work here because dates before 1970 are not
-                # supported in read_json. Ridiculous.
-                ts = timeseries_pd.to_json(date_format='iso', date_unit='ns')
-                if len(data) > int(config.get('db', 'compression_threshold', 1000)):
-                    log.info("Compressing value. Data is %s. Threshold is %s", len(data), config.get('db', 'compression_threshold'))
-                    log.info('value is: %s', ts[0:200])
-                    return zlib.compress(ts.encode('utf-8'))
-                else:
-                    return ts
-            elif self.type == 'array':
-                #check to make sure this is valid json
-                log.info(data)
-                json.loads(data)
-                if len(data) > int(config.get('db', 'compression_threshold', 1000)):
-                    log.info("Compressing value. Data is %s. Threshold is %s", len(data), config.get('db', 'compression_threshold'))
-                    log.info('value is: %s', data[0:200])
-                    return zlib.compress(data.encode('utf-8'))
-                else:
-                    return data
-        except Exception as e:
-            log.exception(e)
-            raise HydraError("Error parsing value %s: %s"%(self.value, e))
 
 class DatasetCollection(HydraComplexModel):
     """
@@ -645,7 +592,7 @@ class Template(HydraComplexModel):
         ('id',        Integer(default=None)),
         ('name',      Unicode(default=None)),
         ('layout',    AnyDict(min_occurs=0, max_occurs=1, default=None)),
-        ('types',     SpyneArray(TemplateType)),
+        ('templatetypes', SpyneArray(TemplateType)),
         ('cr_date',   Unicode(default=None)),
     ]
 
@@ -662,7 +609,7 @@ class Template(HydraComplexModel):
         types = []
         for templatetype in parent.templatetypes:
             types.append(TemplateType(templatetype))
-        self.types = types
+        self.templatetypes = types
 
 class TypeSummary(HydraComplexModel):
     """
@@ -684,10 +631,17 @@ class TypeSummary(HydraComplexModel):
         if parent is None:
             return
 
-        self.name          = parent.name
-        self.id            = parent.id
-        self.template_name = parent.template_name
-        self.template_id   = parent.template_id
+        if hasattr(parent, 'templatetype'):
+            self.name          = parent.templatetype.name
+            self.id            = parent.templatetype.id
+            self.template_name = parent.templatetype.template.name
+            self.template_id   = parent.templatetype.template.id
+        else:
+
+            self.name          = parent.name
+            self.id            = parent.id
+            self.template_name = parent.template_name
+            self.template_id   = parent.template_id
 
 class ValidationError(HydraComplexModel):
     """
@@ -795,8 +749,8 @@ class Node(Resource):
        - **name**        Unicode(default=None)
        - **description** Unicode(min_occurs=1, default="")
        - **layout**      AnyDict(min_occurs=0, max_occurs=1, default=None)
-       - **x**           Decimal(min_occurs=1, default=0)
-       - **y**           Decimal(min_occurs=1, default=0)
+       - **x**           Double(min_occurs=1, default=0)
+       - **y**           Double(min_occurs=1, default=0)
        - **status**      Unicode(default='A** pattern="[AX]")
        - **attributes**  SpyneArray(ResourceAttr)
        - **types**       SpyneArray(TypeSummary)
@@ -807,8 +761,8 @@ class Node(Resource):
         ('name',        Unicode(default=None)),
         ('description', Unicode(min_occurs=0, default="")),
         ('layout',      AnyDict(min_occurs=0, max_occurs=1, default=None)),
-        ('x',           Decimal(min_occurs=1, default=0)),
-        ('y',           Decimal(min_occurs=1, default=0)),
+        ('x',           Double(min_occurs=1, default=0)),
+        ('y',           Double(min_occurs=1, default=0)),
         ('status',      Unicode(default='A', pattern="[AX]")),
         ('attributes',  SpyneArray(ResourceAttr)),
         ('types',       SpyneArray(TypeSummary)),
@@ -824,8 +778,8 @@ class Node(Resource):
 
         self.id = parent.id
         self.name = parent.name
-        self.x = parent.x
-        self.y = parent.y
+        self.x = float(parent.x)
+        self.y = float(parent.y)
         self.description = parent.description
         self.cr_date = str(parent.cr_date)
         self.layout = self.get_outgoing_layout(parent.layout)
