@@ -37,6 +37,7 @@ from spyne.application import Application
 from spyne.protocol.soap import Soap11
 from spyne.protocol.json import JsonDocument, JsonP
 from spyne.protocol.http import HttpRpc
+import six
 
 import spyne.decorator
 
@@ -249,7 +250,13 @@ class HydraServer():
 
         check_port_available(domain, port)
 
-        #spyne.const.xml_ns.DEFAULT_NS = 'soap_server.hydra_complexmodels'
+        default_ns = 'soap_server.hydra_complexmodels'
+
+    
+        if six.PY3:
+            spyne.const.xml.DEFAULT_NS = default_ns
+        else:
+            spyne.const.xml_ns.DEFAULT_NS = default_ns
 
         cp_wsgi_application = Server((domain,port), application, numthreads=10)
 
