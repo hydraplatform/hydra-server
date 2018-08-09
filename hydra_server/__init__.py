@@ -194,8 +194,8 @@ class HydraServer():
     def __init__(self):
 
         hdb.create_default_users_and_perms()
-        hdb.create_default_net()
         make_root_user()
+        hdb.create_default_net()
 
     def create_soap_application(self):
 
@@ -249,7 +249,7 @@ class HydraServer():
 
         check_port_available(domain, port)
 
-        spyne.const.xml_ns.DEFAULT_NS = 'soap_server.hydra_complexmodels'
+        #spyne.const.xml_ns.DEFAULT_NS = 'soap_server.hydra_complexmodels'
 
         cp_wsgi_application = Server((domain,port), application, numthreads=10)
 
