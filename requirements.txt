@@ -76,5 +76,4 @@ xlrd==1.1.0
 zope.interface==4.5.0
 zope.sqlalchemy==1.0
 
-# git+git://github.com/hydraplatform/hydra-base.git@master-for-docker-1#egg=hydra-base
-# git+git://github.com/hydraplatform/hydra-server.git@master#egg=hydra-server
+git+git://github.com/hydraplatform/hydra-base.git@master#egg=hydra-base
