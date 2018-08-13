@@ -34,7 +34,7 @@ if platform.system() == "Windows":  # only add winpaths when platform is Windows
 
 setup(
     name='hydra-server',
-    version='0.1.1',
+    version='0.1.2',
     description='A JSON RPC server front end for the hydra-base network manager',
     author='Stephen Knox',
     author_email='stephen.knox@manchester.ac.uk',
