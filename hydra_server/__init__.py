@@ -17,6 +17,8 @@
 # along with HydraPlatform.  If not, see <http://www.gnu.org/licenses/>
 #
 
+__version__ = '0.1.3'
+
 import bcrypt
 password = ''
 bcrypt.hashpw(password.encode('utf8'), bcrypt.gensalt())
@@ -37,13 +39,13 @@ try:
 
     if six.PY3 and int(sub_version) < 13:
         log.warn("\nThe current version of spyne on PYPI does not work well with Python 3. Please run the following command to get the latest development version, which does.\n\n"+
-                        "pip install git+git://github.com/arskom/spyne.git@spyne-2.13.2-alpha#egg=spyne\n\n")
+                        "pip install --upgrade git+https://github.com/arskom/spyne.git@spyne-2.13.2-alpha#egg=spyne\n\n")
         sys.exit()
         
 except ModuleNotFoundError as e:
         log.warn("\nOne of the dependencies -- Spyne -- is not installed."+
                         " The current version of spyne on PYPI does not work well with Python 3. Please run the following command to get the latest development version, which does.\n\n"+
-                        "pip install git+git://github.com/arskom/spyne.git@spyne-2.13.2-alpha#egg=spyne\n\n")
+                        "pip install git+https://github.com/arskom/spyne.git@spyne-2.13.2-alpha#egg=spyne\n\n")
         sys.exit()
     
 
