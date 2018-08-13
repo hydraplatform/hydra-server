@@ -247,7 +247,7 @@ class HydraServer():
             port = config.getint('hydra_server', 'port', 8080)
 
         domain = config.get('hydra_server', 'domain', '127.0.0.1')
-
+        print(domain)
         check_port_available(domain, port)
 
         default_ns = 'soap_server.hydra_complexmodels'
