@@ -17,24 +17,17 @@ except ImportError:
     use_setuptools()
     from setuptools import setup, find_packages
 
-testpkgs=[
-               'nose',
-               'coverage',
-               ]
 
 install_requires=[
-    "beaker",
-    "zope.sqlalchemy >= 0.4",
-    "sqlalchemy",
-    "pandas",
-    "numpy",
-    "bcrypt",
+    "hydra-base",
     "lxml",
-    "mysql-connector-python",
-    "spyne >= 2.12",
-    "python-dateutil",
-    "hydra-base"
+    "spyne", 
+    "click",
     ]
+
+dependency_links=[
+    "git+git://github.com/arskom/spyne.git@spyne-2.13.2-alpha#egg=spyne",
+]
 
 if platform.system() == "Windows":  # only add winpaths when platform is Windows so that setup.py is universal
     install_requires.append("winpaths")
@@ -46,22 +39,12 @@ setup(
     author='Stephen Knox',
     author_email='stephen.knox@manchester.ac.uk',
     url='https://github.com/hydraplatform/hydra-server',
-    packages=find_packages(exclude=['ez_setup']),
     install_requires=install_requires,
+    dependency_links=dependency_links,
     include_package_data=True,
-    test_suite='nose.collector',
-    tests_require=testpkgs,
-    package_data={'hydra-server': []},
-    message_extractors={'hydra-server': [
-            ('**.py', 'python', None),
-            ('templates/**.html', 'genshi', None),
-            ('public/**', 'ignore', None)]},
-
-    entry_points = {
-                'setuptools.installation': [
-                    'eggsecutable = server:run',
-                ]
-    },
+    entry_points='''
+        [console_scripts]
+        hydra-server=run_server:start_cli
+        ''',
     zip_safe=False,
-    dependency_links=['http://dev.mysql.com/get/Downloads/Connector-Python/mysql-connector-python-2.1.4.zip'],
 )

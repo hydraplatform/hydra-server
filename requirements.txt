@@ -1,0 +1,5 @@
+git+git://github.com/arskom/spyne.git@spyne-2.13.2-alpha#egg=spyne
+hydra-base
+lxml
+click
+spyne

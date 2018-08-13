@@ -16,19 +16,25 @@
 # along with HydraPlatform.  If not, see <http://www.gnu.org/licenses/>
 #
 import sys
-from hydra_server import s
+
+import click
+
+@click.group()
+def cli():
+    """ CLI for the Hydra Server application. """
+    pass
+
+@cli.command()
+@click.option('-p', '--port', default=8080, help='Port Number')
+def run(port):
+
+    from hydra_server import s
+    s.run_server(port=port)
+
+def start_cli():
+    cli()
 
 #To kill this process, use this command:
 #ps -ef | grep 'server.py' | grep 'python' | awk '{print $2}' | xargs kill
 if __name__ == '__main__':
-
-    args = sys.argv
-    
-    print(args)
-
-    if len(args) > 1:
-        port = int(args[1])
-    else:
-        port = None
-
-    s.run_server(port=port)
+    start_cli()
