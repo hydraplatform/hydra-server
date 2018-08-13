@@ -23,13 +23,37 @@ bcrypt.hashpw(password.encode('utf8'), bcrypt.gensalt())
 
 
 import sys
+
+import six
+
+
+import logging
+log = logging.getLogger(__name__)
+
+try:
+    import spyne
+    main_version = spyne.__version__.split('.')[0]
+    sub_version = spyne.__version__.split('.')[1]
+
+    if six.PY3 and int(sub_version) < 13:
+        log.warn("\nThe current version of spyne on PYPI does not work well with Python 3. Please run the following command to get the latest development version, which does.\n\n"+
+                        "pip install git+git://github.com/arskom/spyne.git@spyne-2.13.2-alpha#egg=spyne\n\n")
+        sys.exit()
+        
+except ModuleNotFoundError as e:
+        log.warn("\nOne of the dependencies -- Spyne -- is not installed."+
+                        " The current version of spyne on PYPI does not work well with Python 3. Please run the following command to get the latest development version, which does.\n\n"+
+                        "pip install git+git://github.com/arskom/spyne.git@spyne-2.13.2-alpha#egg=spyne\n\n")
+        sys.exit()
+    
+
+
 import spyne.service #Needed for build script.
 #if "./python" not in sys.path:
 #    sys.path.append("./python")
 #if "../../HydraLib/trunk/" not in sys.path:
 #    sys.path.append("../../HydraLib/trunk/")
 
-import logging
 from decimal import getcontext
 getcontext().prec = 26
 
@@ -110,7 +134,6 @@ import traceback
 from cheroot.wsgi import Server
 from hydra_base.db import commit_transaction, rollback_transaction, close_session
 
-log = logging.getLogger(__name__)
 
 def _on_method_call(ctx):
 
@@ -194,8 +217,8 @@ class HydraServer():
     def __init__(self):
 
         hdb.create_default_users_and_perms()
-        hdb.create_default_net()
         make_root_user()
+        hdb.create_default_net()
 
     def create_soap_application(self):
 
@@ -249,7 +272,13 @@ class HydraServer():
 
         check_port_available(domain, port)
 
-        spyne.const.xml_ns.DEFAULT_NS = 'soap_server.hydra_complexmodels'
+        default_ns = 'soap_server.hydra_complexmodels'
+
+    
+        if six.PY3:
+            spyne.const.xml.DEFAULT_NS = default_ns
+        else:
+            spyne.const.xml_ns.DEFAULT_NS = default_ns
 
         cp_wsgi_application = Server((domain,port), application, numthreads=10)
 
