@@ -33,6 +33,7 @@ import zlib
 from hydra_base import config
 from hydra_base.util import get_layout_as_dict
 from hydra_base.exceptions import HydraError
+import six
 
 from hydra_base.lib.objects import Dataset
 
@@ -43,7 +44,7 @@ def get_timestamp(ordinal):
     if ordinal is None:
         return None
 
-    if type(ordinal) in (str, unicode):
+    if type(ordinal) in six.string_types:
         ordinal = Dec(ordinal)
     timestamp = str(ordinal_to_timestamp(ordinal))
     return timestamp
@@ -66,7 +67,6 @@ class LoginResponse(HydraComplexModel):
     __namespace__ = 'server.complexmodels'
     _type_info = [
         ('user_id',  Integer(min_occurs=1)),
-        #('username',  Unicode(min_occurs=1)),
     ]
 
 class ResourceData(HydraComplexModel):
@@ -216,12 +216,12 @@ class Dataset(HydraComplexModel, Dataset):
             try:
                 self.value = zlib.decompress(parent.value)
             except:
-                self.value = unicode(parent.value)
+                self.value = str(parent.value)
 
         if isinstance(self.value, dict) or isinstance(self.value, list):
                 self.value = json.dumps(self.value)
         else:
-            self.value = unicode(self.value)
+            self.value = str(self.value)
 
         if include_metadata is True:
             if isinstance(parent.metadata, dict):
