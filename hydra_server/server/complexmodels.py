@@ -367,9 +367,6 @@ class ResourceScenario(HydraComplexModel):
         self.dataset_id       = parent.dataset_id
 
         self.dataset = Dataset(parent.dataset)
-        if hasattr(parent, 'value'):
-            self.dataset = Dataset(parent.value)
-            self.value = Dataset(parent.value)
         self.source = parent.source
         self.cr_date = str(parent.cr_date)
 
