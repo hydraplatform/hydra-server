@@ -20,6 +20,7 @@ from .complexmodels import Dataset,\
         DatasetCollection
 
 from hydra_base.lib import data
+from hydra_base.lib.objects import Dataset as JSONDataset
 
 import json
 
@@ -55,12 +56,12 @@ class DataService(HydraService):
         """
         value = dataset.parse_value()
         metadata = dataset.get_metadata_as_dict(user_id=ctx.in_header.user_id)
-        dataset_i = data.add_dataset(dataset.type,
-                                     value,
-                                     dataset.unit,
-                                     dataset.dimension,
-                                     metadata,
-                                     dataset.name,
+        dataset_i = data.add_dataset(JSONDataset({'type':dataset.type,
+                                                  'value': value,
+                                                  'unit': dataset.unit,
+                                                  'metadata':metadata,
+                                                  'name':dataset.name
+                                                  'hidden':dataset.hidden})
                                      ctx.in_header.user_id,
                                     flush=True)
 
@@ -464,15 +465,14 @@ class DataService(HydraService):
         val = dataset.parse_value()
 
         metadata = dataset.get_metadata_as_dict()
-
-        updated_dataset = data.update_dataset(dataset.id,
-                                        dataset.name,
-                                        dataset.type,
-                                        val,
-                                        dataset.unit,
-                                        dataset.dimension,
-                                        metadata,
-                                        **ctx.in_header.__dict__)
+        updated_dataset = data.update_dataset(JSONDataset({'id': dataset.id,
+                                                  'type':dataset.type,
+                                                  'value': value,
+                                                  'unit': dataset.unit,
+                                                  'metadata':metadata,
+                                                  'name':dataset.name
+                                                  'hidden':dataset.hidden}),
+                                                **ctx.in_header.__dict__)
 
         return Dataset(updated_dataset)
 
