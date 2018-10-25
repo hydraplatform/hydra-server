@@ -36,17 +36,24 @@ class ScenarioService(HydraService):
         about negative IDS
     """
 
-    @rpc(Integer, Unicode(pattern="['YN']", default='N'), _returns=Scenario)
-    def get_scenario(ctx, scenario_id, return_summary):
+    @rpc(Integer, Unicode(pattern="['YN']", default='N'), Unicode(pattern="['YN']", default='N'), _returns=Scenario)
+    def get_scenario(ctx, scenario_id, return_summary, get_parent_data):
         """
             Get the specified scenario
         """
-        scen = scenario.get_scenario(scenario_id, **ctx.in_header.__dict__)
-
-        if return_summary=='Y':
-            return Scenario(scen, summary=True)
+        if get_parent_data.upper() == 'Y':
+            _get_parent_data=True
         else:
-            return Scenario(scen, summary=False)
+            _get_parent_data=False
+        
+        scen = scenario.get_scenario(scenario_id, get_parent_data=_get_parent_data, **ctx.in_header.__dict__)
+
+        if return_summary.upper()=='Y':
+            summary = True
+        else:
+            summary = False
+
+        return Scenario(scen, summary=summary)
 
     @rpc(Integer, Scenario, Unicode(pattern="['YN']", default='N'), _returns=Scenario)
     def add_scenario(ctx, network_id, scen, return_summary):
@@ -113,6 +120,15 @@ class ScenarioService(HydraService):
         cloned_scen = scenario.clone_scenario(scenario_id, **ctx.in_header.__dict__)
 
         return Scenario(cloned_scen, summary=True)
+
+    @rpc(Integer, Unicode(default=None), _returns=Scenario)
+    def create_child_scenario(ctx, scenario_id, child_name):
+        """
+            Create a new scenario which inherits from the specified scenario
+        """
+        child_scen = scenario.create_child_scenario(scenario_id, child_name, **ctx.in_header.__dict__)
+
+        return Scenario(child_scen, summary=True)
 
     @rpc(Integer, Integer, _returns=ScenarioDiff)
     def compare_scenarios(ctx, scenario_id_1, scenario_id_2):
@@ -194,15 +210,22 @@ class ScenarioService(HydraService):
         x = ResourceScenario(new_rs)
         return x
 
-    @rpc(Integer, _returns=SpyneArray(Dataset))
-    def get_scenario_data(ctx, scenario_id):
+    @rpc(Integer,
+         Unicode(pattern="['YN']", default='N'),
+         _returns=SpyneArray(Dataset))
+    def get_scenario_data(ctx, scenario_id, get_parent_data):
         scenario_data = scenario.get_scenario_data(scenario_id,
+                                                   get_parent_data = True if get_parent_data.upper() == 'Y' else False,
                                                    **ctx.in_header.__dict__)
         data_cm = [Dataset(d) for d in scenario_data]
         return data_cm
 
-    @rpc(Integer, Integer, Integer(min_occurs=0, max_occurs=1), _returns=SpyneArray(ResourceScenario))
-    def get_node_data(ctx, node_id, scenario_id, type_id):
+    @rpc(Integer,
+         Integer,
+         Integer(min_occurs=0, max_occurs=1),
+         Unicode(pattern="['YN']", default='N'),
+         _returns=SpyneArray(ResourceScenario))
+    def get_node_data(ctx, node_id, scenario_id, type_id, get_parent_data):
         """
             Get all the resource scenarios for a given node 
             in a given scenario. If type_id is specified, only
@@ -213,14 +236,19 @@ class ScenarioService(HydraService):
                                                node_id,
                                                scenario_id,
                                                type_id,
+                                               get_parent_data = True if get_parent_data.upper() == 'Y' else False,
                                                **ctx.in_header.__dict__
                                               )
         
         ret_data = [ResourceScenario(rs) for rs in node_data]
         return ret_data 
 
-    @rpc(Integer, Integer, Integer(min_occurs=0, max_occurs=1), _returns=SpyneArray(ResourceScenario))
-    def get_link_data(ctx, link_id, scenario_id, type_id):
+    @rpc(Integer,
+         Integer,
+         Integer(min_occurs=0, max_occurs=1),
+         Unicode(pattern="['YN']", default='N'),
+         _returns=SpyneArray(ResourceScenario))
+    def get_link_data(ctx, link_id, scenario_id, type_id, get_parent_data):
         """
             Get all the resource scenarios for a given link 
             in a given scenario. If type_id is specified, only
@@ -231,14 +259,19 @@ class ScenarioService(HydraService):
                                                link_id,
                                                scenario_id,
                                                type_id,
+                                               get_parent_data = True if get_parent_data.upper() == 'Y' else False,
                                                **ctx.in_header.__dict__
         )
         
         ret_data = [ResourceScenario(rs) for rs in link_data]
         return ret_data
 
-    @rpc(Integer, Integer, Integer(min_occurs=0, max_occurs=1), _returns=SpyneArray(ResourceScenario))
-    def get_network_data(ctx, network_id, scenario_id, type_id):
+    @rpc(Integer,
+         Integer,
+         Integer(min_occurs=0, max_occurs=1),
+         Unicode(pattern="['YN']", default='N'),
+         _returns=SpyneArray(ResourceScenario))
+    def get_network_data(ctx, network_id, scenario_id, type_id, get_parent_data):
         """
             Get all the resource scenarios for a given network 
             in a given scenario. If type_id is specified, only
@@ -249,13 +282,18 @@ class ScenarioService(HydraService):
                                                network_id,
                                                scenario_id,
                                                type_id,
+                                               get_parent_data = True if get_parent_data.upper() == 'Y' else False,
                                                 **ctx.in_header.__dict__)
         
         ret_data = [ResourceScenario(rs) for rs in network_data]
         return ret_data
 
-    @rpc(Integer, Integer, Integer(min_occurs=0, max_occurs=1), _returns=SpyneArray(ResourceScenario))
-    def get_resourcegroup_data(ctx, resourcegroup_id, scenario_id, type_id):
+    @rpc(Integer,
+         Integer,
+         Integer(min_occurs=0, max_occurs=1),
+         Unicode(pattern="['YN']", default='N'),
+         _returns=SpyneArray(ResourceScenario))
+    def get_resourcegroup_data(ctx, resourcegroup_id, scenario_id, type_id, get_parent_data):
         """
             Get all the resource scenarios for a given resourcegroup 
             in a given scenario. If type_id is specified, only
@@ -266,6 +304,7 @@ class ScenarioService(HydraService):
                                                resourcegroup_id,
                                                scenario_id,
                                                type_id,
+                                               get_parent_data = True if get_parent_data.upper() == 'Y' else False,
                                                **ctx.in_header.__dict__)
         
         ret_data = [ResourceScenario(rs) for rs in group_data]
@@ -294,8 +333,10 @@ class ScenarioService(HydraService):
 
         return ret_obj
 
-    @rpc(Integer, Integer, _returns=SpyneArray(ResourceAttr))
-    def get_attribute_datasets(ctx, attr_id, scenario_id):
+    @rpc(Integer,
+         Integer,
+         Unicode(pattern="['YN']", default='N'), _returns=SpyneArray(ResourceAttr))
+    def get_attribute_datasets(ctx, attr_id, scenario_id, get_parent_data):
         """
             Get all the datasets from resource attributes with the given attribute
             ID in the given scenario.
@@ -303,7 +344,10 @@ class ScenarioService(HydraService):
             Return a list of resource attributes with their associated
             resource scenarios (and values).
         """
-        resource_attrs = scenario.get_attribute_datasests(attr_id, scenario_id, **ctx.in_header.__dict__)
+        resource_attrs = scenario.get_attribute_datasests(attr_id,
+                                                          scenario_id,
+                                                          get_parent_data = True if get_parent_data.upper() == 'Y' else False,
+                                                          **ctx.in_header.__dict__)
 
         ra_cms = []
         for ra in resource_attrs:
@@ -369,3 +413,25 @@ class ScenarioService(HydraService):
             return ResourceScenario(updated_rs)
         else:
             return None
+
+
+    @rpc(Integer,
+         Integer,
+         Unicode(pattern="['YN']", default='N'),
+         _returns=ResourceScenario)
+    def get_resource_scenario(ctx, resource_attr_id, scenario_id, get_parent_data=False):
+        """
+            Get the resource scenario object for a given resource atttribute and scenario.
+            This is done when you know the attribute, resource and scenario and want to get the
+            value associated with it.
+
+            The get_parent_data flag indicates whether we should look only at this scenario, or if
+            the resource scenario does not exist on this scenario to look in its parent.
+
+        """
+        rs = get_resource_scenario(resource_attr_id,
+                                   scenario_id,
+                                   get_parent_data=False,
+                                   **ctx.in_header.__dict__)
+        
+        return ResourceScenario(rs)
