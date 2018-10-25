@@ -390,9 +390,15 @@ class ScenarioService(HydraService):
         
         return ResourceScenario(rs)
         
-    @rpc(Integer, Integer, _returns=SpyneArray(ResourceGroupItem))
-    def get_resourcegroupitems(ctx, group_id, scenario_id):
-        items = scenario.get_resourcegroupitems(group_id, scenario_id, **ctx.in_header.__dict__)
+    @rpc(Integer,
+         Integer, 
+         Unicode(pattern="['YN']", default='N'),
+         _returns=SpyneArray(ResourceGroupItem))
+    def get_resourcegroupitems(ctx, group_id, scenario_id, get_parent_items):
+        items = scenario.get_resourcegroupitems(group_id,
+                                                scenario_id,
+                                                get_parent_items = True if get_parent_items.upper() == 'Y' else False,
+                                                **ctx.in_header.__dict__)
 
         return [ResourceGroupItem(rgi) for rgi in items]
 
@@ -419,7 +425,7 @@ class ScenarioService(HydraService):
          Integer,
          Unicode(pattern="['YN']", default='N'),
          _returns=ResourceScenario)
-    def get_resource_scenario(ctx, resource_attr_id, scenario_id, get_parent_data=False):
+    def get_resource_scenario(ctx, resource_attr_id, scenario_id, get_parent_data):
         """
             Get the resource scenario object for a given resource atttribute and scenario.
             This is done when you know the attribute, resource and scenario and want to get the
@@ -431,7 +437,7 @@ class ScenarioService(HydraService):
         """
         rs = get_resource_scenario(resource_attr_id,
                                    scenario_id,
-                                   get_parent_data=False,
+                                    get_parent_data = True if get_parent_data.upper() == 'Y' else False,
                                    **ctx.in_header.__dict__)
         
         return ResourceScenario(rs)
