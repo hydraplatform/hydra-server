@@ -352,6 +352,7 @@ class ResourceScenario(HydraComplexModel):
         ('resource_attr_id', Integer(default=None)),
         ('attr_id',          Integer(default=None)),
         ('dataset_id',       Integer(default=None)),
+        ('scenario_id',      Integer(default=None)),
         ('value',            Dataset),
         ('dataset',          Dataset),
         ('source',           Unicode),
@@ -365,6 +366,7 @@ class ResourceScenario(HydraComplexModel):
         self.resource_attr_id = parent.resource_attr_id
         self.attr_id          = attr_id if attr_id is not None else parent.resourceattr.attr_id
         self.dataset_id       = parent.dataset_id
+        self.scenario_id      = parent.scenario_id
 
         self.dataset = Dataset(parent.dataset)
         self.source = parent.source
