@@ -630,7 +630,8 @@ class TypeSummary(HydraComplexModel):
         if parent is None:
             return
 
-        if hasattr(parent, 'templatetype'):
+        if hasattr(parent, 'templatetype') and parent.templatetype is not None:
+            # Here just if the parent contains templatetype and it is not None
             self.name          = parent.templatetype.name
             self.id            = parent.templatetype.id
             self.template_name = parent.templatetype.template.name
@@ -651,7 +652,7 @@ class ValidationError(HydraComplexModel):
        - **attr_name**        Unicode(default=None)
        - **attr_id**          Integer(default=None)
        - **template_id**      Integer(default=None)
-       - **type_id**          Integer(defult=None)
+       - **type_id**          Integer(default=None)
        - **resource_attr_id** Integer(default=None)
        - **dataset_id**       Integer(default=None)
        - **error_text**       Unicode(default=None)
@@ -664,7 +665,7 @@ class ValidationError(HydraComplexModel):
         ('attr_name',        Unicode(default=None)),
         ('attr_id',          Integer(default=None)),
         ('template_id',      Integer(default=None)),
-        ('type_id',          Integer(defult=None)),
+        ('type_id',          Integer(default=None)),
         ('resource_attr_id', Integer(default=None)),
         ('dataset_id',       Integer(default=None)),
         ('error_text',       Unicode(default=None)),
