@@ -17,17 +17,98 @@
 # -*- coding: utf-8 -*-
 
 from spyne.model.primitive import Unicode, Boolean, Decimal, Integer
-from spyne.model.complex import Array as SpyneArray
+from spyne.model.complex import Array as SpyneArray, ComplexModel
 from spyne.decorator import rpc
 from spyne.util.dictdoc import get_object_as_dict
 from .service import HydraService
 from .complexmodels import Unit, Dimension
 
 from hydra_base.lib import units
+import json
+
+import logging
+log = logging.getLogger(__name__)
+
 
 class UnitService(HydraService):
     """
     """
+    @rpc(_returns=SpyneArray(Unicode))
+    def get_dimensions(ctx):
+        """
+            Get a list of all physical dimensions available on the server.
+        """
+        dim_list = units.get_dimensions(**ctx.in_header.__dict__)
+        return dim_list
+
+    @rpc(_returns=SpyneArray(Dimension))
+    def get_all_dimensions(ctx):
+        """
+            Get a list of all physical dimensions available on the server.
+        """
+        dimdict = units.get_all_dimensions(**ctx.in_header.__dict__)
+        dimens = []
+        for dim_name, unit_list in dimdict.items():
+            dimens.append(Dimension(dim_name, unit_list))
+        return dimens
+
+    @rpc(Unicode, _returns=SpyneArray(Unit))
+    def get_units(ctx, dimension):
+        """
+            Get a list of all units corresponding to a physical dimension.
+        """
+        log.info("Server - get_units - dimension={}".format(dimension))
+        unit_list = units.get_units(dimension, **ctx.in_header.__dict__)
+        return unit_list
+
+
+    @rpc(Unicode, _returns=SpyneArray(Unicode))
+    def get_dimension(ctx, dimension):
+        """
+            Get a list of all units assigned to a dimension.
+        """
+        units_list = units.get_dimension(dimension, **ctx.in_header.__dict__)
+        return units_list
+
+    @rpc(Unicode, _returns=Unicode)
+    def get_dimension_data(ctx, dimension_name,**kwargs):
+        """
+            Given a dimension returns all its data
+        """
+        dimension_data = units.get_dimension_data(dimension_name, **ctx.in_header.__dict__)
+
+        return json.dumps(dimension_data)
+
+
+    @rpc(Unicode, _returns=Unicode)
+    def get_unit_dimension(ctx, unit1):
+        """Get the corresponding physical dimension for a given unit.
+
+        Example::
+
+            >>> cli = PluginLib.connect()
+            >>> cli.service.get_dimension('m')
+            Length
+        """
+        dim = units.get_unit_dimension(unit1, **ctx.in_header.__dict__)
+
+        return dim
+
+    @rpc(Unicode, _returns=Unicode)
+    def get_unit_dimension(ctx, unit1):
+        """Get the corresponding physical dimension for a given unit.
+
+        Example::
+
+            >>> cli = PluginLib.connect()
+            >>> cli.service.get_dimension('m')
+            Length
+        """
+        dim = units.get_unit_dimension(unit1, **ctx.in_header.__dict__)
+
+        return dim
+
+
 
     @rpc(Unicode, _returns=Boolean)
     def add_dimension(ctx, dimension):
@@ -35,16 +116,38 @@ class UnitService(HydraService):
         servers list of dimensions. If the dimension already exists, nothing is
         done.
         """
+        try:
+            # Trying to decode as a json
+            dimension = json.loads(dimension)
+        except Exception as e:
+            # It is a straight string
+            pass
         result = units.add_dimension(dimension, **ctx.in_header.__dict__)
-        return result
+        return json.dumps(result)
+
+    @rpc(Unicode, _returns=Boolean)
+    def update_dimension(ctx, dimension):
+        """
+            update a physical dimensions (such as ``Volume`` or ``Speed``) to the
+            servers list of dimensions.
+        """
+        dimension = json.loads(dimension)
+        result = units.update_dimension(dimension, **ctx.in_header.__dict__)
+        return json.dumps(result)
 
     @rpc(Unicode, _returns=Boolean)
     def delete_dimension(ctx, dimension):
         """Delete a physical dimension from the list of dimensions. Please note
         that deleting works only for dimensions listed in the custom file.
         """
+        try:
+            # Trying to decode as a json
+            dimension = json.loads(dimension)
+        except Exception as e:
+            # It is a straight string
+            pass
         result = units.delete_dimension(dimension, **ctx.in_header.__dict__)
-        return result
+        return str(result)
 
     @rpc(Unit, _returns=Boolean)
     def add_unit(ctx, unit):
@@ -112,43 +215,9 @@ class UnitService(HydraService):
         """
         return units.convert_dataset(dataset_id, to_unit, **ctx.in_header.__dict__)
 
-    @rpc(Unicode, _returns=Unicode)
-    def get_unit_dimension(ctx, unit1):
-        """Get the corresponding physical dimension for a given unit.
 
-        Example::
 
-            >>> cli = PluginLib.connect()
-            >>> cli.service.get_dimension('m')
-            Length
-        """
-        dim = units.get_unit_dimension(unit1, **ctx.in_header.__dict__)
 
-        return dim
-
-    @rpc(_returns=SpyneArray(Unicode))
-    def get_dimensions(ctx):
-        """Get a list of all physical dimensions available on the server.
-        """
-        dim_list = units.get_dimensions(**ctx.in_header.__dict__)
-        return dim_list
-
-    @rpc(_returns=SpyneArray(Dimension))
-    def get_all_dimensions(ctx):
-        """Get a list of all physical dimensions available on the server.
-        """
-        dimdict = units.get_all_dimensions(**ctx.in_header.__dict__)
-        dimens = []
-        for dim_name, unit_list in dimdict.items():
-            dimens.append(Dimension(dim_name, unit_list))
-        return dimens
-
-    @rpc(Unicode, _returns=SpyneArray(Unit))
-    def get_units(ctx, dimension):
-        """Get a list of all units corresponding to a physical dimension.
-        """
-        unit_list = units.get_units(dimension, **ctx.in_header.__dict__)
-        return unit_list
 
     @rpc(Unicode, Unicode, _returns=Boolean)
     def check_consistency(ctx, unit, dimension):
