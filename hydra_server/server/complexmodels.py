@@ -1511,12 +1511,16 @@ class Unit(HydraComplexModel):
        - **dimension** Unicode
     """
     _type_info = [
+        ('id',     Integer),
         ('name', Unicode),
-        ('abbr', Unicode),
+        ('abbr', Unicode),  # Alias for abbreviation
+        ('abbreviation', Unicode),
         ('cf', Double),
         ('lf', Double),
-        ('info', Unicode),
+        ('info', Unicode), # Alias for description
+        ('description', Unicode),
         ('dimension', Unicode),
+        ('project_id', Integer)
     ]
 
     def __init__(self, parent=None):
@@ -1538,11 +1542,15 @@ class Dimension(HydraComplexModel):
        - **units** SpyneArray(Unicode)
     """
     _type_info = [
+        ('id',     Integer),
         ('name', Unicode),
+        ('description', Unicode),
         ('units', SpyneArray(Unicode)),
+        ('project_id', Integer)
     ]
 
-    def __init__(self, name, units):
-
-        self.name = name
-        self.units = units
+    def __init__(self, parent=None):
+        if parent is None:
+            return
+        self.name = parent.name
+        self.units = parent.units
