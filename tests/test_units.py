@@ -26,6 +26,7 @@ import logging
 log = logging.getLogger(__name__)
 import sys
 import json
+import util
 
 """
 +----------------------------+
@@ -137,36 +138,39 @@ class TestUnits():
         # Try to add an existing dimension
         testdim = {'name': 'Length'}
         with pytest.raises(RequestError) as excinfo:
-            client.add_dimension(wrap_item_into_dict("dimension", json.dumps(testdim)))
+            client.add_dimension(wrap_item_into_dict("dimension", testdim))
+            #client.add_dimension(wrap_item_into_dict("dimension", json.dumps(testdim)))
 
         # Add a new dimension
         testdim = {'name':'Electric current'}
-        client.add_dimension(wrap_item_into_dict("dimension", json.dumps(testdim)))
+        #client.add_dimension(wrap_item_into_dict("dimension", json.dumps(testdim)))
+        client.add_dimension(wrap_item_into_dict("dimension", testdim))
 
         dimension_list = list(client.get_dimensions())
         assert testdim["name"] in dimension_list, \
             "Adding new dimension didn't work as expected."
 
         # Add a new dimension as scalar
-        testdim = 'Electric test'
-        client.add_dimension(wrap_item_into_dict("dimension", json.dumps(testdim)))
-
-        dimension_list = list(client.get_dimensions())
-        assert testdim in dimension_list, \
-            "Adding new dimension didn't work as expected."
+        # testdim = 'Electric test'
+        # client.add_dimension(wrap_item_into_dict("dimension", testdim))
+        # #client.add_dimension(wrap_item_into_dict("dimension", json.dumps(testdim)))
+        #
+        # dimension_list = list(client.get_dimensions())
+        # assert testdim in dimension_list, \
+        #     "Adding new dimension didn't work as expected."
 
 
     def test_update_dimension(self, client):
         # Updating existing dimension
         # Add a new dimension
         testdim = {'name':'Electric current'}
-        client.add_dimension(wrap_item_into_dict("dimension", json.dumps(testdim)))
+        client.add_dimension(wrap_item_into_dict("dimension", testdim))
 
         testdim = {
                     'name':'Electric current',
                     'description': 'New description Electric current'
                     }
-        client.update_dimension(wrap_item_into_dict("dimension", json.dumps(testdim)))
+        client.update_dimension(wrap_item_into_dict("dimension", testdim))
 
         modified_dim = json.loads(client.get_dimension_data(wrap_item_into_dict("dimension_name", testdim["name"])))
         assert modified_dim["description"] == testdim["description"], \
@@ -178,10 +182,10 @@ class TestUnits():
 
         # Test adding the object and deleting the name
         testdim = {'name':'Electric current'}
-        client.add_dimension(wrap_item_into_dict("dimension", json.dumps(testdim)))
+        client.add_dimension(wrap_item_into_dict("dimension", testdim))
         old_dimension_list = list(client.get_dimensions())
 
-        client.delete_dimension(wrap_item_into_dict("dimension", testdim["name"]))
+        client.delete_dimension(wrap_item_into_dict("dimension", testdim))
 
         new_dimension_list = list(client.get_dimensions())
 
@@ -192,19 +196,19 @@ class TestUnits():
             "Deleting dimension didn't work."
 
         # Test adding the name and deleting by object
-        testdim = {'name':'Electric current'}
-        client.add_dimension(wrap_item_into_dict("dimension", testdim["name"]))
-        old_dimension_list = list(client.get_dimensions())
-
-        client.delete_dimension(wrap_item_into_dict("dimension", json.dumps(testdim)))
-
-        new_dimension_list = list(client.get_dimensions())
-
-        log.info(new_dimension_list)
-
-        assert testdim["name"] in old_dimension_list and \
-            testdim["name"] not in new_dimension_list, \
-            "Deleting dimension didn't work."
+        # testdim = {'name':'Electric current'}
+        # client.add_dimension(wrap_item_into_dict("dimension", testdim["name"]))
+        # old_dimension_list = list(client.get_dimensions())
+        #
+        # client.delete_dimension(wrap_item_into_dict("dimension", json.dumps(testdim)))
+        #
+        # new_dimension_list = list(client.get_dimensions())
+        #
+        # log.info(new_dimension_list)
+        #
+        # assert testdim["name"] in old_dimension_list and \
+        #     testdim["name"] not in new_dimension_list, \
+        #     "Deleting dimension didn't work."
 
     def test_add_unit(self, client):
         # Add a new unit to an existing static dimension
@@ -215,9 +219,9 @@ class TestUnits():
         new_unit.lf = 1.47867648e-05  # Linear conversion factor
         new_unit.dimension = 'Volumetric flow rate'
         new_unit.info = 'A flow of one tablespoon per second.'
-        hb.add_unit(new_unit, user_id=pytest.root_user_id)
+        client.add_unit(wrap_item_into_dict("unit", new_unit))
 
-        unitlist = list(hb.get_units(new_unit.dimension))
+        unitlist = list(client.get_units(wrap_item_into_dict("dimension", new_unit.dimension)))
 
         #log.info(unitlist)
 
@@ -228,12 +232,10 @@ class TestUnits():
         assert new_unit.abbr in unitabbr, \
             "Adding new unit didn't work."
 
-        hb.delete_dimension(new_unit.dimension, user_id=pytest.root_user_id)
 
-
-        # Add a new unit to an existing custom dimension
+        # Add a new unit to a custom dimension
         testdim = {'name':'Test dimension'}
-        hb.add_dimension(testdim, user_id=pytest.root_user_id)
+        client.add_dimension(wrap_item_into_dict("dimension", testdim))
 
         testunit = JSONObject({})
         testunit.name = 'Test'
@@ -242,10 +244,10 @@ class TestUnits():
         testunit.lf = 42
         testunit.dimension = testdim["name"]
 
-        result = hb.add_unit(testunit, user_id=pytest.root_user_id)
+        result = client.add_unit(wrap_item_into_dict("unit", testunit))
 
 
-        unitlist = list(hb.get_units(testdim["name"]))
+        unitlist = list(client.get_units(wrap_item_into_dict("dimension", testdim["name"])))
         #log.info(unitlist)
         assert len(unitlist) == 1, \
             "Adding a new unit didn't work as expected"
@@ -253,7 +255,7 @@ class TestUnits():
         assert unitlist[0]["name"] == 'Test', \
             "Adding a new unit didn't work as expected"
 
-        hb.delete_dimension(testdim["name"], user_id=pytest.root_user_id)
+        client.delete_dimension(wrap_item_into_dict("dimension", testdim))
 
 
 
@@ -261,7 +263,7 @@ class TestUnits():
         # Add a new unit to a new dimension
 
         testdim = {'name':'Test dimension'}
-        hb.add_dimension(testdim, user_id=pytest.root_user_id)
+        client.add_dimension(wrap_item_into_dict("dimension", testdim))
 
         testunit = JSONObject({})
         testunit.name = 'Test'
@@ -269,24 +271,24 @@ class TestUnits():
         testunit.cf = 21
         testunit.lf = 42
         testunit.dimension = testdim["name"]
-        hb.add_unit(testunit, user_id=pytest.root_user_id)
+        result = client.add_unit(wrap_item_into_dict("unit", testunit))
 
         # Update it
         testunit.cf = 0
-        hb.update_unit(testunit, user_id=pytest.root_user_id)
+        result = client.update_unit(wrap_item_into_dict("unit", testunit))
 
-        unitlist = list(hb.get_units(testdim["name"]))
+        unitlist = list(client.get_units(wrap_item_into_dict("dimension", testdim["name"])))
 
         assert len(unitlist) > 0 and int(unitlist[0]['cf']) == 0, \
             "Updating unit didn't work correctly."
 
-        hb.delete_dimension(testdim["name"], user_id=pytest.root_user_id)
+        client.delete_dimension(wrap_item_into_dict("dimension", testdim))
 
     def test_delete_unit(self, client):
         # Add a new unit to a new dimension
 
         testdim = {'name':'Test dimension'}
-        hb.add_dimension(testdim, user_id=pytest.root_user_id)
+        client.add_dimension(wrap_item_into_dict("dimension", testdim))
 
         testunit = JSONObject({})
         testunit.name = 'Test'
@@ -294,114 +296,158 @@ class TestUnits():
         testunit.cf = 21
         testunit.lf = 42
         testunit.dimension = testdim["name"]
-        hb.add_unit(testunit, user_id=pytest.root_user_id)
+        result = client.add_unit(wrap_item_into_dict("unit", testunit))
 
         # Check if the unit has been added
-        unitlist = hb.get_units(testunit.dimension)
+        unitlist = list(client.get_units(wrap_item_into_dict("dimension", testunit.dimension)))
 
 
         assert len(unitlist) > 0 and unitlist[0]['abbr'] == testunit.abbr, \
             "The adding has not worked properly"
 
-        result = hb.delete_unit(testunit, user_id=pytest.root_user_id)
+        result = client.delete_unit(wrap_item_into_dict("unit", testunit))
 
-        unitlist = hb.get_units(testunit.dimension)
+        unitlist = list(client.get_units(wrap_item_into_dict("dimension", testunit.dimension)))
 
         assert len(unitlist) == 0, \
             "Deleting unit didn't work correctly."
 
-        hb.delete_dimension(testunit.dimension, user_id=pytest.root_user_id)
+        client.delete_dimension(wrap_item_into_dict("dimension", testdim))
+
+    def test_convert_unit(self, client):
+        result = client.convert_unit(
+            {
+                "value": "20",
+                "unit1": 'm',
+                "unit2": 'km'
+            }
+        )
+        waited_results = [0.02]
+        for i in range(len(result)):
+            assert float(result[i]) == float(waited_results[i]),  \
+                "Converting metres to kilometres didn't work."
+
+        result = client.convert_unit(
+            {
+                "value": "20",
+                "unit1": '2e6 m^3',
+                "unit2": 'hm^3'
+            }
+        )
+        waited_results = [40]
+        for i in range(len(result)):
+            assert float(result[i]) == float(waited_results[i]),  \
+                "Unit conversion of array didn't work."
+
 
     def test_convert_units(self, client):
+        result = client.convert_units(
+            {
+                "values": ["20.", '30.', '40.'],
+                "unit1": 'm',
+                "unit2": 'km'
+            }
+        )
+        waited_results = [0.02, 0.03, 0.04]
+        for i in range(len(result)):
+            assert float(result[i]) == float(waited_results[i]),  \
+                "Unit conversion of array didn't work."
 
-        result = hb.convert_units(20, 'm', 'km')
-        assert result == [0.02], \
-            "Converting metres to kilometres didn't work."
-
-        result = hb.convert_units([20., 30., 40.], 'm', 'km')
-        assert result == [0.02, 0.03, 0.04],  \
-            "Unit conversion of array didn't work."
-
-        result = hb.convert_units(20, '2e6 m^3', 'hm^3')
-        assert result == [40], "Conversion with factor didn't work correctly."
 
 
 
     def test_check_consistency(self, client):
-        result1 = hb.check_consistency('m^3', 'Volume')
-        result2 = hb.check_consistency('m', 'Volume')
+        result1 = client.check_consistency({
+            "unit": 'm^3',
+            "dimension": 'Volume'
+        })
         assert result1 is True, \
             "Unit consistency check didn't work."
+
+        result2 = client.check_consistency({
+            "unit": 'm',
+            "dimension": 'Volume'
+        })
+        # result2 = client.check_consistency('m', 'Volume')
         assert result2 is False, \
             "Unit consistency check didn't work."
 
 
-
     def test_is_global_dimension(self, client):
-        result = hb.is_global_dimension('Length')
+        result = client.is_global_dimension({"dimension":{'name': 'Length'}})
         assert result is True, \
             "Is global dimension check didn't work."
 
     def test_is_global_unit(self, client):
-        result = hb.is_global_unit({'abbr':'m'})
+        # result = client.is_global_unit({"unit": json.dumps({'abbr':'m'})})
+        result = client.is_global_unit({"unit": {'abbr':'m'}})
         assert result is True, \
             "Is global unit check didn't work."
 
 
-    def test_extract_unit_abbreviation(self):
-        assert hb.extract_unit_abbreviation({'abbr': 'test'}) == 'test', \
-            "extract_unit_abbreviation didn't work."
+    # Version coming from the old unitttests
+    # def test_convert_dataset(self, client):
+    #     network = self.create_network_with_data(num_nodes=2)
+    #     scenario = \
+    #         network.scenarios.Scenario[0].resourcescenarios.ResourceScenario
+    #     # Select the first array (should have untis 'bar') and convert it
+    #     for res_scen in scenario:
+    #         if res_scen.value.type == 'array':
+    #             dataset_id = res_scen.value.id
+    #             old_val = res_scen.value.value
+    #             break
+    #     newid = self.client.service.convert_dataset(dataset_id, 'mmHg')
+    #
+    #     assert newid is not None
+    #     assert newid != dataset_id, "Converting dataset not completed."
+    #
+    #     new_dataset = self.client.service.get_dataset(newid)
+    #     new_val = new_dataset.value
+    #
+    #     new_val = arr_to_vector(json.loads(new_val))
+    #     old_val = arr_to_vector(json.loads(old_val))
+    #
+    #     old_val_conv = [i * 100000 / 133.322 for i in old_val]
+    #
+    #     # Rounding is not exactly the same on the server, that's why we
+    #     # calculate the sum.
+    #     assert sum(new_val) - sum(old_val_conv) < 0.00001, \
+    #         "Unit conversion did not work"
 
-        assert hb.extract_unit_abbreviation({'abbreviation': 'test'}) == 'test', \
-            "extract_unit_abbreviation didn't work."
-
-        assert hb.extract_unit_abbreviation({}) is None, \
-            "extract_unit_abbreviation didn't work."
-
-    def test_extract_unit_description(self):
-        assert hb.extract_unit_description({'info': 'test'}) == 'test', \
-            "extract_unit_description didn't work."
-
-        assert hb.extract_unit_description({'description': 'test'}) == 'test', \
-            "extract_unit_description didn't work."
-
-        assert hb.extract_unit_description({}) is None, \
-            "extract_unit_description didn't work."
-
-
-    def test_convert_dataset(self, client):
-        project = util.create_project()
-
-        network = util.create_network_with_data(num_nodes=2, project_id=project.id)
-
-        scenario = \
-            network.scenarios[0].resourcescenarios
-
-        # Select the first array (should have untis 'bar') and convert it
-        for res_scen in scenario:
-            if res_scen.value.type == 'array':
-                dataset_id = res_scen.value.id
-                old_val = res_scen.value.value
-                break
-        newid = hb.convert_dataset(dataset_id, 'mmHg')
-
-        assert newid is not None
-        assert newid != dataset_id, "Converting dataset not completed."
-        log.info(newid)
-
-        new_dataset = hb.get_dataset(newid, user_id = pytest.root_user_id)
-        new_val = new_dataset.value
-
-        new_val = arr_to_vector(json.loads(new_val))
-        old_val = arr_to_vector(json.loads(old_val))
-
-        old_val_conv = [i * 100000 / 133.322 for i in old_val]
-
-        # Rounding is not exactly the same on the server, that's why we
-        # calculate the sum.
-        assert sum(new_val) - sum(old_val_conv) < 0.00001, \
-            "Unit conversion did not work"
-
+    # Version in hydra-base
+    # def test_convert_dataset(self, client):
+    #     project = util.create_project()
+    #
+    #     network = util.create_network_with_data(num_nodes=2, project_id=project.id)
+    #
+    #     scenario = \
+    #         network.scenarios[0].resourcescenarios
+    #
+    #     # Select the first array (should have untis 'bar') and convert it
+    #     for res_scen in scenario:
+    #         if res_scen.value.type == 'array':
+    #             dataset_id = res_scen.value.id
+    #             old_val = res_scen.value.value
+    #             break
+    #     newid = client.convert_dataset(dataset_id, 'mmHg')
+    #
+    #     assert newid is not None
+    #     assert newid != dataset_id, "Converting dataset not completed."
+    #     log.info(newid)
+    #
+    #     new_dataset = client.get_dataset(newid)
+    #     new_val = new_dataset.value
+    #
+    #     new_val = arr_to_vector(json.loads(new_val))
+    #     old_val = arr_to_vector(json.loads(old_val))
+    #
+    #     old_val_conv = [i * 100000 / 133.322 for i in old_val]
+    #
+    #     # Rounding is not exactly the same on the server, that's why we
+    #     # calculate the sum.
+    #     assert sum(new_val) - sum(old_val_conv) < 0.00001, \
+    #         "Unit conversion did not work"
+    #
 
 if __name__ == '__main__':
     server.run()
