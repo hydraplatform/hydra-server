@@ -104,7 +104,6 @@ class TestUnits():
             "Getting dimension for 'kilometers' didn't work."
 
         with pytest.raises(RequestError):
-            #dimension = hb.get_dimension('not-existing-dimension')
             dimension = client.get_dimension(wrap_item_into_dict("dimension", 'not-existing-dimension'))
 
     def test_get_dimension_data(self, client):
@@ -139,26 +138,14 @@ class TestUnits():
         testdim = {'name': 'Length'}
         with pytest.raises(RequestError) as excinfo:
             client.add_dimension(wrap_item_into_dict("dimension", testdim))
-            #client.add_dimension(wrap_item_into_dict("dimension", json.dumps(testdim)))
 
         # Add a new dimension
         testdim = {'name':'Electric current'}
-        #client.add_dimension(wrap_item_into_dict("dimension", json.dumps(testdim)))
         client.add_dimension(wrap_item_into_dict("dimension", testdim))
 
         dimension_list = list(client.get_dimensions())
         assert testdim["name"] in dimension_list, \
             "Adding new dimension didn't work as expected."
-
-        # Add a new dimension as scalar
-        # testdim = 'Electric test'
-        # client.add_dimension(wrap_item_into_dict("dimension", testdim))
-        # #client.add_dimension(wrap_item_into_dict("dimension", json.dumps(testdim)))
-        #
-        # dimension_list = list(client.get_dimensions())
-        # assert testdim in dimension_list, \
-        #     "Adding new dimension didn't work as expected."
-
 
     def test_update_dimension(self, client):
         # Updating existing dimension
@@ -194,21 +181,6 @@ class TestUnits():
         assert testdim["name"] in old_dimension_list and \
             testdim["name"] not in new_dimension_list, \
             "Deleting dimension didn't work."
-
-        # Test adding the name and deleting by object
-        # testdim = {'name':'Electric current'}
-        # client.add_dimension(wrap_item_into_dict("dimension", testdim["name"]))
-        # old_dimension_list = list(client.get_dimensions())
-        #
-        # client.delete_dimension(wrap_item_into_dict("dimension", json.dumps(testdim)))
-        #
-        # new_dimension_list = list(client.get_dimensions())
-        #
-        # log.info(new_dimension_list)
-        #
-        # assert testdim["name"] in old_dimension_list and \
-        #     testdim["name"] not in new_dimension_list, \
-        #     "Deleting dimension didn't work."
 
     def test_add_unit(self, client):
         # Add a new unit to an existing static dimension
@@ -384,6 +356,8 @@ class TestUnits():
         assert result is True, \
             "Is global unit check didn't work."
 
+
+    # These tests has to be rewritten in case we need it
 
     # Version coming from the old unitttests
     # def test_convert_dataset(self, client):
