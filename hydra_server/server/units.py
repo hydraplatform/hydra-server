@@ -26,9 +26,9 @@ from .complexmodels import Unit, Dimension
 from hydra_base.lib import units
 import json
 
+from hydra_base.lib.objects import JSONObject
 import logging
 log = logging.getLogger(__name__)
-
 
 class UnitService(HydraService):
     """
@@ -49,7 +49,11 @@ class UnitService(HydraService):
         dimdict = units.get_all_dimensions(**ctx.in_header.__dict__)
         dimens = []
         for dim_name, unit_list in dimdict.items():
-            dimens.append(Dimension(dim_name, unit_list))
+            dim = Dimension()
+            dim.name = dim_name
+            dim.units = unit_list
+            dimens.append(dim)
+            # dimens.append({"name":dim_name, "units":unit_list})
         return dimens
 
     @rpc(Unicode, _returns=SpyneArray(Unit))
@@ -94,59 +98,60 @@ class UnitService(HydraService):
 
         return dim
 
-    @rpc(Unicode, _returns=Unicode)
-    def get_unit_dimension(ctx, unit1):
-        """Get the corresponding physical dimension for a given unit.
+    # @rpc(Unicode, _returns=Unicode)
+    # def get_unit_dimension(ctx, unit1):
+    #     """Get the corresponding physical dimension for a given unit.
+    #
+    #     Example::
+    #
+    #         >>> cli = PluginLib.connect()
+    #         >>> cli.service.get_dimension('m')
+    #         Length
+    #     """
+    #     dim = units.get_unit_dimension(unit1, **ctx.in_header.__dict__)
+    #
+    #     return dim
 
-        Example::
-
-            >>> cli = PluginLib.connect()
-            >>> cli.service.get_dimension('m')
-            Length
-        """
-        dim = units.get_unit_dimension(unit1, **ctx.in_header.__dict__)
-
-        return dim
 
 
-
-    @rpc(Unicode, _returns=Boolean)
+    @rpc(Dimension, _returns=Boolean)
     def add_dimension(ctx, dimension):
         """Add a physical dimensions (such as ``Volume`` or ``Speed``) to the
         servers list of dimensions. If the dimension already exists, nothing is
         done.
         """
-        try:
-            # Trying to decode as a json
-            dimension = json.loads(dimension)
-        except Exception as e:
-            # It is a straight string
-            pass
-        result = units.add_dimension(dimension, **ctx.in_header.__dict__)
+        # try:
+        #     # Trying to decode as a json
+        #     dimension = json.loads(dimension)
+        # except Exception as e:
+        #     # It is a straight string
+        #     pass
+        result = units.add_dimension(JSONObject(dimension), **ctx.in_header.__dict__)
+        log.info("add_dimension %s", result)
         return json.dumps(result)
 
-    @rpc(Unicode, _returns=Boolean)
+    @rpc(Dimension, _returns=Boolean)
     def update_dimension(ctx, dimension):
         """
             update a physical dimensions (such as ``Volume`` or ``Speed``) to the
             servers list of dimensions.
         """
-        dimension = json.loads(dimension)
-        result = units.update_dimension(dimension, **ctx.in_header.__dict__)
+        #dimension = json.loads(dimension)
+        result = units.update_dimension(JSONObject(dimension), **ctx.in_header.__dict__)
         return json.dumps(result)
 
-    @rpc(Unicode, _returns=Boolean)
+    @rpc(Dimension, _returns=Boolean)
     def delete_dimension(ctx, dimension):
         """Delete a physical dimension from the list of dimensions. Please note
         that deleting works only for dimensions listed in the custom file.
         """
-        try:
-            # Trying to decode as a json
-            dimension = json.loads(dimension)
-        except Exception as e:
-            # It is a straight string
-            pass
-        result = units.delete_dimension(dimension, **ctx.in_header.__dict__)
+        # try:
+        #     # Trying to decode as a json
+        #     dimension = json.loads(dimension)
+        # except Exception as e:
+        #     # It is a straight string
+        #     pass
+        result = units.delete_dimension(JSONObject(dimension), **ctx.in_header.__dict__)
         return str(result)
 
     @rpc(Unit, _returns=Boolean)
@@ -173,6 +178,13 @@ class UnitService(HydraService):
             cli.service.add_unit(new_unit)
         """
         # Convert the complex model into a dict
+        log.info("add_unit - unit = %s", unit)
+        # try:
+        #     # Trying to decode as a json
+        #     unit = json.loads(unit)
+        # except Exception as e:
+        #     # It is a straight string
+        #     pass
         unitdict = get_object_as_dict(unit, Unit)
         units.add_unit(unitdict, **ctx.in_header.__dict__)
         return True
@@ -182,6 +194,12 @@ class UnitService(HydraService):
         """Update an existing unit added to the custom unit collection. Please
         not that units built in to the library can not be updated.
         """
+        # try:
+        #     # Trying to decode as a json
+        #     unit = json.loads(unit)
+        # except Exception as e:
+        #     # It is a straight string
+        #     pass
         unitdict = get_object_as_dict(unit, Unit)
         result = units.update_unit(unitdict, **ctx.in_header.__dict__)
         return result
@@ -190,15 +208,23 @@ class UnitService(HydraService):
     def delete_unit(ctx, unit):
         """Delete a unit from the custom unit collection.
         """
+        # try:
+        #     # Trying to decode as a json
+        #     unit = json.loads(unit)
+        # except Exception as e:
+        #     # It is a straight string
+        #     pass
         unitdict = get_object_as_dict(unit, Unit)
         result = units.delete_unit(unitdict, **ctx.in_header.__dict__)
         return result
 
-    @rpc(Decimal(min_occurs=1, max_occurs="unbounded"),
-         Unicode, Unicode,
-         _returns=Decimal(min_occurs="1", max_occurs="unbounded"))
+    # @rpc(Decimal(min_occurs=1, max_occurs="unbounded"),
+    #      Unicode, Unicode,
+    #      _returns=Decimal(min_occurs="1", max_occurs="unbounded"))
+    @rpc(SpyneArray(Decimal),Unicode, Unicode, _returns=SpyneArray(Decimal))
     def convert_units(ctx, values, unit1, unit2):
-        """Convert a value from one unit to another one.
+        """
+            Convert a list of values from one unit to another one.
 
         Example::
 
@@ -206,7 +232,49 @@ class UnitService(HydraService):
             >>> cli.service.convert_units(20.0, 'm', 'km')
             0.02
         """
-        return units.convert_units(values, unit1, unit2, **ctx.in_header.__dict__)
+        return_array = [units.convert_units(v, unit1, unit2)[0] for v in values]
+        # log.info("convert_units result %s", return_array)
+        return return_array
+
+    @rpc(Decimal,Unicode, Unicode, _returns=SpyneArray(Decimal))
+    def convert_unit(ctx, value, unit1, unit2):
+        """
+        Convert a SINGLE value from one unit to another one.
+
+        Example::
+
+            >>> cli = PluginLib.connect()
+            >>> cli.service.convert_units(20.0, 'm', 'km')
+            0.02
+        """
+        # log.info("convert_unit %s from %s to %s", value, unit1, unit2)
+        values_to_return = units.convert_units(value, unit1, unit2, **ctx.in_header.__dict__)
+        # log.info("convert_unit result %s", values_to_return)
+        return values_to_return
+
+    @rpc(Unicode, Unicode, _returns=Boolean)
+    def check_consistency(ctx, unit, dimension):
+        """Check if a given units corresponds to a physical dimension.
+        """
+        return units.check_consistency(unit, dimension, **ctx.in_header.__dict__)
+
+    @rpc(Dimension, _returns=Boolean)
+    def is_global_dimension(ctx, dimension):
+        """
+            Returns True if the dimension is global, False otherwise
+        """
+        return units.is_global_dimension(JSONObject(dimension), **ctx.in_header.__dict__)
+
+
+    @rpc(Unit, _returns=Boolean)
+    def is_global_unit(ctx, unit):
+        """
+            Returns True if the dimension is global, False otherwise
+        """
+        return units.is_global_unit(JSONObject(unit), **ctx.in_header.__dict__)
+
+
+
 
     @rpc(Integer, Unicode, _returns=Integer)
     def convert_dataset(ctx, dataset_id, to_unit):
@@ -214,13 +282,3 @@ class UnitService(HydraService):
         ('to_unit').
         """
         return units.convert_dataset(dataset_id, to_unit, **ctx.in_header.__dict__)
-
-
-
-
-
-    @rpc(Unicode, Unicode, _returns=Boolean)
-    def check_consistency(ctx, unit, dimension):
-        """Check if a given units corresponds to a physical dimension.
-        """
-        return units.check_consistency(unit, dimension, **ctx.in_header.__dict__)
