@@ -61,7 +61,6 @@ class UnitService(HydraService):
         """
             Get a list of all units corresponding to a physical dimension.
         """
-        log.info("Server - get_units - dimension={}".format(dimension))
         unit_list = units.get_units(dimension, **ctx.in_header.__dict__)
         return unit_list
 
@@ -98,36 +97,13 @@ class UnitService(HydraService):
 
         return dim
 
-    # @rpc(Unicode, _returns=Unicode)
-    # def get_unit_dimension(ctx, unit1):
-    #     """Get the corresponding physical dimension for a given unit.
-    #
-    #     Example::
-    #
-    #         >>> cli = PluginLib.connect()
-    #         >>> cli.service.get_dimension('m')
-    #         Length
-    #     """
-    #     dim = units.get_unit_dimension(unit1, **ctx.in_header.__dict__)
-    #
-    #     return dim
-
-
-
     @rpc(Dimension, _returns=Boolean)
     def add_dimension(ctx, dimension):
         """Add a physical dimensions (such as ``Volume`` or ``Speed``) to the
         servers list of dimensions. If the dimension already exists, nothing is
         done.
         """
-        # try:
-        #     # Trying to decode as a json
-        #     dimension = json.loads(dimension)
-        # except Exception as e:
-        #     # It is a straight string
-        #     pass
         result = units.add_dimension(JSONObject(dimension), **ctx.in_header.__dict__)
-        log.info("add_dimension %s", result)
         return json.dumps(result)
 
     @rpc(Dimension, _returns=Boolean)
@@ -136,7 +112,6 @@ class UnitService(HydraService):
             update a physical dimensions (such as ``Volume`` or ``Speed``) to the
             servers list of dimensions.
         """
-        #dimension = json.loads(dimension)
         result = units.update_dimension(JSONObject(dimension), **ctx.in_header.__dict__)
         return json.dumps(result)
 
@@ -145,12 +120,6 @@ class UnitService(HydraService):
         """Delete a physical dimension from the list of dimensions. Please note
         that deleting works only for dimensions listed in the custom file.
         """
-        # try:
-        #     # Trying to decode as a json
-        #     dimension = json.loads(dimension)
-        # except Exception as e:
-        #     # It is a straight string
-        #     pass
         result = units.delete_dimension(JSONObject(dimension), **ctx.in_header.__dict__)
         return str(result)
 
@@ -178,13 +147,6 @@ class UnitService(HydraService):
             cli.service.add_unit(new_unit)
         """
         # Convert the complex model into a dict
-        log.info("add_unit - unit = %s", unit)
-        # try:
-        #     # Trying to decode as a json
-        #     unit = json.loads(unit)
-        # except Exception as e:
-        #     # It is a straight string
-        #     pass
         unitdict = get_object_as_dict(unit, Unit)
         units.add_unit(unitdict, **ctx.in_header.__dict__)
         return True
@@ -194,12 +156,6 @@ class UnitService(HydraService):
         """Update an existing unit added to the custom unit collection. Please
         not that units built in to the library can not be updated.
         """
-        # try:
-        #     # Trying to decode as a json
-        #     unit = json.loads(unit)
-        # except Exception as e:
-        #     # It is a straight string
-        #     pass
         unitdict = get_object_as_dict(unit, Unit)
         result = units.update_unit(unitdict, **ctx.in_header.__dict__)
         return result
@@ -208,12 +164,6 @@ class UnitService(HydraService):
     def delete_unit(ctx, unit):
         """Delete a unit from the custom unit collection.
         """
-        # try:
-        #     # Trying to decode as a json
-        #     unit = json.loads(unit)
-        # except Exception as e:
-        #     # It is a straight string
-        #     pass
         unitdict = get_object_as_dict(unit, Unit)
         result = units.delete_unit(unitdict, **ctx.in_header.__dict__)
         return result
@@ -233,7 +183,6 @@ class UnitService(HydraService):
             0.02
         """
         return_array = [units.convert_units(v, unit1, unit2)[0] for v in values]
-        # log.info("convert_units result %s", return_array)
         return return_array
 
     @rpc(Decimal,Unicode, Unicode, _returns=SpyneArray(Decimal))
@@ -247,9 +196,7 @@ class UnitService(HydraService):
             >>> cli.service.convert_units(20.0, 'm', 'km')
             0.02
         """
-        # log.info("convert_unit %s from %s to %s", value, unit1, unit2)
         values_to_return = units.convert_units(value, unit1, unit2, **ctx.in_header.__dict__)
-        # log.info("convert_unit result %s", values_to_return)
         return values_to_return
 
     @rpc(Unicode, Unicode, _returns=Boolean)
