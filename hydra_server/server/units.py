@@ -32,56 +32,51 @@ log = logging.getLogger(__name__)
 
 class UnitService(HydraService):
     """
+    +---------------------------+
+    | DIMENSION FUNCTIONS - GET |
+    +---------------------------+
     """
-    @rpc(_returns=SpyneArray(Unicode))
+    @rpc(Integer, _returns=Dimension)
+    def get_dimension(ctx, dimension_id):
+        """
+            Gets the dimension details and the list of all units assigned to the dimension.
+        """
+        dimension = units.get_dimension(dimension_id, **ctx.in_header.__dict__)
+        log.info(dimension)
+        return dimension
+
+    @rpc(_returns=SpyneArray(Dimension))
     def get_dimensions(ctx):
         """
-            Get a list of all physical dimensions available on the server.
+            Gets a list of all physical dimensions available on the server.
         """
         dim_list = units.get_dimensions(**ctx.in_header.__dict__)
         return dim_list
 
-    @rpc(_returns=SpyneArray(Dimension))
-    def get_all_dimensions(ctx):
-        """
-            Get a list of all physical dimensions available on the server.
-        """
-        dimdict = units.get_all_dimensions(**ctx.in_header.__dict__)
-        dimens = []
-        for dim_name, unit_list in dimdict.items():
-            dim = Dimension()
-            dim.name = dim_name
-            dim.units = unit_list
-            dimens.append(dim)
-            # dimens.append({"name":dim_name, "units":unit_list})
-        return dimens
 
-    @rpc(Unicode, _returns=SpyneArray(Unit))
-    def get_units(ctx, dimension):
+
+
+    """
+    +----------------------+
+    | UNIT FUNCTIONS - GET |
+    +----------------------+
+    """
+    @rpc(Integer, _returns=Unit)
+    def get_unit(ctx, unit_id):
+        """
+            Gets the Unit details
+        """
+        unit = units.get_unit(unit_id, **ctx.in_header.__dict__)
+        log.info(unit)
+        return unit
+
+    @rpc(_returns=SpyneArray(Unit))
+    def get_units(ctx):
         """
             Get a list of all units corresponding to a physical dimension.
         """
-        unit_list = units.get_units(dimension, **ctx.in_header.__dict__)
+        unit_list = units.get_units(**ctx.in_header.__dict__)
         return unit_list
-
-
-    @rpc(Unicode, _returns=SpyneArray(Unicode))
-    def get_dimension(ctx, dimension):
-        """
-            Get a list of all units assigned to a dimension.
-        """
-        units_list = units.get_dimension(dimension, **ctx.in_header.__dict__)
-        return units_list
-
-    @rpc(Unicode, _returns=Unicode)
-    def get_dimension_data(ctx, dimension_name,**kwargs):
-        """
-            Given a dimension returns all its data
-        """
-        dimension_data = units.get_dimension_data(dimension_name, **ctx.in_header.__dict__)
-
-        return json.dumps(dimension_data)
-
 
     @rpc(Unicode, _returns=Unicode)
     def get_unit_dimension(ctx, unit1):
@@ -97,33 +92,42 @@ class UnitService(HydraService):
 
         return dim
 
-    @rpc(Dimension, _returns=Boolean)
+    """
+    +---------------------------------------+
+    | DIMENSION FUNCTIONS - ADD - DEL - UPD |
+    +---------------------------------------+
+    """
+    @rpc(Dimension, _returns=Dimension)
     def add_dimension(ctx, dimension):
         """Add a physical dimensions (such as ``Volume`` or ``Speed``) to the
         servers list of dimensions. If the dimension already exists, nothing is
         done.
         """
         result = units.add_dimension(JSONObject(dimension), **ctx.in_header.__dict__)
-        return json.dumps(result)
+        return result
 
-    @rpc(Dimension, _returns=Boolean)
+    @rpc(Dimension, _returns=Dimension)
     def update_dimension(ctx, dimension):
         """
             update a physical dimensions (such as ``Volume`` or ``Speed``) to the
             servers list of dimensions.
         """
         result = units.update_dimension(JSONObject(dimension), **ctx.in_header.__dict__)
-        return json.dumps(result)
+        return result
 
-    @rpc(Dimension, _returns=Boolean)
-    def delete_dimension(ctx, dimension):
+    @rpc(Integer, _returns=Boolean)
+    def delete_dimension(ctx, dimension_id):
         """Delete a physical dimension from the list of dimensions. Please note
         that deleting works only for dimensions listed in the custom file.
         """
-        result = units.delete_dimension(JSONObject(dimension), **ctx.in_header.__dict__)
-        return str(result)
-
-    @rpc(Unit, _returns=Boolean)
+        result = units.delete_dimension(dimension_id, **ctx.in_header.__dict__)
+        return result
+    """
+    +----------------------------------+
+    | UNIT FUNCTIONS - ADD - DEL - UPD |
+    +----------------------------------+
+    """
+    @rpc(Unit, _returns=Unit)
     def add_unit(ctx, unit):
         """Add a physical unit to the servers list of units. The Hydra server
         provides a complex model ``Unit`` which should be used to add a unit.
@@ -147,26 +151,27 @@ class UnitService(HydraService):
             cli.service.add_unit(new_unit)
         """
         # Convert the complex model into a dict
-        unitdict = get_object_as_dict(unit, Unit)
-        units.add_unit(unitdict, **ctx.in_header.__dict__)
-        return True
+        #unitdict = get_object_as_dict(unit, Unit)#
+        result = units.add_unit(JSONObject(unit), **ctx.in_header.__dict__)
+        return result
 
-    @rpc(Unit, _returns=Boolean)
+
+    @rpc(Unit, _returns=Unit)
     def update_unit(ctx, unit):
         """Update an existing unit added to the custom unit collection. Please
         not that units built in to the library can not be updated.
         """
-        unitdict = get_object_as_dict(unit, Unit)
-        result = units.update_unit(unitdict, **ctx.in_header.__dict__)
+        result = units.update_unit(JSONObject(unit), **ctx.in_header.__dict__)
         return result
 
-    @rpc(Unit, _returns=Boolean)
-    def delete_unit(ctx, unit):
+
+    @rpc(Integer, _returns=Boolean)
+    def delete_unit(ctx, unit_id):
         """Delete a unit from the custom unit collection.
         """
-        unitdict = get_object_as_dict(unit, Unit)
-        result = units.delete_unit(unitdict, **ctx.in_header.__dict__)
+        result = units.delete_unit(unit_id, **ctx.in_header.__dict__)
         return result
+
 
     # @rpc(Decimal(min_occurs=1, max_occurs="unbounded"),
     #      Unicode, Unicode,
@@ -219,8 +224,6 @@ class UnitService(HydraService):
             Returns True if the dimension is global, False otherwise
         """
         return units.is_global_unit(JSONObject(unit), **ctx.in_header.__dict__)
-
-
 
 
     @rpc(Integer, Unicode, _returns=Integer)
