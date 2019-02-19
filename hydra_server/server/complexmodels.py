@@ -1505,10 +1505,13 @@ class Unit(HydraComplexModel):
     """
        - **name** Unicode
        - **abbr** Unicode
+       - **abbreviation** Unicode
        - **cf** Double
        - **lf** Double
        - **info** Unicode
-       - **dimension** Unicode
+       - **description** Unicode
+       - **dimension_id** Integer
+       - **project_id** Integer
     """
     _type_info = [
         ('id',     Integer),
@@ -1519,7 +1522,8 @@ class Unit(HydraComplexModel):
         ('lf', Double),
         ('info', Unicode), # Alias for description
         ('description', Unicode),
-        ('dimension', Unicode),
+        #''('dimension', Unicode),
+        ('dimension_id', Integer),
         ('project_id', Integer)
     ]
 
@@ -1529,23 +1533,28 @@ class Unit(HydraComplexModel):
         if parent is None:
             return
         self.name = parent.name
-        self.abbr = parent.abbr
+        self.abbr = parent.abbreviation
+        self.abbreviation = parent.abbreviation
         self.cf   = parent.cf
         self.lf   = parent.lf
-        self.info = parent.info
-        self.dimension = parent.dimension
+        self.info = parent.description
+        self.description = parent.description
+        self.dimension_id = parent.dimension_id
+        self.project_id = parent.project_id
 
 class Dimension(HydraComplexModel):
     """
         A dimension, with name and units
        - **name** Unicode
        - **units** SpyneArray(Unicode)
+       - **description** Unicode
+       - **project_id** Integer
     """
     _type_info = [
         ('id',     Integer),
         ('name', Unicode),
         ('description', Unicode),
-        ('units', SpyneArray(Unicode)),
+        ('units', SpyneArray(Unit)),
         ('project_id', Integer)
     ]
 
@@ -1554,3 +1563,5 @@ class Dimension(HydraComplexModel):
             return
         self.name = parent.name
         self.units = parent.units
+        self.description = parent.description
+        self.project_id = parent.project_id
