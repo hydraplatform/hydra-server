@@ -68,56 +68,55 @@ class TestUnits():
     """
         Test for working with units.
     """
+
+    """
+    +---------------------------+
+    | DIMENSION FUNCTIONS - GET |
+    +---------------------------+
+    """
+
+    def test_get_dimension(self, client):
+        testdim_id = 1
+        resultdim = client.get_dimension(wrap_item_into_dict("dimension_id", testdim_id))
+        log.info(resultdim)
+        assert len(resultdim) > 0, \
+            "Getting dimension for 'Length' didn't work."
+
+        assert resultdim["id"] == testdim_id, \
+            "Getting dimension for 'Length' didn't work."
+
+        with pytest.raises(RequestError):
+            dimension = client.get_dimension(wrap_item_into_dict("dimension_id", 99999))
+
     def test_get_dimensions(self, client):
 
         dimension_list = client.get_dimensions()
         log.info(dimension_list)
         assert dimension_list is not None and len(dimension_list) != 0, \
             "Could not get a list of dimensions names."
+    """
+    +----------------------+
+    | UNIT FUNCTIONS - GET |
+    +----------------------+
+    """
+    def test_get_unit(self, client):
+        testunit_id = 1
+        unit = client.get_unit(wrap_item_into_dict("unit_id", testunit_id))
+        log.info(unit)
+        assert len(unit) > 0, \
+            "Getting unit for '1' didn't work."
 
-    def test_get_all_dimensions(self, client):
+        assert unit["id"] == testunit_id, \
+            "Getting unit for '1' didn't work."
 
-        dimension_list = client.get_all_dimensions()
-        log.info(dimension_list)
-        assert dimension_list is not None and len(dimension_list) != 0, \
-            "Could not get the list of all dimensions."
+        with pytest.raises(RequestError):
+            unit = client.get_unit(wrap_item_into_dict("unit_id", 99999))
 
     def test_get_units(self, client):
 
-        dimension_list = client.get_dimensions() # Dimensions names list
-        units_found = 0
-        log.info(dimension_list)
-        for dimension in dimension_list:
-            log.info("test_get_units - dimension = {}".format(dimension))
-            units_list = client.get_units(wrap_item_into_dict("dimension", dimension))
-            assert units_list is not None, \
-                "Could not get a list of units from hydra_base.get_units"
-            units_found+=len(units_list)
-        assert units_found != 0, \
-            "hydra_base.get_units Could not get any units from the source"
-
-    def test_get_dimension(self, client):
-
-        testdim = 'Length'
-        resultdim = client.get_dimension(wrap_item_into_dict("dimension", testdim))
-        assert len(resultdim) > 0, \
-            "Getting dimension for 'kilometers' didn't work."
-
-        with pytest.raises(RequestError):
-            dimension = client.get_dimension(wrap_item_into_dict("dimension", 'not-existing-dimension'))
-
-    def test_get_dimension_data(self, client):
-
-        testdim = 'Length'
-        resultdim = client.get_dimension_data(wrap_item_into_dict("dimension_name", testdim))
-        log.info("test_get_dimension_data")
-        log.info(resultdim)
-        resultdim = json.loads(resultdim)
-        assert resultdim["name"] == testdim, \
-            "Getting dimension for 'kilometers' didn't work."
-
-        with pytest.raises(RequestError):
-            dimension = client.get_dimension_data('not-existing-dimension')
+        units_list = client.get_units()
+        assert units_list is not None and len(units_list) > 0, \
+            "Could not get a list of units from hydra_base.get_units"
 
 
     def test_get_unit_dimension(self, client):
@@ -131,7 +130,11 @@ class TestUnits():
 
         with pytest.raises(RequestError):
             dimension = client.get_unit_dimension(wrap_item_into_dict("unit1",'not-existing-unit'))
-
+    """
+    +---------------------------------------+
+    | DIMENSION FUNCTIONS - ADD - DEL - UPD |
+    +---------------------------------------+
+    """
     def test_add_dimension(self, client):
 
         # Try to add an existing dimension
@@ -141,26 +144,29 @@ class TestUnits():
 
         # Add a new dimension
         testdim = {'name':'Electric current'}
-        client.add_dimension(wrap_item_into_dict("dimension", testdim))
+        new_dimension = client.add_dimension(wrap_item_into_dict("dimension", testdim))
 
         dimension_list = list(client.get_dimensions())
-        assert testdim["name"] in dimension_list, \
+
+        assert len(list(filter(lambda x: x["name"] == testdim["name"], dimension_list))) > 0,\
             "Adding new dimension didn't work as expected."
+
 
     def test_update_dimension(self, client):
         # Updating existing dimension
         # Add a new dimension
         testdim = {'name':'Electric current'}
-        client.add_dimension(wrap_item_into_dict("dimension", testdim))
+        new_dimension = client.add_dimension(wrap_item_into_dict("dimension", testdim))
 
-        testdim = {
-                    'name':'Electric current',
-                    'description': 'New description Electric current'
-                    }
-        client.update_dimension(wrap_item_into_dict("dimension", testdim))
+        # testdim = {
+        #             'name':'Electric current',
+        #             'description': 'New description Electric current'
+        #             }
+        new_dimension.description = 'New description Electric current'
+        updated_dimension = client.update_dimension(wrap_item_into_dict("dimension", new_dimension))
 
-        modified_dim = json.loads(client.get_dimension_data(wrap_item_into_dict("dimension_name", testdim["name"])))
-        assert modified_dim["description"] == testdim["description"], \
+        #modified_dim = json.loads(client.get_dimension_data(wrap_item_into_dict("dimension_name", testdim["name"])))
+        assert updated_dimension.description == new_dimension.description, \
                 "Updating a dimension didn't work"
 
 
@@ -169,122 +175,139 @@ class TestUnits():
 
         # Test adding the object and deleting the name
         testdim = {'name':'Electric current'}
-        client.add_dimension(wrap_item_into_dict("dimension", testdim))
+        new_dimension = client.add_dimension(wrap_item_into_dict("dimension", testdim))
         old_dimension_list = list(client.get_dimensions())
 
-        client.delete_dimension(wrap_item_into_dict("dimension", testdim))
+        client.delete_dimension(wrap_item_into_dict("dimension_id", new_dimension.id))
 
         new_dimension_list = list(client.get_dimensions())
 
         log.info(new_dimension_list)
 
-        assert testdim["name"] in old_dimension_list and \
-            testdim["name"] not in new_dimension_list, \
-            "Deleting dimension didn't work."
 
+        assert len(list(filter(lambda x: x["name"] == testdim["name"], old_dimension_list))) > 0 and \
+               len(list(filter(lambda x: x["name"] == testdim["name"], new_dimension_list))) == 0,\
+            "Deleting a dimension didn't work as expected."
+
+
+
+    """
+    +----------------------------------+
+    | UNIT FUNCTIONS - ADD - DEL - UPD |
+    +----------------------------------+
+    """
     def test_add_unit(self, client):
         # Add a new unit to an existing static dimension
         new_unit = JSONObject({})
         new_unit.name = 'Teaspoons per second'
-        new_unit.abbr = 'tsp s^-1'
+        new_unit.abbreviation = 'tsp s^-1'
         new_unit.cf = 0               # Constant conversion factor
         new_unit.lf = 1.47867648e-05  # Linear conversion factor
-        new_unit.dimension = 'Volumetric flow rate'
-        new_unit.info = 'A flow of one tablespoon per second.'
-        client.add_unit(wrap_item_into_dict("unit", new_unit))
+        new_unit.dimension_id = 1
+        new_unit.description = 'A flow of one tablespoon per second.'
+        added_unit = client.add_unit(wrap_item_into_dict("unit", new_unit))
 
-        unitlist = list(client.get_units(wrap_item_into_dict("dimension", new_unit.dimension)))
+        unitlist = list(client.get_dimension(wrap_item_into_dict("dimension_id", new_unit.dimension_id)).units)
 
-        #log.info(unitlist)
-
-        unitabbr = []
-        for unit in unitlist:
-            unitabbr.append(unit["abbr"])
-
-        assert new_unit.abbr in unitabbr, \
-            "Adding new unit didn't work."
-
+        assert len(list(filter(lambda x: x["abbreviation"] == new_unit["abbreviation"], unitlist))) > 0,\
+            "Adding a new unit didn't work as expected."
 
         # Add a new unit to a custom dimension
         testdim = {'name':'Test dimension'}
-        client.add_dimension(wrap_item_into_dict("dimension", testdim))
+        new_dimension = client.add_dimension(wrap_item_into_dict("dimension", testdim))
 
         testunit = JSONObject({})
         testunit.name = 'Test'
-        testunit.abbr = 'ttt'
+        testunit.abbreviation = 'ttt'
         testunit.cf = 21
         testunit.lf = 42
-        testunit.dimension = testdim["name"]
+        testunit.dimension_id = new_dimension.id
 
-        result = client.add_unit(wrap_item_into_dict("unit", testunit))
+        added_unit = client.add_unit(wrap_item_into_dict("unit", testunit))
 
+        unitlist = list(client.get_dimension(wrap_item_into_dict("dimension_id", new_dimension.id)).units)
 
-        unitlist = list(client.get_units(wrap_item_into_dict("dimension", testdim["name"])))
-        #log.info(unitlist)
         assert len(unitlist) == 1, \
             "Adding a new unit didn't work as expected"
 
         assert unitlist[0]["name"] == 'Test', \
             "Adding a new unit didn't work as expected"
 
-        client.delete_dimension(wrap_item_into_dict("dimension", testdim))
-
-
+        client.delete_dimension(wrap_item_into_dict("dimension_id", new_dimension.id))
 
     def test_update_unit(self, client):
         # Add a new unit to a new dimension
 
         testdim = {'name':'Test dimension'}
-        client.add_dimension(wrap_item_into_dict("dimension", testdim))
+        new_dimension = client.add_dimension(wrap_item_into_dict("dimension", testdim))
 
         testunit = JSONObject({})
         testunit.name = 'Test'
-        testunit.abbr = 'ttt'
+        testunit.abbreviation = 'ttt'
         testunit.cf = 21
         testunit.lf = 42
-        testunit.dimension = testdim["name"]
-        result = client.add_unit(wrap_item_into_dict("unit", testunit))
+        testunit.dimension_id = new_dimension.id
+
+        added_unit = client.add_unit(wrap_item_into_dict("unit", testunit))
 
         # Update it
-        testunit.cf = 0
-        result = client.update_unit(wrap_item_into_dict("unit", testunit))
+        added_unit.cf = 0
+        updated_unit = client.update_unit(wrap_item_into_dict("unit", added_unit))
 
-        unitlist = list(client.get_units(wrap_item_into_dict("dimension", testdim["name"])))
+        unitlist = list(client.get_dimension(wrap_item_into_dict("dimension_id", new_dimension.id)).units)
 
         assert len(unitlist) > 0 and int(unitlist[0]['cf']) == 0, \
             "Updating unit didn't work correctly."
 
-        client.delete_dimension(wrap_item_into_dict("dimension", testdim))
+        client.delete_dimension(wrap_item_into_dict("dimension_id", new_dimension.id))
+
 
     def test_delete_unit(self, client):
         # Add a new unit to a new dimension
 
         testdim = {'name':'Test dimension'}
-        client.add_dimension(wrap_item_into_dict("dimension", testdim))
+        new_dimension = client.add_dimension(wrap_item_into_dict("dimension", testdim))
 
         testunit = JSONObject({})
         testunit.name = 'Test'
-        testunit.abbr = 'ttt'
+        testunit.abbreviation = 'ttt'
         testunit.cf = 21
         testunit.lf = 42
-        testunit.dimension = testdim["name"]
-        result = client.add_unit(wrap_item_into_dict("unit", testunit))
+        testunit.dimension_id = new_dimension.id
+
+        added_unit = client.add_unit(wrap_item_into_dict("unit", testunit))
 
         # Check if the unit has been added
-        unitlist = list(client.get_units(wrap_item_into_dict("dimension", testunit.dimension)))
+        unitlist = list(client.get_dimension(wrap_item_into_dict("dimension_id",  new_dimension.id)).units)
 
 
-        assert len(unitlist) > 0 and unitlist[0]['abbr'] == testunit.abbr, \
+        assert len(unitlist) > 0 and unitlist[0]['abbreviation'] == testunit.abbreviation, \
             "The adding has not worked properly"
 
-        result = client.delete_unit(wrap_item_into_dict("unit", testunit))
+        result = client.delete_unit(wrap_item_into_dict("unit_id", added_unit.id))
 
-        unitlist = list(client.get_units(wrap_item_into_dict("dimension", testunit.dimension)))
+        unitlist = list(client.get_dimension(wrap_item_into_dict("dimension_id",  new_dimension.id)).units)
 
         assert len(unitlist) == 0, \
             "Deleting unit didn't work correctly."
 
-        client.delete_dimension(wrap_item_into_dict("dimension", testdim))
+        client.delete_dimension(wrap_item_into_dict("dimension_id", new_dimension.id))
+
+    """
+        END
+    """
+
+
+
+
+
+
+
+
+
+
+
+
 
     def test_convert_unit(self, client):
         result = client.convert_unit(
@@ -389,10 +412,10 @@ class TestUnits():
     #         "Unit conversion did not work"
 
     # Version in hydra-base
-    # def test_convert_dataset(self, client):
-    #     project = util.create_project()
-    #
-    #     network = util.create_network_with_data(num_nodes=2, project_id=project.id)
+    def test_convert_dataset(self, client):
+         project = util.create_project(client)
+
+         network = util.create_network_with_data(client, num_nodes=2, project_id=project.id)
     #
     #     scenario = \
     #         network.scenarios[0].resourcescenarios
