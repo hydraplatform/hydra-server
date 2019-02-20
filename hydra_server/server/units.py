@@ -210,20 +210,20 @@ class UnitService(HydraService):
         """
         return units.check_consistency(unit, dimension, **ctx.in_header.__dict__)
 
-    @rpc(Dimension, _returns=Boolean)
-    def is_global_dimension(ctx, dimension):
+    @rpc(Integer, _returns=Boolean)
+    def is_global_dimension(ctx, dimension_id):
         """
             Returns True if the dimension is global, False otherwise
         """
-        return units.is_global_dimension(JSONObject(dimension), **ctx.in_header.__dict__)
+        return units.is_global_dimension(dimension_id, **ctx.in_header.__dict__)
 
 
-    @rpc(Unit, _returns=Boolean)
-    def is_global_unit(ctx, unit):
+    @rpc(Integer, _returns=Boolean)
+    def is_global_unit(ctx, unit_id):
         """
             Returns True if the dimension is global, False otherwise
         """
-        return units.is_global_unit(JSONObject(unit), **ctx.in_header.__dict__)
+        return units.is_global_unit(unit_id, **ctx.in_header.__dict__)
 
 
     @rpc(Integer, Unicode, _returns=Integer)

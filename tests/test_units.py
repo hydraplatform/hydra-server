@@ -369,13 +369,13 @@ class TestUnits():
 
 
     def test_is_global_dimension(self, client):
-        result = client.is_global_dimension({"dimension":{'name': 'Length'}})
+        result = client.is_global_dimension({"dimension_id":1})
         assert result is True, \
             "Is global dimension check didn't work."
 
     def test_is_global_unit(self, client):
         # result = client.is_global_unit({"unit": json.dumps({'abbr':'m'})})
-        result = client.is_global_unit({"unit": {'abbr':'m'}})
+        result = client.is_global_unit({"unit_id": 1})
         assert result is True, \
             "Is global unit check didn't work."
 
