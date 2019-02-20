@@ -630,7 +630,8 @@ class TypeSummary(HydraComplexModel):
         if parent is None:
             return
 
-        if hasattr(parent, 'templatetype'):
+        if hasattr(parent, 'templatetype') and parent.templatetype is not None:
+            # Here just if the parent contains templatetype and it is not None
             self.name          = parent.templatetype.name
             self.id            = parent.templatetype.id
             self.template_name = parent.templatetype.template.name
@@ -651,7 +652,7 @@ class ValidationError(HydraComplexModel):
        - **attr_name**        Unicode(default=None)
        - **attr_id**          Integer(default=None)
        - **template_id**      Integer(default=None)
-       - **type_id**          Integer(defult=None)
+       - **type_id**          Integer(default=None)
        - **resource_attr_id** Integer(default=None)
        - **dataset_id**       Integer(default=None)
        - **error_text**       Unicode(default=None)
@@ -664,7 +665,7 @@ class ValidationError(HydraComplexModel):
         ('attr_name',        Unicode(default=None)),
         ('attr_id',          Integer(default=None)),
         ('template_id',      Integer(default=None)),
-        ('type_id',          Integer(defult=None)),
+        ('type_id',          Integer(default=None)),
         ('resource_attr_id', Integer(default=None)),
         ('dataset_id',       Integer(default=None)),
         ('error_text',       Unicode(default=None)),
@@ -1504,18 +1505,26 @@ class Unit(HydraComplexModel):
     """
        - **name** Unicode
        - **abbr** Unicode
+       - **abbreviation** Unicode
        - **cf** Double
        - **lf** Double
        - **info** Unicode
-       - **dimension** Unicode
+       - **description** Unicode
+       - **dimension_id** Integer
+       - **project_id** Integer
     """
     _type_info = [
+        ('id',     Integer),
         ('name', Unicode),
-        ('abbr', Unicode),
+        ('abbr', Unicode),  # Alias for abbreviation
+        ('abbreviation', Unicode),
         ('cf', Double),
         ('lf', Double),
-        ('info', Unicode),
-        ('dimension', Unicode),
+        ('info', Unicode), # Alias for description
+        ('description', Unicode),
+        #''('dimension', Unicode),
+        ('dimension_id', Integer),
+        ('project_id', Integer)
     ]
 
     def __init__(self, parent=None):
@@ -1524,24 +1533,35 @@ class Unit(HydraComplexModel):
         if parent is None:
             return
         self.name = parent.name
-        self.abbr = parent.abbr
+        self.abbr = parent.abbreviation
+        self.abbreviation = parent.abbreviation
         self.cf   = parent.cf
         self.lf   = parent.lf
-        self.info = parent.info
-        self.dimension = parent.dimension
+        self.info = parent.description
+        self.description = parent.description
+        self.dimension_id = parent.dimension_id
+        self.project_id = parent.project_id
 
 class Dimension(HydraComplexModel):
     """
         A dimension, with name and units
        - **name** Unicode
        - **units** SpyneArray(Unicode)
+       - **description** Unicode
+       - **project_id** Integer
     """
     _type_info = [
+        ('id',     Integer),
         ('name', Unicode),
-        ('units', SpyneArray(Unicode)),
+        ('description', Unicode),
+        ('units', SpyneArray(Unit)),
+        ('project_id', Integer)
     ]
 
-    def __init__(self, name, units):
-
-        self.name = name
-        self.units = units
+    def __init__(self, parent=None):
+        if parent is None:
+            return
+        self.name = parent.name
+        self.units = parent.units
+        self.description = parent.description
+        self.project_id = parent.project_id
