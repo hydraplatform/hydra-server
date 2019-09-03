@@ -260,15 +260,14 @@ class Attr(HydraComplexModel):
     """
        - **id** Integer(default=None)
        - **name** Unicode(default=None)
-       - **dimen** Unicode(default=None)
+       - **dimension_id** Unicode(default=None)
        - **description** Unicode(default=None)
        - **cr_date** Unicode(default=None)
     """
     _type_info = [
         ('id', Integer(default=None)),
         ('name', Unicode(default=None)),
-        ('dimension', Unicode(default=None)),
-        ('dimen', Unicode(default=None)),
+        ('dimension_id', Unicode(default=None)),
         ('description', Unicode(default=None)),
         ('cr_date', Unicode(default=None)),
     ]
@@ -279,11 +278,7 @@ class Attr(HydraComplexModel):
             return
         self.id          = parent.id
         self.name        = parent.name
-        self.dimension   = parent.dimension
-        if hasattr(parent, 'dimen'):
-            self.dimension   = parent.dimen
-
-        self.dimen       = parent.dimension
+        self.dimension_id   = parent.dimension_id
         self.description = parent.description
         self.cr_date     = str(parent.cr_date)
 
@@ -1503,6 +1498,7 @@ class NetworkOwner(HydraComplexModel):
 
 class Unit(HydraComplexModel):
     """
+       - **id** Integer
        - **name** Unicode
        - **abbr** Unicode
        - **abbreviation** Unicode
@@ -1516,13 +1512,10 @@ class Unit(HydraComplexModel):
     _type_info = [
         ('id',     Integer),
         ('name', Unicode),
-        ('abbr', Unicode),  # Alias for abbreviation
         ('abbreviation', Unicode),
         ('cf', Double),
         ('lf', Double),
-        ('info', Unicode), # Alias for description
         ('description', Unicode),
-        #''('dimension', Unicode),
         ('dimension_id', Integer),
         ('project_id', Integer)
     ]
@@ -1532,12 +1525,11 @@ class Unit(HydraComplexModel):
 
         if parent is None:
             return
+        self.id = parent.id
         self.name = parent.name
-        self.abbr = parent.abbreviation
         self.abbreviation = parent.abbreviation
         self.cf   = parent.cf
         self.lf   = parent.lf
-        self.info = parent.description
         self.description = parent.description
         self.dimension_id = parent.dimension_id
         self.project_id = parent.project_id
@@ -1545,6 +1537,7 @@ class Unit(HydraComplexModel):
 class Dimension(HydraComplexModel):
     """
         A dimension, with name and units
+       - **id** Integer
        - **name** Unicode
        - **units** SpyneArray(Unicode)
        - **description** Unicode
@@ -1561,6 +1554,7 @@ class Dimension(HydraComplexModel):
     def __init__(self, parent=None):
         if parent is None:
             return
+        self.id = parent.id
         self.name = parent.name
         self.units = parent.units
         self.description = parent.description
