@@ -172,6 +172,70 @@ class ResourceData(HydraComplexModel):
 
             self.dataset_metadata = json.dumps(self.metadata)
 
+class Unit(HydraComplexModel):
+    """
+       - **id** Integer
+       - **name** Unicode
+       - **abbr** Unicode
+       - **abbreviation** Unicode
+       - **cf** Double
+       - **lf** Double
+       - **info** Unicode
+       - **description** Unicode
+       - **dimension_id** Integer
+       - **project_id** Integer
+    """
+    _type_info = [
+        ('id',     Integer),
+        ('name', Unicode),
+        ('abbreviation', Unicode),
+        ('cf', Double),
+        ('lf', Double),
+        ('description', Unicode),
+        ('dimension_id', Integer),
+        ('project_id', Integer)
+    ]
+
+    def __init__(self, parent=None):
+        super(Unit, self).__init__()
+
+        if parent is None:
+            return
+        self.id = parent.id
+        self.name = parent.name
+        self.abbreviation = parent.abbreviation
+        self.cf   = parent.cf
+        self.lf   = parent.lf
+        self.description = parent.description
+        self.dimension_id = parent.dimension_id
+        self.project_id = parent.project_id
+
+class Dimension(HydraComplexModel):
+    """
+        A dimension, with name and units
+       - **id** Integer
+       - **name** Unicode
+       - **units** SpyneArray(Unicode)
+       - **description** Unicode
+       - **project_id** Integer
+    """
+    _type_info = [
+        ('id',     Integer),
+        ('name', Unicode),
+        ('description', Unicode),
+        ('units', SpyneArray(Unit)),
+        ('project_id', Integer)
+    ]
+
+    def __init__(self, parent=None):
+        if parent is None:
+            return
+        self.id = parent.id
+        self.name = parent.name
+        self.units = parent.units
+        self.description = parent.description
+        self.project_id = parent.project_id
+
 class Dataset(HydraComplexModel, Dataset):
     """
     - **id**               Integer(min_occurs=0, default=None)
@@ -493,7 +557,7 @@ class TypeAttr(HydraComplexModel):
         ('type_id',            Integer(default=None)),
         ('data_type',          Unicode(default=None)),
         ('dimension',          Unicode(default=None)),
-        ('unit',               Unicode(default=None)),
+        ('unit',               Unit(default=None)),
         ('default_dataset',    Dataset),
         ('data_restriction',   AnyDict(default=None)),
         ('is_var',             Unicode(default=None)),
@@ -1495,67 +1559,3 @@ class NetworkOwner(HydraComplexModel):
         self.edit       = parent.edit
         self.view       = parent.view
 
-
-class Unit(HydraComplexModel):
-    """
-       - **id** Integer
-       - **name** Unicode
-       - **abbr** Unicode
-       - **abbreviation** Unicode
-       - **cf** Double
-       - **lf** Double
-       - **info** Unicode
-       - **description** Unicode
-       - **dimension_id** Integer
-       - **project_id** Integer
-    """
-    _type_info = [
-        ('id',     Integer),
-        ('name', Unicode),
-        ('abbreviation', Unicode),
-        ('cf', Double),
-        ('lf', Double),
-        ('description', Unicode),
-        ('dimension_id', Integer),
-        ('project_id', Integer)
-    ]
-
-    def __init__(self, parent=None):
-        super(Unit, self).__init__()
-
-        if parent is None:
-            return
-        self.id = parent.id
-        self.name = parent.name
-        self.abbreviation = parent.abbreviation
-        self.cf   = parent.cf
-        self.lf   = parent.lf
-        self.description = parent.description
-        self.dimension_id = parent.dimension_id
-        self.project_id = parent.project_id
-
-class Dimension(HydraComplexModel):
-    """
-        A dimension, with name and units
-       - **id** Integer
-       - **name** Unicode
-       - **units** SpyneArray(Unicode)
-       - **description** Unicode
-       - **project_id** Integer
-    """
-    _type_info = [
-        ('id',     Integer),
-        ('name', Unicode),
-        ('description', Unicode),
-        ('units', SpyneArray(Unit)),
-        ('project_id', Integer)
-    ]
-
-    def __init__(self, parent=None):
-        if parent is None:
-            return
-        self.id = parent.id
-        self.name = parent.name
-        self.units = parent.units
-        self.description = parent.description
-        self.project_id = parent.project_id
