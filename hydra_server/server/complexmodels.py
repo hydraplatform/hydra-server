@@ -511,10 +511,10 @@ class TypeAttr(HydraComplexModel):
         attr = parent.get_attr()
         if attr is not None:
             self.attr_name = attr.name
-            self.dimension = attr.dimension
+            self.dimension_id = attr.dimension_id
         else:
             self.attr_name = None
-            self.dimension = None
+            self.dimension_id = None
 
         self.type_id   = parent.type_id
         self.data_type = parent.data_type
