@@ -331,7 +331,7 @@ class Attr(HydraComplexModel):
     _type_info = [
         ('id', Integer(default=None)),
         ('name', Unicode(default=None)),
-        ('dimension_id', Unicode(default=None)),
+        ('dimension_id', Integer(default=None)),
         ('description', Unicode(default=None)),
         ('cr_date', Unicode(default=None)),
     ]
