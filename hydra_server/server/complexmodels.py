@@ -841,7 +841,7 @@ class Node(Resource):
         self.y = float(parent.y)
         self.description = parent.description
         self.cr_date = str(parent.cr_date)
-        self.layout = self.get_outgoing_layout(parent.layout)
+        #self.layout = self.get_outgoing_layout(parent.layout)
         self.status = parent.status
         if summary is False:
             self.attributes = [ResourceAttr(a) for a in parent.attributes]
