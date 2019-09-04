@@ -557,7 +557,7 @@ class TypeAttr(HydraComplexModel):
         ('type_id',            Integer(default=None)),
         ('data_type',          Unicode(default=None)),
         ('dimension',          Unicode(default=None)),
-        ('unit',               Unit(default=None)),
+        ('unit',               Unit),
         ('default_dataset',    Dataset),
         ('data_restriction',   AnyDict(default=None)),
         ('is_var',             Unicode(default=None)),
