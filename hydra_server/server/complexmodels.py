@@ -693,8 +693,8 @@ class TypeSummary(HydraComplexModel):
             # Here just if the parent contains templatetype and it is not None
             self.name          = parent.templatetype.name
             self.id            = parent.templatetype.id
-            self.template_name = parent.templatetype.template.name
-            self.template_id   = parent.templatetype.template.id
+            self.template_name = parent.templatetype.template_name
+            self.template_id   = parent.templatetype.template_id
         else:
 
             self.name          = parent.name
