@@ -1307,8 +1307,12 @@ class Project(Resource):
         self.status      = parent.status
         self.cr_date     = str(parent.cr_date)
         self.created_by  = parent.created_by
-        self.attributes  = [ResourceAttr(ra) for ra in parent.attributes]
-        self.attribute_data  = [ResourceScenario(rs) for rs in parent.attribute_data]
+        self.attributes = []
+        if parent.attributes:
+            self.attributes  = [ResourceAttr(ra) for ra in parent.attributes]
+        self.attribute_data = []
+        if parent.attribute_data:
+            self.attribute_data  = [ResourceScenario(rs) for rs in parent.attribute_data]
 
 class ProjectSummary(Resource):
     """
