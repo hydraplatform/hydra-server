@@ -290,6 +290,8 @@ class Dataset(HydraComplexModel, Dataset):
         if include_metadata is True:
             if isinstance(parent.metadata, dict):
                 self.metadata = json.dumps(parent.metadata)
+            elif parent.metadata is None:
+                self.metadata = json.dumps({})
             else:
                 metadata = {}
                 for m in parent.metadata:

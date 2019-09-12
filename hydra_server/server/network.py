@@ -27,6 +27,7 @@ from .complexmodels import Network,\
     ResourceScenario,\
     ResourceData
 from hydra_base.lib import network, scenario
+from hydra_base.lib.objects import JSONObject
 from .service import HydraService
 import datetime
 import logging
@@ -225,11 +226,11 @@ class NetworkService(HydraService):
 
             rs_dict = {}
             for rs in res_scens:
-                rs_dict[rs.resource_attr_id] = rs
+                rs_dict[rs.resource_attr_id] = JSONObject(rs)
 
             for ra in ret_node.attributes:
                 if rs_dict.get(ra.id):
-                    ra.resourcescenario = ResourceScenario(rs_dict[ra.id])
+                    ra.resourcescenario = ResourceScenario(rs_dict[ra.id], attr_id=ra.attr_id)
 
             return ret_node
         else:
