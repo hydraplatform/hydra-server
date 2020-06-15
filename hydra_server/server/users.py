@@ -31,6 +31,25 @@ class UserService(HydraService):
         The user soap service
     """
 
+    @rpc(Unicode, _returns=Unicode)
+    def get_session_user(ctx, session_id=None):
+        """
+            This funciton simply returns the user's user ID. This function only
+            really exists so that there exists an equivalent funciton to the hydra
+            base function. It's not really necessary for hydra server, as the user id
+            will be stored in the cookie anyway.
+        """
+
+        cookie_session_id = ctx.transport.req_env['beaker.session'].id
+        if session_id is not None and cookie_session_id != session_id:
+            #Ignore
+            return None
+
+
+        user_id = ctx.transport.req_env['beaker.session']['user_id']
+
+        return user_id
+
     @rpc(_returns=User)
     def whoami(ctx):
         """
@@ -90,10 +109,8 @@ class UserService(HydraService):
         Raises:
             ResourceNotFoundError: If the uid is not found
         """
+
         user_i = users.add_user(user, **ctx.in_header.__dict__)
-        #u = User()
-        #u.__dict__ = user_i.__dict__
-        #return u
 
         return User(user_i)
 
@@ -245,7 +262,7 @@ class UserService(HydraService):
         return success
 
     @rpc(Integer, Integer, _returns=Role)
-    def set_user_role(ctx, user_id, role_id):
+    def set_user_role(ctx, new_user_id, role_id):
         """
         Assign a user to a role
 
@@ -259,14 +276,14 @@ class UserService(HydraService):
         Raises:
             ResourceNotFoundError: If the user_id or role_id do not exist
         """
-        role_i = users.set_user_role(user_id,
+        role_i = users.set_user_role(new_user_id,
                                      role_id,
                                      **ctx.in_header.__dict__)
 
         return Role(role_i)
 
     @rpc(Integer, Integer, _returns=Unicode)
-    def delete_user_role(ctx, user_id, role_id):
+    def delete_user_role(ctx, deleted_user_id, role_id):
         """
         Remove a user from a role
 
@@ -280,10 +297,8 @@ class UserService(HydraService):
         Raises:
             ResourceNotFoundError: If the role does not contain the user or if the user or role do not exist.
         """
-
-        success = 'OK'
-        users.delete_user_role(user_id, role_id, **ctx.in_header.__dict__)
-        return success
+        users.delete_user_role(deleted_user_id, role_id, **ctx.in_header.__dict__)
+        return 'OK'
 
     @rpc(Integer, Integer, _returns=Role)
     def set_role_perm(ctx, role_id, perm_id):

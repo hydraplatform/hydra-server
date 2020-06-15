@@ -31,8 +31,14 @@ class DataService(HydraService):
         The data SOAP service
     """
 
-    @rpc(Dataset, _returns=Dataset)
-    def add_dataset(ctx, dataset):
+    @rpc(Unicode,#TYPE
+         Unicode,#value
+         Integer(default=None), #unit
+         Unicode, #metadata
+         Unicode, #name
+         Unicode(pattern='[YN]'), #flush
+         _returns=Dataset)
+    def add_dataset(ctx, datatype, value, unit_id, metadata, name, flush):
         """
            Add a single dataset. Return the new dataset with a dataset ID.
                 .. code-block:: python
@@ -53,16 +59,15 @@ class DataService(HydraService):
                Dataset: The new dataset object, complete with ID
 
         """
-        value = dataset.parse_value()
-        metadata = dataset.get_metadata_as_dict(user_id=ctx.in_header.user_id)
-        dataset_i = data.add_dataset(dataset.type,
+
+        #Validate the dataset here.
+        dataset_i = data.add_dataset(datatype,
                                      value,
-                                     dataset.unit,
-                                     dataset.dimension,
+                                     unit_id,
                                      metadata,
-                                     dataset.name,
+                                     name,
                                      ctx.in_header.user_id,
-                                    flush=True)
+                                     flush=flush == 'Y')
 
         return Dataset(dataset_i)
 
@@ -220,7 +225,7 @@ class DataService(HydraService):
 
         return json.dumps(metadata_dict)
 
-    @rpc(SpyneArray(Dataset), _returns=SpyneArray(Integer))
+    @rpc(SpyneArray(Dataset), _returns=SpyneArray(Dataset))
     def bulk_insert_data(ctx, bulk_data):
         """
             Insert sereral pieces of data at once.
@@ -233,7 +238,7 @@ class DataService(HydraService):
         """
         datasets = data.bulk_insert_data(bulk_data, **ctx.in_header.__dict__)
 
-        return [d.id for d in datasets]
+        return [Dataset(d) for d in datasets]
 
     @rpc(_returns=SpyneArray(DatasetCollection))
     def get_all_dataset_collections(ctx):
@@ -449,8 +454,14 @@ class DataService(HydraService):
 
         return ret_data
 
-    @rpc(Dataset, _returns=Dataset)
-    def update_dataset(ctx, dataset):
+    @rpc(Integer,
+         Unicode,#name
+         Unicode,#type
+         Unicode,#value
+         Integer(default=None), #unit
+         Unicode, #metadata
+         _returns=Dataset)
+    def update_dataset(ctx, id, name, datatype, value, unit_id, metadata):
         """
             Update a piece of data directly, rather than through a resource
             scenario.
@@ -461,18 +472,14 @@ class DataService(HydraService):
             Returns:
                 Dataset: The updated dataset
         """
-        val = dataset.parse_value()
 
-        metadata = dataset.get_metadata_as_dict()
-
-        updated_dataset = data.update_dataset(dataset.id,
-                                        dataset.name,
-                                        dataset.type,
-                                        val,
-                                        dataset.unit,
-                                        dataset.dimension,
-                                        metadata,
-                                        **ctx.in_header.__dict__)
+        updated_dataset = data.update_dataset(id,
+                                              name,
+                                              datatype,
+                                              value,
+                                              unit_id,
+                                              metadata,
+                                              **ctx.in_header.__dict__)
 
         return Dataset(updated_dataset)
 

@@ -41,13 +41,13 @@ try:
         log.warn("\nThe current version of spyne on PYPI does not work well with Python 3. Please run the following command to get the latest development version, which does.\n\n"+
                         "pip install --upgrade git+https://github.com/arskom/spyne.git@spyne-2.13.2-alpha#egg=spyne\n\n")
         sys.exit()
-        
+
 except ModuleNotFoundError as e:
         log.warn("\nOne of the dependencies -- Spyne -- is not installed."+
                         " The current version of spyne on PYPI does not work well with Python 3. Please run the following command to get the latest development version, which does.\n\n"+
                         "pip install git+https://github.com/arskom/spyne.git@spyne-2.13.2-alpha#egg=spyne\n\n")
         sys.exit()
-    
+
 
 
 import spyne.service #Needed for build script.
@@ -69,20 +69,13 @@ import spyne.decorator
 from spyne.error import Fault, ArgumentError
 
 from hydra_base.db import connect
-connect()
-
-import hydra_server.plugins
-from hydra_base.db.model import create_resourcedata_view
-create_resourcedata_view()
-
-from hydra_base.util.hdb import make_root_user
 
 from hydra_server.server.network import NetworkService
 from hydra_server.server.project import ProjectService
 from hydra_server.server.attributes import AttributeService, AttributeGroupService
 from hydra_server.server.scenario import ScenarioService
 from hydra_server.server.data import DataService
-from hydra_server.server.plugins import PluginService
+##from hydra_server.server.plugins import PluginService
 from hydra_server.server.users import UserService
 from hydra_server.server.template import TemplateService
 from hydra_server.server.static import ImageService, FileService
@@ -100,7 +93,6 @@ from hydra_server.server.sharing import SharingService
 from spyne.util.wsgi_wrapper import WsgiMounter
 import socket
 
-
 from beaker.middleware import SessionMiddleware
 
 applications = [
@@ -114,7 +106,7 @@ applications = [
     AttributeGroupService,
     ScenarioService,
     DataService,
-    PluginService,
+    #PluginService,
     TemplateService,
     ImageService,
     FileService,
@@ -123,7 +115,7 @@ applications = [
     RuleService,
     NoteService,
 ]
-applications.extend(hydra_server.plugins.services)
+#applications.extend(hydra_server.plugins.services)
 
 from hydra_base.exceptions import HydraError
 
@@ -139,6 +131,11 @@ from hydra_base.db import commit_transaction, rollback_transaction, close_sessio
 
 def _on_method_call(ctx):
 
+    #don't do anythying if we're in test mode:
+    if ctx.transport.app.transport == 'noconn://null.spyne':
+        return
+
+    #otherwise it must have a 'req_env' as it's a wsgi application
     env = ctx.transport.req_env
 
     if ctx.function == AuthenticationService.login:
@@ -150,7 +147,7 @@ def _on_method_call(ctx):
     if ctx.in_header is None:
         raise AuthenticationError("No headers!")
 
-    session = env['beaker.session']
+    session = env.get('beaker.session', {})
 
     if session.get('user_id') is None:
         raise Fault("No Session!")
@@ -162,6 +159,7 @@ def _on_method_call(ctx):
 def _on_method_context_closed(ctx):
     log.info("Committing...")
     commit_transaction()
+
     log.info("Closing session")
     close_session()
 
@@ -176,14 +174,13 @@ class HydraSoapApplication(Application):
         to be send to the client.
     """
     def __init__(self, services, tns, name=None,
-                                         in_protocol=None, out_protocol=None):
+                 in_protocol=None, out_protocol=None):
 
-        Application.__init__(self, services, tns, name, in_protocol,
-                                                                 out_protocol)
+        Application.__init__(self, services, tns, name, in_protocol, out_protocol)
 
         self.event_manager.add_listener('method_call', _on_method_call)
         self.event_manager.add_listener("method_context_closed",
-                                                    _on_method_context_closed)
+                                        _on_method_context_closed)
 
     def call_wrapper(self, ctx):
         try:
@@ -212,60 +209,72 @@ class HydraSoapApplication(Application):
             log.critical(e)
             traceback.print_exc(file=sys.stdout)
             rollback_transaction()
-            raise Fault('Server', e.message)
+            raise Fault('Server', e)
 
 class HydraServer():
 
-    def __init__(self):
+    def __init__(self, db_uri):
+
+        connect(db_uri)
 
         hdb.create_default_users_and_perms()
-        make_root_user()
+        hdb.create_default_units_and_dimensions()
+        hdb.make_root_user()
         hdb.create_default_net()
+
+        commit_transaction()
+
+        self.soap_application = None
+        self.json_application = None
+        self.jsonp_application = None
+        self.http_application = None
 
     def create_soap_application(self):
 
         app = HydraSoapApplication(applications, tns='hydra.base',
-                    in_protocol=Soap11(validator='lxml'),
-                    out_protocol=Soap11()
-                )
-        return app
+                                   in_protocol=Soap11(validator='lxml'),
+                                   out_protocol=Soap11()
+                                  )
+        self.soap_application = app;
 
     def create_json_application(self):
 
         app = HydraSoapApplication(applications, tns='hydra.base',
-                    in_protocol=HydraDocument(validator='soft'),
-                    out_protocol=JsonDocument()
-                )
-        return app
+                                   in_protocol=HydraDocument(validator='soft'),
+                                   out_protocol=JsonDocument()
+                                  )
+        self.json_application = app;
 
     def create_jsonp_application(self):
 
         app = HydraSoapApplication(applications, tns='hydra.base',
-                    in_protocol=HttpRpc(validator='soft'),
-                    out_protocol=JsonP("hydra_cb")
-                )
-        return app
+                                   in_protocol=HttpRpc(validator='soft'),
+                                   out_protocol=JsonP("hydra_cb")
+                                  )
+        self.jsonp_application = app;
 
     def create_http_application(self):
 
         app = HydraSoapApplication(applications, tns='hydra.base',
-                    in_protocol=HttpRpc(validator='soft'),
-                    out_protocol=JsonDocument()
-                )
-        return app
+                                   in_protocol=HttpRpc(validator='soft'),
+                                   out_protocol=JsonDocument()
+                                  )
+        self.http_application = app;
 
-    def run_server(self, port=None):
+    def run_server(self, port=None, db_uri=None):
 
-        log.info("home_dir %s",config.get('DEFAULT', 'home_dir'))
-        log.info("hydra_base_dir %s",config.get('DEFAULT', 'hydra_base_dir'))
-        log.info("common_app_data_folder %s",config.get('DEFAULT', 'common_app_data_folder'))
-        log.info("win_common_documents %s",config.get('DEFAULT', 'win_common_documents'))
-        log.info("sqlite url %s",config.get('mysqld', 'url'))
-        log.info("layout_xsd_path %s",config.get('hydra_server', 'layout_xsd_path'))
-        log.info("default_directory %s",config.get('plugin', 'default_directory'))
-        log.info("result_file %s",config.get('plugin', 'result_file'))
-        log.info("plugin_xsd_path %s",config.get('plugin', 'plugin_xsd_path'))
-        log.info("log_config_path %s",config.get('logging_conf', 'log_config_path'))
+        initialize(db_uri)
+
+        log.info("home_dir %s", config.get('DEFAULT', 'home_dir'))
+        log.info("hydra_base_dir %s", config.get('DEFAULT', 'hydra_base_dir'))
+        log.info("common_app_data_folder %s", config.get('DEFAULT', 'common_app_data_folder'))
+        log.info("win_common_documents %s", config.get('DEFAULT', 'win_common_documents'))
+        log.info("sqlite url %s", config.get('mysqld', 'url'))
+        log.info("layout_xsd_path %s", config.get('hydra_server', 'layout_xsd_path'))
+        log.info("default_directory %s", config.get('plugin', 'default_directory'))
+        log.info("result_file %s", config.get('plugin', 'result_file'))
+        log.info("plugin_xsd_path %s", config.get('plugin', 'plugin_xsd_path'))
+        log.info("log_config_path %s", config.get('logging_conf', 'log_config_path'))
 
         if port is None:
             port = config.getint('hydra_server', 'port', 8080)
@@ -274,15 +283,14 @@ class HydraServer():
 
         check_port_available(domain, port)
 
-        default_ns = 'soap_server.hydra_complexmodels'
+        default_ns = 'soap_se#rver.hydra_complexmodels'
 
-    
         if six.PY3:
             spyne.const.xml.DEFAULT_NS = default_ns
         else:
             spyne.const.xml_ns.DEFAULT_NS = default_ns
 
-        cp_wsgi_application = Server((domain,port), application, numthreads=10)
+        cp_wsgi_application = Server((domain, port), application, numthreads=10)
 
         log.info("listening to http://%s:%s", domain, port)
         log.info("wsdl is at: http://%s:%s/soap/?wsdl", domain, port)
@@ -298,34 +306,53 @@ def check_port_available(domain, port):
         for hydra to use.
     """
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    result = sock.connect_ex((domain,port))
+    result = sock.connect_ex((domain, port))
+
     if result == 0:
         raise HydraError("Something else is already running on port %s"%port)
-    else:
-        log.info("Port %s is available", port)
 
-# These few lines are needed by mod_wsgi to turn the server into a WSGI script.
-s = HydraServer()
-soap_application = s.create_soap_application()
-json_application = s.create_json_application()
-jsonp_application = s.create_jsonp_application()
-http_application = s.create_http_application()
+    log.info("Port %s is available", port)
 
-wsgi_application = WsgiMounter({
-    config.get('hydra_server', 'soap_path', 'soap'): soap_application,
-    config.get('hydra_server', 'json_path', 'json'): json_application,
-    'jsonp': jsonp_application,
-    config.get('hydra_server', 'http_path', 'http'): http_application,
-})
+application = None
 
-for server in wsgi_application.mounts.values():
-    server.max_content_length = 100 * 0x100000 # 10 MB
+def initalize(db_uri):
+    global application
+    hydra_server = initialize_hydra_server(db_uri)
+    wsgi_app = initialise_wsgi_application(hydra_server)
+    application = wsgi_app
+    return application
 
-# Configure the SessionMiddleware
-session_opts = {
-    'session.type': 'file',
-    'session.cookie_expires': True,
-    'session.data_dir':'/tmp',
-    'session.file_dir':'/tmp/auth',
-}
-application = SessionMiddleware(wsgi_application, session_opts)
+def initialize_hydra_server(db_uri, test=False):
+    hydra_server = HydraServer(db_uri)
+    #only create the JSON one when in test mode
+    hydra_server.create_json_application()
+
+    if test is False:
+        hydra_server.create_soap_application()
+        hydra_server.create_jsonp_application()
+        hydra_server.create_http_application()
+
+    return hydra_server
+
+def initialise_wsgi_application(hydra_server):
+
+    wsgi_application = WsgiMounter({
+        config.get('hydra_server', 'soap_path', 'soap'): hydra_server.soap_application,
+        config.get('hydra_server', 'json_path', 'json'): hydra_server.json_application,
+        'jsonp': hydra_server.jsonp_application,
+        config.get('hydra_server', 'http_path', 'http'): hydra_server.http_application,
+    })
+
+    for server in wsgi_application.mounts.values():
+        server.max_content_length = 100 * 0x100000 # 10 MB
+
+    # Configure the SessionMiddleware
+    session_opts = {
+        'session.type': 'file',
+        'session.cookie_expires': True,
+        'session.data_dir':'/tmp',
+        'session.file_dir':'/tmp/auth',
+    }
+    app = SessionMiddleware(wsgi_application, session_opts)
+
+    return app

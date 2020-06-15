@@ -9,7 +9,7 @@
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with HydraPlatform.  If not, see <http://www.gnu.org/licenses/>
 #
@@ -36,58 +36,117 @@ class ScenarioService(HydraService):
         about negative IDS
     """
 
-    @rpc(Integer, Unicode(pattern="['YN']", default='N'), Unicode(pattern="['YN']", default='N'), _returns=Scenario)
-    def get_scenario(ctx, scenario_id, return_summary, get_parent_data):
+    @rpc(Integer,
+         Unicode(pattern="['YN']", default='N'),
+         Unicode(pattern="['YN']", default='N'),
+         Unicode(pattern="['YN']", default='N'),
+         _returns=Scenario)
+    def get_scenario(ctx, scenario_id, get_parent_data, include_data, include_group_items):
         """
             Get the specified scenario
         """
-        if get_parent_data.upper() == 'Y':
-            _get_parent_data=True
-        else:
-            _get_parent_data=False
-        
-        scen = scenario.get_scenario(scenario_id, get_parent_data=_get_parent_data, **ctx.in_header.__dict__)
 
-        if return_summary.upper()=='Y':
-            summary = True
+        if get_parent_data is None or get_parent_data.upper() == 'N':
+            _get_parent_data = False
         else:
-            summary = False
+            _get_parent_data = True
 
-        return Scenario(scen, summary=summary)
+        if include_data is None or include_data.upper() == 'Y':
+            _include_data = True
+        else:
+            _include_data = False
+
+        if include_group_items is None or include_group_items.upper() == 'Y':
+            _include_group_items = True
+        else:
+            _include_group_items = False
+
+        scen = scenario.get_scenario(scenario_id,
+                                     get_parent_data=_get_parent_data,
+                                     include_data=_include_data,
+                                     include_group_items=_include_group_items,
+                                     **ctx.in_header.__dict__)
+
+        return Scenario(scen,
+                        include_data=_include_data,
+                        include_group_items=_include_group_items)
+
+    @rpc(Integer,
+         Unicode,
+         Unicode(pattern="['YN']", default='N'),
+         Unicode(pattern="['YN']", default='N'),
+         Unicode(pattern="['YN']", default='N'),
+         _returns=Scenario)
+    def get_scenario_by_name(ctx, network_id, scenario_name, get_parent_data, include_data, include_group_items):
+        """
+            Get the specified scenario
+        """
+        if get_parent_data is None or get_parent_data.upper() == 'N':
+            _get_parent_data = False
+        else:
+            _get_parent_data = True
+
+        if include_data is None or include_data.upper() == 'Y':
+            _include_data = True
+        else:
+            _include_data = False
+
+        if include_group_items is None or include_group_items.upper() == 'Y':
+            _include_group_items = True
+        else:
+            _include_group_items = False
+
+        scen = scenario.get_scenario_by_name(network_id,
+                                             scenario_name,
+                                             get_parent_data=_get_parent_data,
+                                             include_data=_include_data,
+                                             include_group_items=_include_group_items,
+                                             **ctx.in_header.__dict__)
+
+        return Scenario(scen,
+                        include_data=_include_data,
+                        include_group_items=_include_group_items)
 
     @rpc(Integer, Scenario, Unicode(pattern="['YN']", default='N'), _returns=Scenario)
     def add_scenario(ctx, network_id, scen, return_summary):
         """
             Add a scenario to a specified network.
         """
-        new_scen = scenario.add_scenario(network_id, scen, **ctx.in_header.__dict__)
-        if return_summary=='Y':
-            return Scenario(new_scen, summary=True)
-        else:
-            return Scenario(new_scen, summary=False)
+        if return_summary is None:
+            return_summary = 'N'
+        _return_summary = return_summary.upper() == 'Y'
 
-    @rpc(Scenario, 
-        Unicode(pattern="['YN']", default='Y'), 
-        Unicode(pattern="['YN']", default='Y'),
-        Unicode(pattern="['YN']", default='N'), _returns=Scenario)
+        new_scen = scenario.add_scenario(network_id, scen, **ctx.in_header.__dict__)
+
+        return Scenario(new_scen,
+                        include_data=not _return_summary,
+                        include_group_items=not _return_summary)
+
+    @rpc(Scenario,
+         Unicode(pattern="['YN']", default='Y'),
+         Unicode(pattern="['YN']", default='Y'),
+         Unicode(pattern="['YN']", default='N'), _returns=Scenario)
     def update_scenario(ctx, scen, update_data, update_groups, return_summary):
         """
             Update a single scenario
             as all resources already exist, there is no need to worry
             about negative IDS
         """
-        upd_data = True if update_data == 'Y' else False
-        upd_grp  = True if update_groups =='Y' else False  
+        upd_data = True if update_data in ('Y', None) else False
+        upd_grp  = True if update_groups in ('Y', None) else False
+
+        if return_summary is None:
+            return_summary = 'N'
+        _return_summary = return_summary.upper() == 'Y'
 
         updated_scen = scenario.update_scenario(scen,
                                                 update_data=upd_data,
                                                 update_groups=upd_grp,
                                                 **ctx.in_header.__dict__)
-        
-        if return_summary=='Y':
-            return Scenario(updated_scen, summary=True)
-        else:
-            return Scenario(updated_scen, summary=False)
+
+        return Scenario(updated_scen,
+                        include_data=not _return_summary,
+                        include_group_items=not _return_summary)
 
     @rpc(Integer, _returns=Unicode)
     def purge_scenario(ctx, scenario_id):
@@ -96,6 +155,14 @@ class ScenarioService(HydraService):
         """
 
         return scenario.purge_scenario(scenario_id, **ctx.in_header.__dict__)
+
+    @rpc(Integer, Unicode(pattern="['AX']"), _returns=Unicode)
+    def set_scenario_status(ctx, scenario_id, status):
+        """
+            Set the status of a scenario to 'A' or 'X'.
+        """
+
+        return scenario.set_scenario_status(scenario_id, status, **ctx.in_header.__dict__)
 
     @rpc(Integer, _returns=Unicode)
     def delete_scenario(ctx, scenario_id):
@@ -114,12 +181,18 @@ class ScenarioService(HydraService):
         return scenario.set_scenario_status(scenario_id, 'A', **ctx.in_header.__dict__)
 
 
-    @rpc(Integer, _returns=Scenario)
-    def clone_scenario(ctx, scenario_id):
+    @rpc(Integer,
+         Unicode(pattern='[YN]'),
+         Unicode,
+         _returns=Scenario)
+    def clone_scenario(ctx, scenario_id, retain_results, scenario_name):
 
-        cloned_scen = scenario.clone_scenario(scenario_id, **ctx.in_header.__dict__)
+        cloned_scen = scenario.clone_scenario(scenario_id,
+                                              retain_results == 'Y',
+                                              scenario_name,
+                                              **ctx.in_header.__dict__)
 
-        return Scenario(cloned_scen, summary=True)
+        return Scenario(cloned_scen, include_data=False, include_group_items=False)
 
     @rpc(Integer, Unicode(default=None), _returns=Scenario)
     def create_child_scenario(ctx, scenario_id, child_name):
@@ -128,7 +201,9 @@ class ScenarioService(HydraService):
         """
         child_scen = scenario.create_child_scenario(scenario_id, child_name, **ctx.in_header.__dict__)
 
-        return Scenario(child_scen, summary=True)
+        return Scenario(child_scen,
+                        include_data=False,
+                        include_group_items=False)
 
     @rpc(Integer, Integer, _returns=ScenarioDiff)
     def compare_scenarios(ctx, scenario_id_1, scenario_id_2):
@@ -155,10 +230,10 @@ class ScenarioService(HydraService):
             Get all the scenarios attached to a dataset
             @returns a list of scenario_ids
         """
-        
+
         scenarios = scenario.get_dataset_scenarios(dataset_id, **ctx.in_header.__dict__)
 
-        return [Scenario(s, summary=True) for s in scenarios]
+        return [Scenario(s, include_data=False, include_group_items=False) for s in scenarios]
 
     @rpc(Integer, SpyneArray(ResourceScenario), _returns=SpyneArray(ResourceScenario))
     def update_resourcedata(ctx,scenario_id, resource_scenarios):
@@ -214,11 +289,45 @@ class ScenarioService(HydraService):
          Unicode(pattern="['YN']", default='N'),
          _returns=SpyneArray(Dataset))
     def get_scenario_data(ctx, scenario_id, get_parent_data):
+        if get_parent_data is None:
+            get_parent_data = 'N'
+
         scenario_data = scenario.get_scenario_data(scenario_id,
-                                                   get_parent_data = True if get_parent_data.upper() == 'Y' else False,
+                                                   get_parent_data = True if get_parent_data == 'Y' else False,
                                                    **ctx.in_header.__dict__)
         data_cm = [Dataset(d) for d in scenario_data]
         return data_cm
+
+
+    @rpc(Unicode,
+         Integer,
+         Integer,
+         Integer(min_occurs=0, max_occurs=1),
+         Unicode(pattern="['YN']", default='N'),
+         _returns=SpyneArray(ResourceScenario))
+    def get_resource_data(ctx, resource_type, resource_id, scenario_id, type_id=None, get_parent_data='N'):
+        """
+            Get all the resource scenarios for a given resource
+            in a given scenario. If type_id is specified, only
+            return the resource scenarios for the attributes
+            within the type.
+        """
+        if get_parent_data is None or get_parent_data.upper() != 'Y':
+            get_parent_data = False
+        else:
+            get_parent_data = True
+
+        resource_data = scenario.get_resource_data(resource_type,
+                                               resource_id,
+                                               scenario_id,
+                                               type_id,
+                                               get_parent_data=get_parent_data,
+                                               **ctx.in_header.__dict__
+                                              )
+
+        ret_data = [ResourceScenario(rs) for rs in resource_data]
+        return ret_data
+
 
     @rpc(Integer,
          Integer,
@@ -227,7 +336,7 @@ class ScenarioService(HydraService):
          _returns=SpyneArray(ResourceScenario))
     def get_node_data(ctx, node_id, scenario_id, type_id, get_parent_data):
         """
-            Get all the resource scenarios for a given node 
+            Get all the resource scenarios for a given node
             in a given scenario. If type_id is specified, only
             return the resource scenarios for the attributes
             within the type.
@@ -236,12 +345,12 @@ class ScenarioService(HydraService):
                                                node_id,
                                                scenario_id,
                                                type_id,
-                                               get_parent_data = True if get_parent_data.upper() == 'Y' else False,
+                                               get_parent_data = True if get_parent_data == 'Y' else False,
                                                **ctx.in_header.__dict__
                                               )
-        
+
         ret_data = [ResourceScenario(rs) for rs in node_data]
-        return ret_data 
+        return ret_data
 
     @rpc(Integer,
          Integer,
@@ -250,7 +359,7 @@ class ScenarioService(HydraService):
          _returns=SpyneArray(ResourceScenario))
     def get_link_data(ctx, link_id, scenario_id, type_id, get_parent_data):
         """
-            Get all the resource scenarios for a given link 
+            Get all the resource scenarios for a given link
             in a given scenario. If type_id is specified, only
             return the resource scenarios for the attributes
             within the type.
@@ -259,10 +368,10 @@ class ScenarioService(HydraService):
                                                link_id,
                                                scenario_id,
                                                type_id,
-                                               get_parent_data = True if get_parent_data.upper() == 'Y' else False,
+                                               get_parent_data = True if get_parent_data == 'Y' else False,
                                                **ctx.in_header.__dict__
         )
-        
+
         ret_data = [ResourceScenario(rs) for rs in link_data]
         return ret_data
 
@@ -273,7 +382,7 @@ class ScenarioService(HydraService):
          _returns=SpyneArray(ResourceScenario))
     def get_network_data(ctx, network_id, scenario_id, type_id, get_parent_data):
         """
-            Get all the resource scenarios for a given network 
+            Get all the resource scenarios for a given network
             in a given scenario. If type_id is specified, only
             return the resource scenarios for the attributes
             within the type.
@@ -282,9 +391,9 @@ class ScenarioService(HydraService):
                                                network_id,
                                                scenario_id,
                                                type_id,
-                                               get_parent_data = True if get_parent_data.upper() == 'Y' else False,
+                                               get_parent_data = True if get_parent_data == 'Y' else False,
                                                 **ctx.in_header.__dict__)
-        
+
         ret_data = [ResourceScenario(rs) for rs in network_data]
         return ret_data
 
@@ -295,7 +404,7 @@ class ScenarioService(HydraService):
          _returns=SpyneArray(ResourceScenario))
     def get_resourcegroup_data(ctx, resourcegroup_id, scenario_id, type_id, get_parent_data):
         """
-            Get all the resource scenarios for a given resourcegroup 
+            Get all the resource scenarios for a given resourcegroup
             in a given scenario. If type_id is specified, only
             return the resource scenarios for the attributes
             within the type.
@@ -304,9 +413,9 @@ class ScenarioService(HydraService):
                                                resourcegroup_id,
                                                scenario_id,
                                                type_id,
-                                               get_parent_data = True if get_parent_data.upper() == 'Y' else False,
+                                               get_parent_data = True if get_parent_data == 'Y' else False,
                                                **ctx.in_header.__dict__)
-        
+
         ret_data = [ResourceScenario(rs) for rs in group_data]
         return ret_data
 
@@ -335,7 +444,7 @@ class ScenarioService(HydraService):
 
     @rpc(Integer,
          Integer,
-         Unicode(pattern="['YN']", default='N'), _returns=SpyneArray(ResourceAttr))
+         Unicode(pattern="['YN']", default='N'), _returns=SpyneArray(ResourceScenario))
     def get_attribute_datasets(ctx, attr_id, scenario_id, get_parent_data):
         """
             Get all the datasets from resource attributes with the given attribute
@@ -344,20 +453,12 @@ class ScenarioService(HydraService):
             Return a list of resource attributes with their associated
             resource scenarios (and values).
         """
-        resource_attrs = scenario.get_attribute_datasests(attr_id,
-                                                          scenario_id,
-                                                          get_parent_data = True if get_parent_data.upper() == 'Y' else False,
-                                                          **ctx.in_header.__dict__)
+        resource_scenarios = scenario.get_attribute_datasets(attr_id,
+                                                             scenario_id,
+                                                             get_parent_data = True if get_parent_data == 'Y' else False,
+                                                             **ctx.in_header.__dict__)
 
-        ra_cms = []
-        for ra in resource_attrs:
-            res_attr_cm = ResourceAttr(ra)
-            for rs in ra.resourcescenarios:
-                if rs.scenario_id==scenario_id:
-                    res_attr_cm.resourcescenario = ResourceScenario(rs)
-            ra_cms.append(res_attr_cm)
-
-        return ra_cms
+        return [ResourceScenario(rs) for rs in resource_scenarios]
 
     @rpc(Integer(min_occurs=1, max_occurs='unbounded'), Integer, Integer, _returns=SpyneArray(ResourceScenario))
     def copy_data_from_scenario(ctx, resource_attr_ids, source_scenario_id, target_scenario_id):
@@ -367,16 +468,16 @@ class ScenarioService(HydraService):
             ID of the source scenario and the ID of the target scenario.
         """
         updated_resourcescenarios = scenario.copy_data_from_scenario(resource_attr_ids,
-                                                                    source_scenario_id,
-                                                                    target_scenario_id,
-                                                                    **ctx.in_header.__dict__)
+                                                                     source_scenario_id,
+                                                                     target_scenario_id,
+                                                                     **ctx.in_header.__dict__)
 
-        ret_resourcescenarios=[ResourceScenario(rs) for rs in updated_resourcescenarios]
+        ret_resourcescenarios = [ResourceScenario(rs) for rs in updated_resourcescenarios]
 
-        return ret_resourcescenarios 
+        return ret_resourcescenarios
 
     @rpc(Integer, Integer, Integer, _returns=ResourceScenario)
-    def set_resourcescenario_dataset(ctx, resource_attr_id, scenario_id, dataset_id):
+    def set_rs_dataset(ctx, resource_attr_id, scenario_id, dataset_id):
         """
             A short-hand way of creating a resource scenario. This function says:
             assign this datset ID to this resource attribute in this scenario.
@@ -387,17 +488,17 @@ class ScenarioService(HydraService):
                                      scenario_id,
                                      dataset_id,
                                      **ctx.in_header.__dict__)
-        
+
         return ResourceScenario(rs)
-        
+
     @rpc(Integer,
-         Integer, 
+         Integer,
          Unicode(pattern="['YN']", default='N'),
          _returns=SpyneArray(ResourceGroupItem))
     def get_resourcegroupitems(ctx, group_id, scenario_id, get_parent_items):
         items = scenario.get_resourcegroupitems(group_id,
                                                 scenario_id,
-                                                get_parent_items = True if get_parent_items.upper() == 'Y' else False,
+                                                get_parent_items = get_parent_items == 'Y',
                                                 **ctx.in_header.__dict__)
 
         return [ResourceGroupItem(rgi) for rgi in items]
@@ -435,9 +536,36 @@ class ScenarioService(HydraService):
             the resource scenario does not exist on this scenario to look in its parent.
 
         """
-        rs = get_resource_scenario(resource_attr_id,
-                                   scenario_id,
-                                    get_parent_data = True if get_parent_data.upper() == 'Y' else False,
-                                   **ctx.in_header.__dict__)
-        
+        rs = scenario.get_resource_scenario(resource_attr_id,
+                                            scenario_id,
+                                            get_parent_data = True if get_parent_data == 'Y' else False,
+                                            **ctx.in_header.__dict__)
+
         return ResourceScenario(rs)
+    @rpc(Integer,
+         SpyneArray(Integer),
+         Unicode(pattern="['YN']", default='N'),
+         _returns=Unicode)
+    def delete_resource_scenarios(ctx, scenario_id, resource_attr_ids, quiet):
+        """
+            Delete a list of resoruce attributes associated to a scenario
+        """
+        scenario.delete_resource_scenarios(scenario_id,
+                                           resource_attr_ids,
+                                           quiet=quiet=='Y',
+                                           **ctx.in_header.__dict__)
+        return 'OK'
+
+    @rpc(Integer,
+         Integer,
+         Unicode(pattern="['YN']", default='N'),
+         _returns=Unicode)
+    def delete_resource_scenario(ctx, scenario_id, resource_attr_id, quiet):
+        """
+            Delete a list of resoruce attributes associated to a scenario
+        """
+        scenario.delete_resource_scenario(scenario_id,
+                                          resource_attr_id,
+                                          quiet=quiet=='Y',
+                                          **ctx.in_header.__dict__)
+        return 'OK'

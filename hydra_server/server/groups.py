@@ -29,7 +29,7 @@ class ResourceGroupService(HydraService):
     def add_resourcegroup(ctx, group, network_id):
         """
         Add a new group to a network.
-        
+
         Args:
             group (ResourceGroup): The group complex model to be added to the network
             network_id (int): The ID of the network to receive the new group
@@ -45,11 +45,11 @@ class ResourceGroupService(HydraService):
                                                    **ctx.in_header.__dict__)
         return ResourceGroup(group_i)
 
-    @rpc(Integer, _returns=Unicode)
-    def delete_resourcegroup(ctx, group_id):
+    @rpc(Integer, Unicode(pattern="[YN]", default='Y'), _returns=Unicode)
+    def delete_resourcegroup(ctx, group_id, purge_data):
         """
         Delete a resource group from a network (including all group items)
-        
+
         Args:
             group_id (int): The ID of the group to remove
 
@@ -61,6 +61,7 @@ class ResourceGroupService(HydraService):
         """
         success = 'OK'
         resourcegroups.delete_resourcegroup(group_id,
+                                            purge_data = purge_data,
                                             **ctx.in_header.__dict__)
         return success
 

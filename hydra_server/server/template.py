@@ -9,12 +9,12 @@
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with HydraPlatform.  If not, see <http://www.gnu.org/licenses/>
 #
 from spyne.model.complex import Array as SpyneArray
-from spyne.model.primitive import Integer, Integer32, Unicode
+from spyne.model.primitive import Integer, Integer32, Unicode, AnyDict
 from spyne.decorator import rpc
 from .complexmodels import Template,\
 TemplateType,\
@@ -31,8 +31,8 @@ class TemplateService(HydraService):
         The template SOAP service
     """
 
-    @rpc(Unicode, _returns=Template)
-    def upload_template_xml(ctx, template_xml):
+    @rpc(Unicode, Unicode(pattern='[YN]'), _returns=Template)
+    def import_template_xml(ctx, template_xml, allow_update):
         """
             Add the template, type and typeattrs described
             in an XML file.
@@ -40,7 +40,55 @@ class TemplateService(HydraService):
             Delete type, typeattr entries in the DB that are not in the XML file
             The assumption is that they have been deleted and are no longer required.
         """
-        tmpl_i = template.upload_template_xml(template_xml,
+        if allow_update is None or allow_update.upper() == 'Y':
+            allow_update = True
+        else:
+            allow_update = False
+
+        tmpl_i = template.import_template_xml(template_xml,
+                                              allow_update=allow_update,
+                                              **ctx.in_header.__dict__)
+
+        return Template(tmpl_i)
+
+    @rpc(AnyDict, Unicode(pattern='[YN]'), _returns=Template)
+    def import_template_dict(ctx, template_dict, allow_update):
+        """
+            Add the template, type and typeattrs described
+            in a python dict file.
+
+            Delete type, typeattr entries in the DB that are not in the dict
+            The assumption is that they have been deleted and are no longer required.
+        """
+
+        if allow_update is None or allow_update.upper() == 'Y':
+            allow_update = True
+        else:
+            allow_update = False
+
+        tmpl_i = template.import_template_dict(template_dict,
+                                               allow_update=allow_update,
+                                              **ctx.in_header.__dict__)
+
+        return Template(tmpl_i)
+
+    @rpc(Unicode, Unicode(pattern='[YN]'), _returns=Template)
+    def import_template_json(ctx, template_dict, allow_update):
+        """
+            Add the template, type and typeattrs described
+            in an JSON file.
+
+            Delete type, typeattr entries in the DB that are not in the JSON file
+            The assumption is that they have been deleted and are no longer required.
+        """
+
+        if allow_update is None or allow_update.upper() == 'Y':
+            allow_update = True
+        else:
+            allow_update = False
+
+        tmpl_i = template.import_template_json(template_dict,
+                                               allow_update=allow_update,
                                               **ctx.in_header.__dict__)
 
         return Template(tmpl_i)
@@ -84,16 +132,16 @@ class TemplateService(HydraService):
         changed.
         """
         templatetype = template.assign_type_to_resource(type_id,
-                                                       resource_type,
-                                                       resource_id,
-                                                       **ctx.in_header.__dict__)
+                                                        resource_type,
+                                                        resource_id,
+                                                        **ctx.in_header.__dict__)
         ret_type = TypeSummary()
-        ret_type.name = templatetype.type_name
-        ret_type.id   = templatetype.type_id
-        ret_type.template_name = templatetype.template.template_name 
-        ret_type.template_id = templatetype.template.template_id 
+        ret_type.name = templatetype.name
+        ret_type.id   = templatetype.id
+        ret_type.template_name = templatetype.template.name
+        ret_type.template_id = templatetype.template.id
 
-        return ret_type 
+        return ret_type
 
     @rpc(Integer, Integer, _returns=Unicode)
     def apply_template_to_network(ctx, template_id, network_id):
@@ -105,7 +153,7 @@ class TemplateService(HydraService):
                                            network_id,
                                            **ctx.in_header.__dict__)
         return 'OK'
-    
+
     @rpc(Integer, Integer, Unicode(pattern="[YN]", default='N'), _returns=Unicode)
     def remove_template_from_network(ctx, network_id, template_id, remove_attrs):
         """
@@ -113,9 +161,9 @@ class TemplateService(HydraService):
             all the nodes & links in the network to the types in the template
         """
         template.remove_template_from_network(network_id,
-                                           template_id,
-                                           remove_attrs,
-                                           **ctx.in_header.__dict__)
+                                             template_id,
+                                             remove_attrs,
+                                             **ctx.in_header.__dict__)
         return 'OK'
 
 
@@ -129,7 +177,7 @@ class TemplateService(HydraService):
                                            resource_type,
                                            resource_id,
                                            **ctx.in_header.__dict__)
-        
+
         return 'OK'
 
     @rpc(Template, _returns=Template)
@@ -194,6 +242,26 @@ class TemplateService(HydraService):
 
         return tmpl
 
+    @rpc(Integer, _returns=AnyDict)
+    def get_template_as_dict(ctx, template_id):
+        """
+            Get a specific resource template template, either by ID or name.
+        """
+        tmpl_dict = template.get_template_as_dict(template_id,
+                                      **ctx.in_header.__dict__)
+
+        return tmpl_dict
+
+    @rpc(Integer, _returns=Unicode)
+    def get_template_as_xml(ctx, template_id):
+        """
+            Get a specific resource template template, either by ID or name.
+        """
+        tmpl_xml = template.get_template_as_xml(template_id,
+                                      **ctx.in_header.__dict__)
+
+        return tmpl_xml
+
     @rpc(Unicode, _returns=Template)
     def get_template_by_name(ctx, template_name):
         """
@@ -255,7 +323,7 @@ class TemplateService(HydraService):
             Get a specific resource type by name.
         """
 
-        type_i = template.get_templatetype_by_name(template_id, 
+        type_i = template.get_templatetype_by_name(template_id,
                                                    type_name,
                                                    **ctx.in_header.__dict__)
         tmpltype = TemplateType(type_i)
@@ -270,7 +338,8 @@ class TemplateService(HydraService):
         updated_template_type = template.add_typeattr(typeattr,
                                            **ctx.in_header.__dict__)
 
-        ta = TemplateType(updated_template_type)
+        ta = TypeAttr(updated_template_type)
+
         return ta
 
 
@@ -310,16 +379,16 @@ class TemplateService(HydraService):
             return None
 
         error = ValidationError(
-                ref_key = error_dict.get('ref_key'),
-                 ref_id  = error_dict.get('ref_id'), 
-                 ref_name = error_dict.get('ref_name'),
-                 resource_attr_id = error_dict.get('resource_attr_id'),
-                 attr_id          = error_dict.get('attr_id'),
-                 attr_name        = error_dict.get('attr_name'),
-                 dataset_id       = error_dict.get('dataset_id'),
-                 scenario_id=error_dict.get('scenario_id'),
-                 template_id=error_dict.get('template_id'),
-                 error_text=error_dict.get('error_text')
+             ref_key = error_dict.get('ref_key'),
+             ref_id  = error_dict.get('ref_id'),
+             ref_name = error_dict.get('ref_name'),
+             resource_attr_id = error_dict.get('resource_attr_id'),
+             attr_id          = error_dict.get('attr_id'),
+             attr_name        = error_dict.get('attr_name'),
+             dataset_id       = error_dict.get('dataset_id'),
+             scenario_id=error_dict.get('scenario_id'),
+             template_id=error_dict.get('template_id'),
+             error_text=error_dict.get('error_text')
         )
         return error
 
@@ -329,48 +398,51 @@ class TemplateService(HydraService):
         error_dicts = template.validate_attrs(resource_attr_ids, scenario_id, template_id)
         for error_dict in error_dicts:
             error = ValidationError(
-                    ref_key = error_dict.get('ref_key'),
-                     ref_id  = error_dict.get('ref_id'), 
-                     ref_name = error_dict.get('ref_name'),
-                     resource_attr_id = error_dict.get('resource_attr_id'),
-                     attr_id          = error_dict.get('attr_id'),
-                     attr_name        = error_dict.get('attr_name'),
-                     dataset_id       = error_dict.get('dataset_id'),
-                     scenario_id=error_dict.get('scenario_id'),
-                     template_id=error_dict.get('template_id'),
-                     error_text=error_dict.get('error_text')
+                 ref_key = error_dict.get('ref_key'),
+                 ref_id  = error_dict.get('ref_id'),
+                 ref_name = error_dict.get('ref_name'),
+                 resource_attr_id = error_dict.get('resource_attr_id'),
+                 attr_id          = error_dict.get('attr_id'),
+                 attr_name        = error_dict.get('attr_name'),
+                 dataset_id       = error_dict.get('dataset_id'),
+                 scenario_id=error_dict.get('scenario_id'),
+                 template_id=error_dict.get('template_id'),
+                 error_text=error_dict.get('error_text')
             )
             errors.append(error)
-            
+
         return errors
 
     @rpc(Integer, Integer, _returns=SpyneArray(ValidationError))
     def validate_scenario(ctx, scenario_id, template_id):
         errors = []
-        error_dicts = template.validate_scenario(scenario_id, template_id)
+        error_dicts = template.validate_scenario(scenario_id, template_id,
+                                                            **ctx.in_header.__dict__)
         for error_dict in error_dicts:
             error = ValidationError(
-                    ref_key = error_dict.get('ref_key'),
-                     ref_id  = error_dict.get('ref_id'), 
-                     ref_name = error_dict.get('ref_name'),
-                     resource_attr_id = error_dict.get('resource_attr_id'),
-                     attr_id          = error_dict.get('attr_id'),
-                     attr_name        = error_dict.get('attr_name'),
-                     dataset_id       = error_dict.get('dataset_id'),
-                     scenario_id=error_dict.get('scenario_id'),
-                     template_id=error_dict.get('template_id'),
-                     error_text=error_dict.get('error_text')
+             ref_key=error_dict.get('ref_key'),
+             ref_id=error_dict.get('ref_id'),
+             ref_name=error_dict.get('ref_name'),
+             resource_attr_id =error_dict.get('resource_attr_id'),
+             attr_id=error_dict.get('attr_id'),
+             attr_name=error_dict.get('attr_name'),
+             dataset_id=error_dict.get('dataset_id'),
+             scenario_id=error_dict.get('scenario_id'),
+             template_id=error_dict.get('template_id'),
+             error_text=error_dict.get('error_text')
             )
             errors.append(error)
-            
+
         return errors
 
     @rpc(Integer, Integer, Integer(min_occurs=0, max_occurs=1), _returns=SpyneArray(Unicode))
     def validate_network(ctx, network_id, template_id, scenario_id):
-        errors = template.validate_network(network_id, template_id, scenario_id)
+        errors = template.validate_network(network_id, template_id, scenario_id,
+                                                            **ctx.in_header.__dict__)
         return errors
 
     @rpc(Integer, Integer, _returns=SpyneArray(Unicode))
-    def check_type_compatibility(ctx, type_1_id, type_2_id): 
-        errors = template.check_type_compatibility(type_1_id, type_2_id)
+    def check_type_compatibility(ctx, type_1_id, type_2_id):
+        errors = template.check_type_compatibility(type_1_id, type_2_id,
+                                                            **ctx.in_header.__dict__)
         return errors

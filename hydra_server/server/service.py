@@ -19,7 +19,7 @@ from spyne.model.complex import ComplexModel
 from spyne.decorator import rpc
 from .complexmodels import LoginResponse
 import logging
-from hydra_base.util.hdb import login_user
+import hydra_base
 from hydra_base.exceptions import HydraError
 from spyne.protocol.json import JsonDocument
 
@@ -56,13 +56,13 @@ class HydraDocument(JsonDocument):
 class RequestHeader(ComplexModel):
     __namespace__ = 'hydra.base'
 
-    username     = Unicode
-    user_id       = Unicode
-    appname      = Unicode
+    username = Unicode
+    user_id = Unicode
+    appname = Unicode
 
     def __init__(self):
         self.appname = None
-        self.user_id  = None
+        self.user_id = None
         self.username = None
 
 class HydraService(ServiceBase):
@@ -74,9 +74,9 @@ class AuthenticationError(Fault):
 
     def __init__(self, user_name):
         Fault.__init__(self,
-                faultcode='Client.AuthenticationError',
-                faultstring='Invalid authentication request for %r' % user_name
-            )
+                       faultcode='Client.AuthenticationError',
+                       faultstring='Invalid authentication request for %r' % user_name
+                      )
 
 class AuthorizationError(Fault):
     __namespace__ = 'hydra.authentication'
@@ -84,19 +84,19 @@ class AuthorizationError(Fault):
     def __init__(self):
 
         Fault.__init__(self,
-                faultcode='Client.AuthorizationError',
-                faultstring='You are not authozied to access this resource.'
-            )
+                       faultcode='Client.AuthorizationError',
+                       faultstring='You are not authozied to access this resource.'
+                      )
 
-class HydraServiceError(Fault):
+class HydraServiceError(Fault, HydraError):
     __namespace__ = 'hydra.error'
 
     def __init__(self, message, code="HydraError"):
 
         Fault.__init__(self,
-                faultcode=code,
-                faultstring=message
-        )
+                       faultcode=code,
+                       faultstring=message
+                      )
 
 class ObjectNotFoundError(HydraServiceError):
     __namespace__ = 'hydra.error'
@@ -104,46 +104,61 @@ class ObjectNotFoundError(HydraServiceError):
     def __init__(self, message):
 
         Fault.__init__(self,
-                faultcode='NoObjectFoundError',
-                faultstring=message
-        )
+                       faultcode='NoObjectFoundError',
+                       faultstring=message
+                      )
 
 class LogoutService(HydraService):
-    __tns__      = 'hydra.authentication'
+    __tns__ = 'hydra.authentication'
 
-    @rpc(Mandatory.String, _returns=String,
-                                                    _throws=AuthenticationError)
-    def logout(ctx, username):
+    @rpc(Unicode, _returns=String, _throws=AuthenticationError)
+    def logout(ctx, session_id):
+        """
+            Log a user out by deleting their session. The session ID parameter is
+            only used for validation here, and exists mainly to match the hydra base
+            argument structure, to make unit testing easier.
+        """
+
+        #If we're in test mode, ignore
+        #don't do anythying if we're in test mode:
+        if ctx.transport.app.transport == 'noconn://null.spyne':
+            return 'OK'
+
+        if session_id is not None and ctx.transport.req_env['beaker.session'].id != session_id:
+            #ignore
+            return 'OK'
 
         ctx.transport.req_env['beaker.session'].delete()
 
         return "OK"
 
 class AuthenticationService(ServiceBase):
-    __tns__      = 'hydra.base'
+    __tns__ = 'hydra.base'
 
-    @rpc(Mandatory.Unicode, Unicode, _returns=LoginResponse,
-                                                   _throws=AuthenticationError)
+    @rpc(Mandatory.Unicode, Unicode, _returns=LoginResponse, _throws=AuthenticationError)
     def login(ctx, username, password):
-        try:
 
+        try:
             if username is None:
                 raise HydraError("No Username specified.")
-            username = username.encode('utf-8')
+            if isinstance(username, bytes):
+                username = username.encode('utf-8')
 
             if password is None:
                 raise HydraError("No password specified")
-            password = password.encode('utf-8')
-
-            user_id = login_user(username, password)
+            if isinstance(password, bytes):
+                password = password.encode('utf-8')
+            log.info("%s, %s",username, password)
+            user_id = hydra_base.hdb.login_user(username, password)
         except HydraError as e:
             raise AuthenticationError(e)
 
-        ctx.transport.req_env['beaker.session']['user_id'] = user_id
-        ctx.transport.req_env['beaker.session']['username'] = username
-        ctx.transport.req_env['beaker.session'].save()
+        if hasattr(ctx.transport, 'req_env'):
+            ctx.transport.req_env['beaker.session']['user_id'] = user_id
+            ctx.transport.req_env['beaker.session']['username'] = username
+            ctx.transport.req_env['beaker.session'].save()
 
-        login_response =  LoginResponse()
+        login_response = LoginResponse()
         login_response.user_id = user_id
         login_response.username = username
 
