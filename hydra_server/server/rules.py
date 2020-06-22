@@ -241,3 +241,22 @@ class RuleService(HydraService):
                                           **ctx.in_header.__dict__)
 
         return Rule(update_rule)
+
+    @rpc(Integer,
+         Integer(default=None),
+         Unicode(pattern='[YN]', default='Y'),
+         _returns=SpyneArray(Rule))
+    def get_network_rules(ctx, network_id, scenario_id, summary):
+        """
+            Get all the rules within a network -- including rules associated to
+            all nodes, links and group=s.
+            Args:
+                network_id (int): ID of the resource
+                scenario_id (int): Optional which filters on scenario ID also
+            Returns:
+                List of Rule Complexmodels
+        """
+        rules.get_network_rules(network_id,
+                                scenario_id=scenario_id,
+                                summary=summary=='Y',
+                                **ctx.in_header.__dict__)
