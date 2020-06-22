@@ -113,7 +113,7 @@ class NetworkService(HydraService):
          Unicode(default=None), # new network name
          Integer(default=None), #project id
          Unicode(default=None), # project name
-         Integer(pattern="[YN]", default='Y'), # new project
+         Unicode(pattern="[YN]", default='Y'), # new project
          Unicode(pattern="[YN]", default='Y'), # include outputs`
          SpyneArray(Integer), # scenario ID to clone
          _returns=Integer())

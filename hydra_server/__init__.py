@@ -315,32 +315,33 @@ def check_port_available(domain, port):
 
 application = None
 
-def initalize(db_uri):
+def initialize(db_uri):
     global application
-    hydra_server = initialize_hydra_server(db_uri)
-    wsgi_app = initialise_wsgi_application(hydra_server)
+    global api_server
+    api_server = initialize_api_server(db_uri)
+    wsgi_app = initialise_wsgi_application(api_server)
     application = wsgi_app
-    return application
+    return application, api_server
 
-def initialize_hydra_server(db_uri, test=False):
-    hydra_server = HydraServer(db_uri)
+def initialize_api_server(db_uri, test=False):
+    api_server = HydraServer(db_uri)
     #only create the JSON one when in test mode
-    hydra_server.create_json_application()
+    api_server.create_json_application()
 
     if test is False:
-        hydra_server.create_soap_application()
-        hydra_server.create_jsonp_application()
-        hydra_server.create_http_application()
+        api_server.create_soap_application()
+        api_server.create_jsonp_application()
+        api_server.create_http_application()
 
-    return hydra_server
+    return api_server
 
-def initialise_wsgi_application(hydra_server):
+def initialise_wsgi_application(api_server):
 
     wsgi_application = WsgiMounter({
-        config.get('hydra_server', 'soap_path', 'soap'): hydra_server.soap_application,
-        config.get('hydra_server', 'json_path', 'json'): hydra_server.json_application,
-        'jsonp': hydra_server.jsonp_application,
-        config.get('hydra_server', 'http_path', 'http'): hydra_server.http_application,
+        config.get('hydra_server', 'soap_path', 'soap'): api_server.soap_application,
+        config.get('hydra_server', 'json_path', 'json'): api_server.json_application,
+        'jsonp': api_server.jsonp_application,
+        config.get('hydra_server', 'http_path', 'http'): api_server.http_application,
     })
 
     for server in wsgi_application.mounts.values():

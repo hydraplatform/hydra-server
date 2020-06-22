@@ -171,7 +171,7 @@ class Dataset(HydraComplexModel):
     - **unit**             Unicode(min_occurs=1, default=None)
     - **name**             Unicode(min_occurs=1, default=None)
     - **value**            Unicode(min_occurs=1, default=None)
-    - **hidden**           Unicode(min_occurs=0, default='N pattern="[YN]")
+    - **hidden**           Unicode(min_occurs=0, default='N' pattern="[YN]")
     - **created_by**       Integer(min_occurs=0, default=None)
     - **cr_date**          Unicode(min_occurs=0, default=None)
     - **hash**             Unicode(min_occurs=0, defaule=None)
