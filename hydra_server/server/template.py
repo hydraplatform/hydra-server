@@ -374,7 +374,7 @@ class TemplateService(HydraService):
             template is specified, (set as null), then validation will be made
             against every template on the network.
         """
-        error_dict = template.validate_attr(resource_attr_id, scenario_id, template_id)
+        error_dict = template.validate_attr(resource_attr_id, scenario_id, template_id, **ctx.in_header.__dict__)
         if error_dict is None:
             return None
 
@@ -395,7 +395,7 @@ class TemplateService(HydraService):
     @rpc(SpyneArray(Integer32), Integer, Integer, _returns=SpyneArray(ValidationError))
     def validate_attrs(ctx, resource_attr_ids, scenario_id, template_id):
         errors = []
-        error_dicts = template.validate_attrs(resource_attr_ids, scenario_id, template_id)
+        error_dicts = template.validate_attrs(resource_attr_ids, scenario_id, template_id, **ctx.in_header.__dict__)
         for error_dict in error_dicts:
             error = ValidationError(
                  ref_key = error_dict.get('ref_key'),
