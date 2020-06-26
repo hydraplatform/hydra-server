@@ -365,12 +365,12 @@ class ResourceScenario(HydraComplexModel):
     """
     _type_info = [
         ('resource_attr_id', Integer(default=None)),
-        ('resourceattr', AnyDict),#can't have resoruceattr object as it's not been defined yet
-        ('dataset_id',       Integer(default=None)),
-        ('scenario_id',      Integer(default=None)),
-        ('dataset',          Dataset),
-        ('source',           Unicode),
-        ('cr_date',          Unicode(default=None)),
+        ('resourceattr', AnyDict), #can't have resourceattr object as it's not been defined yet
+        ('dataset_id', Integer(default=None)),
+        ('scenario_id', Integer(default=None)),
+        ('dataset', Dataset),
+        ('source', Unicode),
+        ('cr_date', Unicode(default=None)),
     ]
 
     def __init__(self, parent=None, attr_id=None):
@@ -381,11 +381,11 @@ class ResourceScenario(HydraComplexModel):
         self.resourceattr = {}
         if attr_id is not None:
             self.resourceattr['attr_id'] = attr_id
-        elif  hasattr(parent, 'resourceattr') and parent.resourceattr is not None:
+        elif hasattr(parent, 'resourceattr') and parent.resourceattr is not None:
             self.resourceattr['attr_id'] = parent.resourceattr.attr_id
 
-        self.dataset_id       = parent.dataset_id
-        self.scenario_id      = parent.scenario_id
+        self.dataset_id = parent.dataset_id
+        self.scenario_id = parent.scenario_id
 
         self.dataset = Dataset(parent.dataset)
         self.source = parent.source
@@ -417,7 +417,7 @@ class ResourceAttr(HydraComplexModel):
         super(ResourceAttr, self).__init__()
         if  parent is None:
             return
-        self.id = parent.id#
+        self.id = parent.id
         if hasattr(parent, 'name'):
             self.name = parent.name
         self.attr_id = parent.attr_id
@@ -676,8 +676,8 @@ class TypeSummary(HydraComplexModel):
                 self.id = parent.id
                 self.type_id = parent.id
             self.name = parent.name
-            self.template_name = parent.template_name if hasattr(parent, "template_name") else None
-            self.template_id = parent.template_id if hasattr(parent, "template_id") else None
+            self.template_name = getattr(parent, 'template_name', None)
+            self.template_id = getattr(parent, "template_id", None)
 
 class ValidationError(HydraComplexModel):
     """

@@ -110,13 +110,17 @@ class ProjectService(HydraService):
     def get_project_by_name(ctx, project_name):
         """
         If you don't know the ID of the project in question, but do know
-        the name, use this function to retrieve it.
+        the name, use this function to retrieve it. A project name must be unique
+        to a user, but a user can have access to another user's project with the
+        same name, so this function returns a list
 
         Args:
             project_name (string): The name of the project to retrieve
 
         Returns:
-            complexmodels.Project: The requested project
+            list(complexmodels.Project): The requested project. More than one
+            project can be returned, as a user can have a project shared with them
+            which as the same name as a projec they are the owner of.
 
         Raises:
             ResourceNotFoundError: If the project is not found.

@@ -31,8 +31,8 @@ class DataService(HydraService):
         The data SOAP service
     """
 
-    @rpc(Unicode,#TYPE
-         Unicode,#value
+    @rpc(Unicode, #TYPE
+         Unicode, #value
          Integer(default=None), #unit
          Unicode, #metadata
          Unicode, #name
@@ -455,9 +455,9 @@ class DataService(HydraService):
         return ret_data
 
     @rpc(Integer,
-         Unicode,#name
-         Unicode,#type
-         Unicode,#value
+         Unicode, #name
+         Unicode, #type
+         Unicode, #value
          Integer(default=None), #unit
          Unicode, #metadata
          _returns=Dataset)

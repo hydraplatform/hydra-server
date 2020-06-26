@@ -34,7 +34,7 @@ class UserService(HydraService):
     @rpc(Unicode, _returns=Unicode)
     def get_session_user(ctx, session_id=None):
         """
-            This funciton simply returns the user's user ID. This function only
+            This function simply returns the user's user ID. This function only
             really exists so that there exists an equivalent funciton to the hydra
             base function. It's not really necessary for hydra server, as the user id
             will be stored in the cookie anyway.

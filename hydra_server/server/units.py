@@ -22,7 +22,6 @@ from spyne.decorator import rpc
 from spyne.util.dictdoc import get_object_as_dict
 from .service import HydraService
 from .complexmodels import Unit, Dimension
-import decimal
 from hydra_base.lib import units
 import json
 
@@ -103,23 +102,30 @@ class UnitService(HydraService):
         return [Unit(u) for u in unit_list]
 
     @rpc(Integer, Unicode(pattern="[YN]"), _returns=Dimension)
-    def get_dimension_by_unit_id(ctx, unit_id, do_accept_unit_id_none, **kwargs):
+    def get_dimension_by_unit_id(ctx, unit_id, do_accept_unit_id_none):
         """
             Return the physical dimension a given unit id refers to.
-            if do_accept_unit_id_none is False, it raises an exception if unit_id is not valid or None
-            if do_accept_unit_id_none is True, and unit_id is None, the function returns a Dimension with id None (unit_id can be none in some cases)
+            if do_accept_unit_id_none is 'N', it raises an exception
+            if unit_id is not valid or None
+
+            if do_accept_unit_id_none is 'Y', and unit_id is None,
+            the function returns a Dimension with id None
+            (unit_id can be none in some cases)
         """
         accept_null_unit = do_accept_unit_id_none == 'Y'
         unit_dimension = units.get_dimension_by_unit_id(unit_id,
-                                              do_accept_unit_id_none=accept_null_unit,
-                                              **ctx.in_header.__dict__)
+            do_accept_unit_id_none=accept_null_unit,
+            **ctx.in_header.__dict__)
         return Dimension(unit_dimension)
 
     @rpc(Unicode, _returns=Dimension)
-    def get_dimension_by_unit_measure_or_abbreviation(ctx, measure_or_unit_abbreviation, **kwargs):
+    def get_dimension_by_unit_measure_or_abbreviation(ctx, measure_or_unit_abbreviation):
         """
-            Return the physical dimension a given unit abbreviation of a measure, or the measure itself, refers to.
+            Return the physical dimension a given unit abbreviation of a measure,
+            or the measure itself, refers to.
+
             The search key is the abbreviation or the full measure
+
             Args:
                 Unit measure or abbreviation
             Returns:

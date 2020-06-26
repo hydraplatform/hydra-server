@@ -51,10 +51,7 @@ except ModuleNotFoundError as e:
 
 
 import spyne.service #Needed for build script.
-#if "./python" not in sys.path:
-#    sys.path.append("./python")
-#if "../../HydraLib/trunk/" not in sys.path:
-#    sys.path.append("../../HydraLib/trunk/")
+
 
 from decimal import getcontext
 getcontext().prec = 26
@@ -63,6 +60,7 @@ from spyne.application import Application
 from spyne.protocol.soap import Soap11
 from spyne.protocol.json import JsonDocument, JsonP
 from spyne.protocol.http import HttpRpc
+from spyne.server.null import NullServer
 
 import spyne.decorator
 
@@ -75,7 +73,6 @@ from hydra_server.server.project import ProjectService
 from hydra_server.server.attributes import AttributeService, AttributeGroupService
 from hydra_server.server.scenario import ScenarioService
 from hydra_server.server.data import DataService
-##from hydra_server.server.plugins import PluginService
 from hydra_server.server.users import UserService
 from hydra_server.server.template import TemplateService
 from hydra_server.server.static import ImageService, FileService
@@ -106,7 +103,6 @@ applications = [
     AttributeGroupService,
     ScenarioService,
     DataService,
-    #PluginService,
     TemplateService,
     ImageService,
     FileService,
@@ -115,7 +111,6 @@ applications = [
     RuleService,
     NoteService,
 ]
-#applications.extend(hydra_server.plugins.services)
 
 from hydra_base.exceptions import HydraError
 
@@ -132,7 +127,7 @@ from hydra_base.db import commit_transaction, rollback_transaction, close_sessio
 def _on_method_call(ctx):
 
     #don't do anythying if we're in test mode:
-    if ctx.transport.app.transport == 'noconn://null.spyne':
+    if ctx.transport.app.transport == NullServer.transport:
         return
 
     #otherwise it must have a 'req_env' as it's a wsgi application
@@ -191,16 +186,16 @@ class HydraSoapApplication(Application):
             res =  ctx.service_class.call_wrapper(ctx)
             log.info("Call took: %s"%(datetime.datetime.now()-start))
             return res
+        except ObjectNotFoundError as e:
+            log.critical(e)
+            rollback_transaction()
+            raise
         except HydraError as e:
             log.critical(e)
             rollback_transaction()
             traceback.print_exc(file=sys.stdout)
             code = "HydraError %s"%e.code
             raise HydraServiceError(e.message, code)
-        except ObjectNotFoundError as e:
-            log.critical(e)
-            rollback_transaction()
-            raise
         except Fault as e:
             log.critical(e)
             rollback_transaction()
@@ -283,7 +278,7 @@ class HydraServer():
 
         check_port_available(domain, port)
 
-        default_ns = 'soap_se#rver.hydra_complexmodels'
+        default_ns = 'soap_server.hydra_complexmodels'
 
         if six.PY3:
             spyne.const.xml.DEFAULT_NS = default_ns
@@ -345,7 +340,7 @@ def initialise_wsgi_application(api_server):
     })
 
     for server in wsgi_application.mounts.values():
-        server.max_content_length = 100 * 0x100000 # 10 MB
+        server.max_content_length = 100 * 0x100000 # 100 MB
 
     # Configure the SessionMiddleware
     session_opts = {

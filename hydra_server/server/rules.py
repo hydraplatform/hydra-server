@@ -171,7 +171,7 @@ class RuleService(HydraService):
             args:
                 typecode: Type definitions do not used IDs, rather codes. This is to code to purge
             returns:
-                 None
+                 'OK'
             raises:
                 ResourceNotFoundError if the rule type definintion code does not exist
         """

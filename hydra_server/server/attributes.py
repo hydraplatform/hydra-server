@@ -212,7 +212,7 @@ class AttributeService(HydraService):
         Args:
             resource_type (string) : NODE | LINK | GROUP | NETWORK
             resource_id (int): The ID of the Node
-            attr_id (int): THe ID if the attribute being added.
+            attr_id (int): The ID if the attribute being added.
             is_var (char): Y or N. Indicates whether the attribute is a variable or not.
 
         Returns:
@@ -477,7 +477,7 @@ class AttributeService(HydraService):
 
         Args:
             node_id (int): The ID of the Node
-            attr_id (int): THe ID if the attribute being added.
+            attr_id (int): The ID if the attribute being added.
             is_var (char): Y or N. Indicates whether the attribute is a variable or not.
 
         Returns:
@@ -570,7 +570,7 @@ class AttributeService(HydraService):
 
         Args:
             link_id (int): The ID of the Link
-            attr_id (int): THe ID if the attribute being added.
+            attr_id (int): The ID if the attribute being added.
             is_var (char): Y or N. Indicates whether the attribute is a variable or not.
 
         Returns:

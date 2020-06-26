@@ -132,8 +132,8 @@ class ScenarioService(HydraService):
             as all resources already exist, there is no need to worry
             about negative IDS
         """
-        upd_data = True if update_data in ('Y', None) else False
-        upd_grp  = True if update_groups in ('Y', None) else False
+        upd_data = update_data in ('Y', None)
+        upd_grp  = update_groups in ('Y', None)
 
         if return_summary is None:
             return_summary = 'N'

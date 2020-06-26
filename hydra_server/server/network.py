@@ -67,9 +67,9 @@ class NetworkService(HydraService):
         return ret_net
 
     @rpc(Integer,
-         Unicode(pattern="[YN]", default='N'),#include attributes
-         Unicode(pattern="[YN]", default='Y'),#include data
-         Unicode(pattern="[YN]", default='N'),#include results
+         Unicode(pattern="[YN]", default='N'), #include attributes
+         Unicode(pattern="[YN]", default='Y'), #include data
+         Unicode(pattern="[YN]", default='N'), #include results
          SpyneArray(Integer()), #scenario ids
          Integer(), #template id
          Unicode(pattern="[YN]", default='N'), #include non template attributes
@@ -114,7 +114,7 @@ class NetworkService(HydraService):
          Integer(default=None), #project id
          Unicode(default=None), # project name
          Unicode(pattern="[YN]", default='Y'), # new project
-         Unicode(pattern="[YN]", default='Y'), # include outputs`
+         Unicode(pattern="[YN]", default='Y'), # include outputs
          SpyneArray(Integer), # scenario ID to clone
          _returns=Integer())
     def clone_network(ctx,
@@ -210,10 +210,10 @@ class NetworkService(HydraService):
         return net_exists
 
     @rpc(Network,
-        Unicode(pattern="['YN']", default='Y'),
-        Unicode(pattern="['YN']", default='Y'),
-        Unicode(pattern="['YN']", default='Y'),
-        Unicode(pattern="['YN']", default='Y'),
+         Unicode(pattern="['YN']", default='Y'),
+         Unicode(pattern="['YN']", default='Y'),
+         Unicode(pattern="['YN']", default='Y'),
+         Unicode(pattern="['YN']", default='Y'),
         _returns=Network)
     def update_network(ctx, net, update_nodes, update_links, update_groups, update_scenarios):
         """
@@ -222,24 +222,31 @@ class NetworkService(HydraService):
         flags, tell the function which of these to update.
 
         Args:
-            net (complexmodels.Network): A network reflecting an already existing network (must have an ID), which is to be updated
-            updated_nodes (char) (Y or N): Flag to indicated whether the incoming network's nodes should be updated
-            updated_links (char) (Y or N): Flag to indicated whether the incoming network's links should be updated
-            updated_groups (char) (Y or N): Flag to indicated whether the incoming network's resource groups should be updated
-            updated_scenarios (char) (Y or N): Flag to indicated whether the incoming network's data should be updated
+            net (complexmodels.Network): A network reflecting an already existing
+                                         network (must have an ID), which is to be updated
+            updated_nodes (char) (Y or N): Flag to indicated whether the
+                                           incoming network's nodes should be updated
+            updated_links (char) (Y or N): Flag to indicated whether the
+                                           incoming network's links should be updated
+            updated_groups (char) (Y or N): Flag to indicated whether the
+                                            incoming network's resource groups
+                                            should be updated
+            updated_scenarios (char) (Y or N): Flag to indicated whether the
+                                               incoming network's data should be updated
 
         Returns:
-            complexmodels.Network: The updated network, in summarised forms (without data or attributes)
+            complexmodels.Network: The updated network,
+                                   in summarised forms (without data or attributes)
 
         Raises:
             ResourceNotFoundError: If the network does not exist.
 
 
         """
-        upd_nodes = True if update_nodes in ('Y', None) else False
-        upd_links = True if update_links in ('Y', None) else False
-        upd_groups = True if update_groups in ('Y', None) else False
-        upd_scenarios = True if update_scenarios in ('Y', None) else False
+        upd_nodes = update_nodes in ('Y', None)
+        upd_links = update_links in ('Y', None)
+        upd_groups = update_groups in ('Y', None)
+        upd_scenarios = update_scenarios in ('Y', None)
 
         net = network.update_network(net,
                                      upd_nodes,
@@ -395,7 +402,7 @@ class NetworkService(HydraService):
         network.purge_network(network_id, purge_data, **ctx.in_header.__dict__)
         return 'OK'
 
-    @rpc(Integer, Unicode, _returns=Unicode)
+    @rpc(Integer, Unicode(pattern="[AX]"),  _returns=Unicode)
     def set_network_status(ctx, network_id, status):
         """
         Set status of network to the specified status character
@@ -410,6 +417,7 @@ class NetworkService(HydraService):
         Raises:
             ResourceNotFoundError: If the network is not found
         """
+
         #check_perm('edit_topology')
         network.set_network_status(network_id, status.upper(), **ctx.in_header.__dict__)
         return 'OK'
@@ -1254,12 +1262,11 @@ class NetworkService(HydraService):
             args:
                 network_id (int): The network in which to operate
                 unit_id (int): The unit ID to set on the network's datasets
-                resource_attr_id (int): The resource attribute from which the
-                                        network ID and attribute ID can be derived
+                attr_id (int): The attribute ID
                 scenario_id (int) (optional): Supplied if only datasets in a
                                               specific scenario are to be affected
             returns:
-                None
+                'OK'
             raises:
                 ValidationError if the supplied unit is incompatible with the attribute's dimension
         """
