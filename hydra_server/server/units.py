@@ -16,13 +16,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from spyne.model.primitive import Unicode, Boolean, Decimal, Integer
+from spyne.model.primitive import Unicode, Boolean, Decimal, Integer, Float
 from spyne.model.complex import Array as SpyneArray, ComplexModel
 from spyne.decorator import rpc
 from spyne.util.dictdoc import get_object_as_dict
 from .service import HydraService
 from .complexmodels import Unit, Dimension
-
 from hydra_base.lib import units
 import json
 
@@ -36,14 +35,26 @@ class UnitService(HydraService):
     | DIMENSION FUNCTIONS - GET |
     +---------------------------+
     """
-    @rpc(Integer, _returns=Dimension)
-    def get_dimension(ctx, dimension_id):
+    @rpc(Integer, Unicode(pattern='[YN]'), _returns=Dimension)
+    def get_dimension(ctx, dimension_id, do_accept_dimension_id_none):
         """
             Gets the dimension details and the list of all units assigned to the dimension.
         """
-        dimension = units.get_dimension(dimension_id, **ctx.in_header.__dict__)
-        log.info(dimension)
-        return dimension
+        accept_null_dimension = do_accept_dimension_id_none == 'Y'
+        dimension = units.get_dimension(dimension_id,
+                                        do_accept_dimension_id_none=accept_null_dimension,
+                                        **ctx.in_header.__dict__)
+
+        return Dimension(dimension)
+
+    @rpc(Integer, _returns=Dimension)
+    def get_dimension_by_name(ctx, dimension_name):
+        """
+            Gets the dimension details and the list of all units assigned to the dimension.
+        """
+        dimension = units.get_dimension_by_name(dimension_name, **ctx.in_header.__dict__)
+
+        return Dimension(dimension)
 
     @rpc(_returns=SpyneArray(Dimension))
     def get_dimensions(ctx):
@@ -51,10 +62,13 @@ class UnitService(HydraService):
             Gets a list of all physical dimensions available on the server.
         """
         dim_list = units.get_dimensions(**ctx.in_header.__dict__)
-        return dim_list
+        return [Dimension(d) for d in dim_list]
 
 
-
+    @rpc(_returns=Dimension)
+    def get_empty_dimension(ctx):
+        empty_dimension = units.get_empty_dimension()
+        return Dimension(empty_dimension)
 
     """
     +----------------------+
@@ -67,8 +81,17 @@ class UnitService(HydraService):
             Gets the Unit details
         """
         unit = units.get_unit(unit_id, **ctx.in_header.__dict__)
-        log.info(unit)
-        return unit
+
+        return Unit(unit)
+
+    @rpc(Integer, _returns=Unit)
+    def get_unit_by_abbreviation(ctx, unit_abbr):
+        """
+            Gets the Unit details
+        """
+        unit = units.get_unit_by_abbreviation(unit_abbr, **ctx.in_header.__dict__)
+
+        return Unit(unit)
 
     @rpc(_returns=SpyneArray(Unit))
     def get_units(ctx):
@@ -76,22 +99,44 @@ class UnitService(HydraService):
             Get a list of all units corresponding to a physical dimension.
         """
         unit_list = units.get_units(**ctx.in_header.__dict__)
-        return unit_list
+        return [Unit(u) for u in unit_list]
 
-    @rpc(Unicode, _returns=Unicode)
-    def get_unit_dimension(ctx, unit1):
-        """Get the corresponding physical dimension for a given unit.
-
-        Example::
-
-            >>> cli = PluginLib.connect()
-            >>> cli.service.get_dimension('m')
-            Length
+    @rpc(Integer, Unicode(pattern="[YN]"), _returns=Dimension)
+    def get_dimension_by_unit_id(ctx, unit_id, do_accept_unit_id_none):
         """
-        dim = units.get_unit_dimension(unit1, **ctx.in_header.__dict__)
+            Return the physical dimension a given unit id refers to.
+            if do_accept_unit_id_none is 'N', it raises an exception
+            if unit_id is not valid or None
 
-        return dim
+            if do_accept_unit_id_none is 'Y', and unit_id is None,
+            the function returns a Dimension with id None
+            (unit_id can be none in some cases)
+        """
+        accept_null_unit = do_accept_unit_id_none == 'Y'
+        unit_dimension = units.get_dimension_by_unit_id(unit_id,
+            do_accept_unit_id_none=accept_null_unit,
+            **ctx.in_header.__dict__)
+        return Dimension(unit_dimension)
 
+    @rpc(Unicode, _returns=Dimension)
+    def get_dimension_by_unit_measure_or_abbreviation(ctx, measure_or_unit_abbreviation):
+        """
+            Return the physical dimension a given unit abbreviation of a measure,
+            or the measure itself, refers to.
+
+            The search key is the abbreviation or the full measure
+
+            Args:
+                Unit measure or abbreviation
+            Returns:
+                Dimension
+            Raises:
+                HydraError if the unit is not found, or multiple dimensions are found
+        """
+        unit_dimension = units.get_dimension_by_unit_measure_or_abbreviation(
+            measure_or_unit_abbreviation,
+            **ctx.in_header.__dict__)
+        return Dimension(unit_dimension)
     """
     +---------------------------------------+
     | DIMENSION FUNCTIONS - ADD - DEL - UPD |
@@ -104,7 +149,7 @@ class UnitService(HydraService):
         done.
         """
         result = units.add_dimension(JSONObject(dimension), **ctx.in_header.__dict__)
-        return result
+        return Dimension(result)
 
     @rpc(Dimension, _returns=Dimension)
     def update_dimension(ctx, dimension):
@@ -113,7 +158,7 @@ class UnitService(HydraService):
             servers list of dimensions.
         """
         result = units.update_dimension(JSONObject(dimension), **ctx.in_header.__dict__)
-        return result
+        return Dimension(result)
 
     @rpc(Integer, _returns=Boolean)
     def delete_dimension(ctx, dimension_id):
@@ -121,7 +166,7 @@ class UnitService(HydraService):
         that deleting works only for dimensions listed in the custom file.
         """
         result = units.delete_dimension(dimension_id, **ctx.in_header.__dict__)
-        return result
+        return 'OK'
     """
     +----------------------------------+
     | UNIT FUNCTIONS - ADD - DEL - UPD |
@@ -162,7 +207,7 @@ class UnitService(HydraService):
         not that units built in to the library can not be updated.
         """
         result = units.update_unit(JSONObject(unit), **ctx.in_header.__dict__)
-        return result
+        return Unit(result)
 
 
     @rpc(Integer, _returns=Boolean)
@@ -170,13 +215,13 @@ class UnitService(HydraService):
         """Delete a unit from the custom unit collection.
         """
         result = units.delete_unit(unit_id, **ctx.in_header.__dict__)
-        return result
+        return 'OK'
 
 
     # @rpc(Decimal(min_occurs=1, max_occurs="unbounded"),
     #      Unicode, Unicode,
     #      _returns=Decimal(min_occurs="1", max_occurs="unbounded"))
-    @rpc(SpyneArray(Decimal),Unicode, Unicode, _returns=SpyneArray(Decimal))
+    @rpc(Decimal(min_occurs=1, max_occurs="unbounded"),Unicode, Unicode, _returns=SpyneArray(Float))
     def convert_units(ctx, values, unit1, unit2):
         """
             Convert a list of values from one unit to another one.
@@ -187,7 +232,9 @@ class UnitService(HydraService):
             >>> cli.service.convert_units(20.0, 'm', 'km')
             0.02
         """
-        return_array = [units.convert_units(v, unit1, unit2)[0] for v in values]
+        if not isinstance(values, list):
+            values = [values]
+        return_array = units.convert_units(values, unit1, unit2)
         return return_array
 
     @rpc(Decimal,Unicode, Unicode, _returns=SpyneArray(Decimal))

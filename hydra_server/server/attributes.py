@@ -82,6 +82,22 @@ class AttributeService(HydraService):
         attr = attributes.update_attribute(attr, **ctx.in_header.__dict__)
         return Attr(attr)
 
+    @rpc(Integer, _returns=Unicode)
+    def delete_attribute(ctx, attr_id):
+        """
+        Delete an attribute
+
+        Args:
+            attr_id (int): The ID of the attribute
+
+        Returns:
+            string: 'OK' if all is well. If the mapping isn't there, it'll still return 'OK', so make sure the IDs are correct!
+
+        """
+        attributes.delete_attribute(attr_id, **ctx.in_header.__dict__)
+
+        return 'OK'
+
     @rpc(SpyneArray(Attr), _returns=SpyneArray(Attr))
     def add_attributes(ctx, attrs):
         """
@@ -131,13 +147,10 @@ class AttributeService(HydraService):
         """
         attr = attributes.get_attribute_by_id(ID, **ctx.in_header.__dict__)
 
-        if attr:
-            return Attr(attr)
+        return Attr(attr)
 
-        return None
-
-    @rpc(Unicode, Unicode, _returns=Attr)
-    def get_attribute(ctx, name, dimension):
+    @rpc(Unicode, Integer, _returns=Attr)
+    def get_attribute_by_name_and_dimension(ctx, name, dimension_id):
         """
         Get a specific attribute by its name and dimension (this combination
         is unique for attributes in Hydra Platform).
@@ -152,7 +165,7 @@ class AttributeService(HydraService):
 
         """
         attr = attributes.get_attribute_by_name_and_dimension(name,
-                                                              dimension,
+                                                              dimension_id,
                                                               **ctx.in_header.__dict__)
         if attr:
             return Attr(attr)
@@ -175,15 +188,10 @@ class AttributeService(HydraService):
 
         return [Attr(a) for a in attrs]
 
-    @rpc(SpyneArray(Attr), _returns=SpyneArray(Attr))
-    def get_attributes(ctx,attrs):
+    @rpc(_returns=SpyneArray(Attr))
+    def get_attributes(ctx):
         """
-        Get a list of attribute, by their names and dimension. Takes a list
-            of attribute objects, picks out their name & dimension, finds the appropriate
-            attribute in the DB and updates the incoming attribute with an ID.
-            The same attributes go out that came in, except this time with an ID.
-            If one of the incoming attributes does not match, this attribute is not
-            returned.
+        Get all attributes
 
         Args:
             attrs (List(Attr)): A list of attribute complex models
@@ -192,23 +200,37 @@ class AttributeService(HydraService):
             List(complexmodels.Attr): List of Attr complex models
 
         """
-        ret_attrs = []
-        for a in attrs:
-            log.info("Getting attribute %s, %s", a.name, a.dimen)
-            attr = attributes.get_attribute_by_name_and_dimension(a.name,
-                                                              a.dimen,
-                                                              **ctx.in_header.__dict__)
-            if attr:
-                a.id = attr.id
-                a.cr_date = str(attr.cr_date)
-                a.name = attr.name
-                a.dimen = attr.dimen
-                a.description = attr.description
-                ret_attrs.append(a)
-            else:
-                ret_attrs.append(None)
+        attrs = attributes.get_attributes()
 
-        return ret_attrs
+        return [Attr(a) for a in attrs]
+
+    @rpc(Unicode, Integer, Integer, Unicode(pattern="['YN']", default='N'), _returns=ResourceAttr)
+    def add_resource_attribute(ctx,resource_type, resource_id, attr_id, is_var):
+        """
+        Add a resource attribute to a node.
+
+        Args:
+            resource_type (string) : NODE | LINK | GROUP | NETWORK
+            resource_id (int): The ID of the Node
+            attr_id (int): The ID if the attribute being added.
+            is_var (char): Y or N. Indicates whether the attribute is a variable or not.
+
+        Returns:
+            complexmodels.ResourceAttr: The newly created node attribute
+
+        Raises:
+            ResourceNotFoundError: If the node or attribute do not exist
+            HydraError: If this addition causes a duplicate attribute on the node.
+
+        """
+        new_ra = attributes.add_resource_attribute(
+            resource_type,
+            resource_id,
+            attr_id,
+            is_var,
+            **ctx.in_header.__dict__)
+
+        return ResourceAttr(new_ra)
 
     @rpc(Integer, Unicode(pattern="['YN']"), _returns=ResourceAttr)
     def update_resource_attribute(ctx, resource_attr_id, is_var):
@@ -324,6 +346,105 @@ class AttributeService(HydraService):
 
         return [ResourceAttr(ra) for ra in new_resource_attrs]
 
+
+    @rpc(Integer, Unicode, Integer, _returns=SpyneArray(ResourceAttr))
+    def add_resource_attrs_from_type(ctx, type_id, resource_type, resource_id):
+        """
+        Adds all the attributes defined by a type to a group.
+
+        Args:
+            type_id (int): ID of the type used to get the resource attributes from
+            resource_type (string): NODE | LINK | GROUP | NETWORK
+            resource_id (int): ID of the resource
+
+        Returns:
+            List(complexmodels.ResourceAttr): All the newly created resource attributes
+
+        Raises:
+            ResourceNotFoundError if the type_id or group_id are not in the DB
+
+        """
+
+        new_resource_attrs = attributes.add_resource_attrs_from_type(
+                                                        type_id,
+                                                        resource_type,
+                                                        resource_id,
+                                                        **ctx.in_header.__dict__)
+        return [ResourceAttr(ra) for ra in new_resource_attrs]
+
+    @rpc(Unicode, Integer, Integer(min_occurs=0, max_occurs=1), _returns=SpyneArray(ResourceAttr))
+    def get_resource_attributes(ctx, resource_type, resource_id, type_id):
+        """
+        Get all a resources's attributes
+
+        Args:
+            resource_id (int): ID of the network
+            resource_type (string): NODE, LINK, GROUP, NETWORK
+            type_id    (int) (optional): ID of the type. If specified will only return the resource attributes relative to that type
+
+        Returns:
+            List(complexmodels.ResourceAttr): All the resource's attributes
+
+        Raises:
+            ResourceNotFoundError if the type_id or resource id are not in the DB
+
+
+        """
+        resource_attrs = attributes.get_resource_attributes(
+            resource_type,
+            resource_id,
+            type_id)
+
+        return [ResourceAttr(ra) for ra in resource_attrs]
+
+    @rpc(Unicode, Integer, Integer(min_occurs=0, max_occurs=1), _returns=SpyneArray(ResourceAttr))
+    def get_all_resource_attributes(ctx, resource_type, resource_id, template_id):
+        """
+        Get all the resource attributes for all the nodes in the network.
+
+        Args:
+            resource_type (string): NODE | LINK | GROUP | NETWORK
+            resource_id (int): The ID of the network that you want the node attributes from
+            template_id (int) (optional): If this is specified, then it will only return the attributes in this template.
+
+        Returns:
+            List(complexmodels.ResourceAttr): The resource attributes of all the nodes in the resource.
+        """
+        resource_attrs = attributes.get_all_resource_attributes(
+                resource_type,
+                resource_id,
+                template_id)
+
+        return [ResourceAttr(ra) for ra in resource_attrs]
+
+
+    @rpc(Integer, Integer(default=None), _returns=SpyneArray(ResourceAttr))
+    def get_all_network_attributes(ctx, network_id, template_id):
+        """
+            Get all the attributes for all the nodes, links and groups in the network
+            including network attributes. This is used primarily to avoid retrieving
+            all global attributes for menus etc, most of which are not necessary.
+
+            args:
+                network_id (int): The ID of the network containing the attributes
+                template_id (int): A filter which will cause the function to
+                                    return attributes associated to that template
+
+            returns:
+                A list of Attributes as JSONObjects, with the
+                additional data of 'attr_is_var'
+                from its assocated ResourceAttribute. ex:
+                    {id:123,
+                    name: 'cost'
+                    dimension_id: 124,
+                    attr_is_var: 'Y' #comes from the ResourceAttr
+                    }
+        """
+        network_attributes = attributes.get_all_network_attributes(network_id,
+                                                                   template_id,
+                                                                   **ctx.in_header.__dict__)
+        return [ResourceAttr(ra) for ra in network_attributes]
+
     @rpc(Integer, Integer(min_occurs=0, max_occurs=1), _returns=SpyneArray(ResourceAttr))
     def get_network_attributes(ctx, network_id, type_id):
         """
@@ -356,7 +477,7 @@ class AttributeService(HydraService):
 
         Args:
             node_id (int): The ID of the Node
-            attr_id (int): THe ID if the attribute being added.
+            attr_id (int): The ID if the attribute being added.
             is_var (char): Y or N. Indicates whether the attribute is a variable or not.
 
         Returns:
@@ -449,7 +570,7 @@ class AttributeService(HydraService):
 
         Args:
             link_id (int): The ID of the Link
-            attr_id (int): THe ID if the attribute being added.
+            attr_id (int): The ID if the attribute being added.
             is_var (char): Y or N. Indicates whether the attribute is a variable or not.
 
         Returns:
@@ -752,7 +873,7 @@ class AttributeService(HydraService):
 
 
     @rpc(Integer, Integer, _returns=Unicode)
-    def check_mapping_exists(ctx, resource_attr_id_source, resource_attr_id_target):
+    def check_attribute_mapping_exists(ctx, resource_attr_id_source, resource_attr_id_target):
         """
         Check whether a mapping exists between two resource attributes
         This does not check whether a reverse mapping exists, so order is important here.

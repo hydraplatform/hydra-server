@@ -62,26 +62,30 @@ class NetworkService(HydraService):
 
         """
         net = network.add_network(net, **ctx.in_header.__dict__)
-        ret_net = Network(net, summary=True)
+        ret_net = Network(net, include_attributes=True)
+
         return ret_net
 
     @rpc(Integer,
-         Unicode(pattern="[YN]", default='Y'),
-         Integer(),
-         SpyneArray(Integer()),
-         Unicode(pattern="[YN]", default='N'),
+         Unicode(pattern="[YN]", default='N'), #include attributes
+         Unicode(pattern="[YN]", default='Y'), #include data
+         Unicode(pattern="[YN]", default='N'), #include results
+         SpyneArray(Integer()), #scenario ids
+         Integer(), #template id
+         Unicode(pattern="[YN]", default='N'), #include non template attributes
          _returns=Network)
-    def get_network(ctx, network_id, include_data, template_id, scenario_ids, summary):
+    def get_network(ctx, network_id, include_attributes, include_data, include_results, scenario_ids, template_id, include_non_template_attributes):
         """
         Return a whole network as a complex model.
 
         Args:
-            network_id   (int)              : The ID of the network to retrieve
-            include_data (char) ('Y' or 'N'): Optional flag to indicate whether to return datasets with the network. Defaults to 'Y', but using 'N' is much faster.
+            network_id (int)              : The ID of the network to retrieve
+            include_attributes (char) ('Y' or 'N'): Optional flag to indicate whether attributes are returned with the nodes & links. Seting to 'Y' has significant speed improvements at the cost of not retrieving attribute information.
+            include_data (char) ('Y' or 'N'): Optional flag to indicate whether to return datasets with the network. Defaults to 'N', as it is is much faster.
+            include_results (char) ('Y' or 'N'): Optional flag to indicate whether to return result datasets with the network. Defaults to 'Y', but using 'N' is much faster.
             template_id  (int)              : Optional parameter which will only return attributes on the resources that are in this template.
             scenario_ids (List(int))        : Optional parameter to indicate which scenarios to return with the network. If left unspecified, all scenarios are returned
-            summary      (char) ('Y' or 'N'): Optional flag to indicate whether attributes are returned with the nodes & links. Seting to 'Y' has significant speed improvements at the cost of not retrieving attribute information.
-
+            include_non_template_attributes: Include attributes which are not associated to ANY template.
         Returns:
             complexmodels.Network: A network complex model
 
@@ -89,13 +93,59 @@ class NetworkService(HydraService):
             ResourceNotFoundError: If the network is not found.
         """
         net  = network.get_network(network_id,
-                                   True if summary=='Y' else False,
+                                   include_attributes in ('Y', None),
                                    include_data,
+                                   include_results,
                                    scenario_ids,
                                    template_id,
+                                   include_non_template_attributes == 'Y',
                                    **ctx.in_header.__dict__)
-        ret_net = Network(net, True if summary=='Y' else False)
+
+        include_data = include_data in ('Y', None)
+        include_attributes = include_attributes in ('Y', None)
+
+        ret_net = Network(net, include_attributes, include_data)
+
         return ret_net
+
+    @rpc(Integer,#network id
+         Integer(default=None), #recipient user id
+         Unicode(default=None), # new network name
+         Integer(default=None), #project id
+         Unicode(default=None), # project name
+         Unicode(pattern="[YN]", default='Y'), # new project
+         Unicode(pattern="[YN]", default='Y'), # include outputs
+         SpyneArray(Integer), # scenario ID to clone
+         _returns=Integer())
+    def clone_network(ctx,
+                      network_id,
+                      recipient_user_id=None,
+                      new_network_name=None,
+                      project_id=None,
+                      project_name=None,
+                      new_project=True,
+                      include_outputs=False,
+                      scenario_ids=[]):
+        """
+         Create an exact clone of the specified network for the specified user.
+
+         If project_id is specified, put the new network in there.
+
+         Otherwise create a new project with the specified name and put it in there.
+
+        """
+
+        newnetworkid = network.clone_network(network_id,
+                                             recipient_user_id=recipient_user_id,
+                                             new_network_name=new_network_name,
+                                             project_id=project_id,
+                                             project_name=project_name,
+                                             new_project=new_project == 'Y',
+                                             include_outputs=include_outputs == 'Y',
+                                             scenario_ids=[],
+                                             **ctx.in_header.__dict__)
+
+        return newnetworkid
 
     @rpc(Integer,
          _returns=Unicode)
@@ -160,10 +210,10 @@ class NetworkService(HydraService):
         return net_exists
 
     @rpc(Network,
-        Unicode(pattern="['YN']", default='Y'),
-        Unicode(pattern="['YN']", default='Y'),
-        Unicode(pattern="['YN']", default='Y'),
-        Unicode(pattern="['YN']", default='Y'),
+         Unicode(pattern="['YN']", default='Y'),
+         Unicode(pattern="['YN']", default='Y'),
+         Unicode(pattern="['YN']", default='Y'),
+         Unicode(pattern="['YN']", default='Y'),
         _returns=Network)
     def update_network(ctx, net, update_nodes, update_links, update_groups, update_scenarios):
         """
@@ -172,24 +222,31 @@ class NetworkService(HydraService):
         flags, tell the function which of these to update.
 
         Args:
-            net (complexmodels.Network): A network reflecting an already existing network (must have an ID), which is to be updated
-            updated_nodes (char) (Y or N): Flag to indicated whether the incoming network's nodes should be updated
-            updated_links (char) (Y or N): Flag to indicated whether the incoming network's links should be updated
-            updated_groups (char) (Y or N): Flag to indicated whether the incoming network's resource groups should be updated
-            updated_scenarios (char) (Y or N): Flag to indicated whether the incoming network's data should be updated
+            net (complexmodels.Network): A network reflecting an already existing
+                                         network (must have an ID), which is to be updated
+            updated_nodes (char) (Y or N): Flag to indicated whether the
+                                           incoming network's nodes should be updated
+            updated_links (char) (Y or N): Flag to indicated whether the
+                                           incoming network's links should be updated
+            updated_groups (char) (Y or N): Flag to indicated whether the
+                                            incoming network's resource groups
+                                            should be updated
+            updated_scenarios (char) (Y or N): Flag to indicated whether the
+                                               incoming network's data should be updated
 
         Returns:
-            complexmodels.Network: The updated network, in summarised forms (without data or attributes)
+            complexmodels.Network: The updated network,
+                                   in summarised forms (without data or attributes)
 
         Raises:
             ResourceNotFoundError: If the network does not exist.
 
 
         """
-        upd_nodes = True if update_nodes == 'Y' else False
-        upd_links = True if update_links == 'Y' else False
-        upd_groups = True if update_groups == 'Y' else False
-        upd_scenarios = True if update_scenarios == 'Y' else False
+        upd_nodes = update_nodes in ('Y', None)
+        upd_links = update_links in ('Y', None)
+        upd_groups = update_groups in ('Y', None)
+        upd_scenarios = update_scenarios in ('Y', None)
 
         net = network.update_network(net,
                                      upd_nodes,
@@ -197,7 +254,8 @@ class NetworkService(HydraService):
                                      upd_groups,
                                      upd_scenarios,
                                      **ctx.in_header.__dict__)
-        return Network(net, summary=True)
+
+        return Network(net, include_attributes=False, include_data=True)
 
     @rpc(Integer, Integer(min_occurs=0), _returns=Node)
     def get_node(ctx, node_id, scenario_id):
@@ -306,14 +364,15 @@ class NetworkService(HydraService):
             ret_group = ResourceGroup(group)
             return ret_group
 
-    @rpc(Integer, _returns=Unicode)
-    def delete_network(ctx, network_id):
+    @rpc(Integer, Unicode(pattern='[XY]'), _returns=Unicode)
+    def delete_network(ctx, network_id, purge_data):
         """
         Set status of network to 'X' so it will no longer appear when you retrieve its project.
         This will not delete the network from the DB. For that use purge_network
 
         Args:
             network_id (int): The network to delete
+            purge_data (string) ('Y' or 'N'): Any data left unconnected can be left in the DB or deleted with this flag.
 
         Returns:
             string: 'OK'
@@ -321,8 +380,7 @@ class NetworkService(HydraService):
         Raises:
             ResourceNotFoundError: If the network is not found
         """
-        #check_perm('delete_network')
-        network.set_network_status(network_id, 'X', **ctx.in_header.__dict__)
+        network.delete_network(network_id, purge_data, **ctx.in_header.__dict__)
         return 'OK'
 
     @rpc(Integer, Unicode(pattern="[YN]", default='Y'), _returns=Unicode)
@@ -343,6 +401,27 @@ class NetworkService(HydraService):
         #check_perm('delete_network')
         network.purge_network(network_id, purge_data, **ctx.in_header.__dict__)
         return 'OK'
+
+    @rpc(Integer, Unicode(pattern="[AX]"),  _returns=Unicode)
+    def set_network_status(ctx, network_id, status):
+        """
+        Set status of network to the specified status character
+
+        Args:
+            network_id (int): The network to delete
+            status (char): A or X
+
+        Returns:
+            string: 'OK'
+
+        Raises:
+            ResourceNotFoundError: If the network is not found
+        """
+
+        #check_perm('edit_topology')
+        network.set_network_status(network_id, status.upper(), **ctx.in_header.__dict__)
+        return 'OK'
+
 
     @rpc(Integer, _returns=Unicode)
     def activate_network(ctx, network_id):
@@ -459,7 +538,7 @@ class NetworkService(HydraService):
         for node in nodes:
             for node_ in node_s:
                 if(node.name==node_.node_name):
-                    new_nodes.append(Node(node_, summary=True))
+                    new_nodes.append(Node(node_, include_attributes=True))
                     break
 
         return new_nodes
@@ -487,7 +566,7 @@ class NetworkService(HydraService):
         for link in links:
             for link_ in link_s:
                 if(link.name==link_.link_name):
-                    new_links.append(Link(link_, summary=True))
+                    new_links.append(Link(link_, include_attributes=True))
                     break
 
         return new_links
@@ -544,15 +623,14 @@ class NetworkService(HydraService):
 
         return updated_node
 
-
-    @rpc(Integer, _returns=Unicode)
-    def delete_node(ctx, node_id):
+    @rpc(Integer, Unicode, _returns=Unicode)
+    def set_node_status(ctx, node_id, status):
         """
-        Set status of node to 'X' so it will no longer appear when you retrieve its network.
-        This will not delete the node from the DB. For that use purge_node
+        Set status of node to the specified status character
 
         Args:
             node_id (int): The node to delete
+            status (char): A or X
 
         Returns:
             string: 'OK'
@@ -561,8 +639,29 @@ class NetworkService(HydraService):
             ResourceNotFoundError: If the node is not found
         """
         #check_perm('edit_topology')
-        network.set_node_status(node_id, 'X', **ctx.in_header.__dict__)
+        network.set_node_status(node_id, status.upper(), **ctx.in_header.__dict__)
         return 'OK'
+
+
+    @rpc(Integer, Unicode(pattern='[YN]'), _returns=Unicode)
+    def delete_node(ctx, node_id, purge_data):
+        """
+        Delete a node
+
+        Args:
+            node_id (int): The node to delete
+            purge_data (Y or N): Flag to indicate if the associated data should be removed too
+
+        Returns:
+            string: 'OK'
+
+        Raises:
+            ResourceNotFoundError: If the node is not found
+
+        """
+        network.delete_node(node_id, purge_data, **ctx.in_header.__dict__)
+        return 'OK'
+
     @rpc(Integer, _returns=Unicode)
     def activate_node(ctx, node_id):
         """
@@ -645,13 +744,14 @@ class NetworkService(HydraService):
 
         return updated_link
 
-    @rpc(Integer, _returns=Unicode)
-    def delete_link(ctx, link_id):
+    @rpc(Integer, Unicode(pattern='[YN]'), _returns=Unicode)
+    def delete_link(ctx, link_id, purge_data):
         """
-        Set the status of a link to 'X'
+        Delete a link
 
         Args:
             link_id (int): The link to delete
+            purge_data (Y or N): Flag to indicate if the associated data should be removed too
 
         Returns:
             string: 'OK'
@@ -660,7 +760,26 @@ class NetworkService(HydraService):
             ResourceNotFoundError: If the link is not found
 
         """
-        network.set_link_status(link_id, 'X', **ctx.in_header.__dict__)
+        network.delete_link(link_id, purge_data, **ctx.in_header.__dict__)
+        return 'OK'
+
+    @rpc(Integer, Unicode(pattern='[AX]'), _returns=Unicode)
+    def set_link_status(ctx, link_id, status_code):
+        """
+        Set the status of a link to 'A'
+
+        Args:
+            link_id (int): The link to reactivate
+            status_code (A or X): The status code
+
+        Returns:
+            string: 'OK'
+
+        Raises:
+            ResourceNotFoundError: If the link is not found.
+
+        """
+        network.set_link_status(link_id, status_code, **ctx.in_header.__dict__)
         return 'OK'
 
     @rpc(Integer, _returns=Unicode)
@@ -722,12 +841,13 @@ class NetworkService(HydraService):
 
         return new_group
 
-    @rpc(Integer, _returns=Unicode)
-    def delete_group(ctx, group_id):
+    @rpc(Integer, Unicode(pattern="[YN]", default='Y'), _returns=Unicode)
+    def delete_group(ctx, group_id, purge_data):
         """
         Set the status of a group to 'X'
         Args:
             group_id (int): The resource group to delete
+            purge_data (string) ('Y' or 'N'): Any data left unconnected can be left in the DB or deleted with this flag.
 
         Returns:
             string: 'OK'
@@ -736,7 +856,7 @@ class NetworkService(HydraService):
             ResourceNotFoundError: If the resource group is not found
 
         """
-        network.set_group_status(group_id, 'X', **ctx.in_header.__dict__)
+        network.delete_group(group_id, purge_data, **ctx.in_header.__dict__)
         return 'OK'
 
     @rpc(Integer, Unicode(pattern="[YN]", default='Y'), _returns=Unicode)
@@ -758,6 +878,25 @@ class NetworkService(HydraService):
 
         """
         network.delete_group(group_id, purge_data, **ctx.in_header.__dict__)
+        return 'OK'
+
+    @rpc(Integer, Unicode, _returns=Unicode)
+    def set_group_status(ctx, group_id, status):
+        """
+        Set status of group to the specified status character
+
+        Args:
+            group_id (int): The group to delete
+            status (char): A or X
+
+        Returns:
+            string: 'OK'
+
+        Raises:
+            ResourceNotFoundError: If the group is not found
+        """
+        #check_perm('edit_topology')
+        network.set_group_status(group_id, status.upper(), **ctx.in_header.__dict__)
         return 'OK'
 
     @rpc(Integer, _returns=Unicode)
@@ -832,17 +971,9 @@ class NetworkService(HydraService):
             ResourceNotFoundError: If the network or type is not found
         """
 
-        nodes, links, groups = network.get_resources_of_type(network_id, type_id, **ctx.in_header.__dict__)
+        resources_of_type = network.get_resources_of_type(network_id, type_id, **ctx.in_header.__dict__)
 
-        resources = []
-        for n in nodes:
-            resources.append(ResourceSummary(n))
-        for l in links:
-            resources.append(ResourceSummary(l))
-        for g in groups:
-            resources.append(ResourceSummary(g))
-
-        return resources
+        return [ResourceSummary(r) for r in resources_of_type]
 
     @rpc(Integer, _returns=Unicode)
     def clean_up_network(ctx, network_id):
@@ -861,6 +992,54 @@ class NetworkService(HydraService):
 
         """
         return network.clean_up_network(network_id, **ctx.in_header.__dict__)
+
+    @rpc(Integer, #network id
+         Integer, # scenario id
+         Unicode, # resource type
+         Integer(max_occurs="unbounded"), #'resource IDS
+         Unicode(pattern="['YN']", default='N'), # include metadata
+         _returns=SpyneArray(ResourceScenario))
+    def get_attributes_for_resource(ctx, network_id, scenario_id, resource_type, resource_ids, include_metadata):
+        """
+        Return all the attributes for all the nodes in a given network and a
+        given scenario.
+
+
+        Args:
+            network_id (int): The network to search in
+            scenario_id (int): The scenario to search
+            resource_type (string): NODE | LINK | GROUP
+            node_ids (List(int)) (optional): The specific nodes to search for data in.
+                                             If not specified, all the resources in
+                                             the network will be searched.
+            include_metadata: (string) ('Y' or 'N'): Default 'N'. Set to 'Y' to
+                                                     return metadata. This may
+                                                     vause a performance hit as
+                                                     metadata is BIG!
+
+        Returns:
+            List(ResourceScenario)
+
+        Raises:
+            ResourceNotFoundError: If the network or scenario are not found
+
+        """
+        start = datetime.datetime.now()
+
+        resourcescenarios = network.get_attributes_for_resource(network_id,
+                                                                scenario_id,
+                                                                resource_type,
+                                                                resource_ids,
+                                                                include_metadata)
+
+        log.info("Qry done in %s", (datetime.datetime.now() - start))
+        start = datetime.datetime.now()
+
+        return_rs = [ResourceScenario(rs, rs.resourceattr.attr_id) for rs in resourcescenarios]
+
+        log.info("Return vals built in %s", (datetime.datetime.now() - start))
+
+        return return_rs
 
     @rpc(Integer, Integer, Integer(max_occurs="unbounded"), Unicode(pattern="['YN']", default='N'), _returns=SpyneArray(ResourceAttr))
     def get_all_node_data(ctx, network_id, scenario_id, node_ids, include_metadata):
@@ -1065,3 +1244,36 @@ class NetworkService(HydraService):
             return_ras.append(ra)
 
         return return_ras
+
+    @rpc(Integer, Integer, _returns=SpyneArray(ResourceAttr))
+    def get_all_resource_attributes_in_network(ctx, attr_id, network_id):
+        """
+            Get all the resource attributes in a network, for a specified attribute ID
+        """
+        network_ras = network.get_all_resource_attributes_in_network(attr_id, network_id, **ctx.in_header.__dict__)
+
+        return [ResourceAttr(ra) for ra in network_ras]
+
+    @rpc(Integer, Integer, Integer, Integer, _returns=Unicode)
+    def apply_unit_to_network_rs(ctx, network_id, unit_id, attr_id, scenario_id=None, **kwargs):
+        """
+            Set the unit on all the datasets in a network which have the same attribue
+            as the supplied resource_attr_id.
+            args:
+                network_id (int): The network in which to operate
+                unit_id (int): The unit ID to set on the network's datasets
+                attr_id (int): The attribute ID
+                scenario_id (int) (optional): Supplied if only datasets in a
+                                              specific scenario are to be affected
+            returns:
+                'OK'
+            raises:
+                ValidationError if the supplied unit is incompatible with the attribute's dimension
+        """
+        res = network.apply_unit_to_network_rs(
+            network_id,
+            unit_id,
+            attr_id,
+            scenario_id=scenario_id,
+            **ctx.in_header.__dict__)
+        return 'OK'
