@@ -29,7 +29,7 @@ with open(os.path.join(os.path.dirname(__file__), "hydra_server", "__init__.py")
 install_requires=[
     "hydra-base",
     "lxml",
-    "spyne", 
+    "spyne",
     "click",
     ]
 
@@ -52,7 +52,7 @@ setup(
     dependency_links=dependency_links,
     include_package_data=True,
     entry_points={
-        'console_scripts': ['hydra-server=hydra_server.commands:start_cli']
+        'console_scripts': ['hydra-server=hydra_server.cli:start_cli']
     },
     zip_safe=False,
 )
