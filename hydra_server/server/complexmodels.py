@@ -31,6 +31,8 @@ import json
 import zlib
 from hydra_base import config
 from hydra_base.util import get_layout_as_dict
+
+from hydra_base.lib.HydraTypes.Registry import HydraObjectFactory
 from hydra_base.exceptions import HydraError
 import six
 
@@ -227,6 +229,82 @@ class Dataset(HydraComplexModel):
                     metadata[m.key] = str(m.value)
                 self.metadata = json.dumps(metadata)
 
+    def parse_value(self):
+        """
+            Turn the value of an incoming dataset into a hydra-friendly value.
+        """
+        try:
+            if self.value is None:
+                log.warning("Cannot parse dataset. No value specified.")
+                return None
+
+            # attr_data.value is a dictionary but the keys have namespaces which must be stripped
+            data = six.text_type(self.value)
+
+            if data.upper().strip() in ("NULL", ""):
+                return "NULL"
+
+            data = data[0:100]
+            log.debug("[Dataset.parse_value] Parsing %s (%s)", data, type(data))
+
+            return HydraObjectFactory.valueFromDataset(self.type, self.value, self.get_metadata_as_dict())
+
+        except Exception as e:
+            log.exception(e)
+            raise HydraError("Error parsing value %s: %s"%(self.value, e))
+
+    def get_metadata_as_dict(self, user_id=None, source=None):
+        """
+        Convert a metadata json string into a dictionary.
+
+        Args:
+            user_id (int): Optional: Insert user_id into the metadata if specified
+            source (string): Optional: Insert source (the name of the app typically) into the metadata if necessary.
+
+        Returns:
+            dict: THe metadata as a python dictionary
+
+        TODO this is a duplicate of the hydra_base dataset object function.
+        """
+
+        if self.metadata is None or self.metadata == "":
+            return {}
+
+        metadata_dict = self.metadata if isinstance(self.metadata, dict) else json.loads(self.metadata)
+
+        # These should be set on all datasets by default, but we don't enforce this rigidly
+        metadata_keys = [m.lower() for m in metadata_dict]
+        if user_id is not None and 'user_id' not in metadata_keys:
+            metadata_dict['user_id'] = six.text_type(user_id)
+
+        if source is not None and 'source' not in metadata_keys:
+            metadata_dict['source'] = six.text_type(source)
+
+        return { k : six.text_type(v) for k, v in metadata_dict.items() }
+
+
+    def get_hash(self, val, metadata):
+        """
+        TODO this is a duplicate of the hydra_base dataset object function.
+        """
+
+        if metadata is None:
+            metadata = self.get_metadata_as_dict()
+
+        if val is None:
+            value = self.parse_value()
+        else:
+            value = val
+
+        dataset_dict = {'name'     : self.name,
+                        'unit_id'     : self.unit_id,
+                        'type'     : self.type.lower(),
+                        'value'    : value,
+                        'metadata' : metadata,}
+
+        data_hash = generate_data_hash(dataset_dict)
+
+        return data_hash
 
 
 class DatasetCollectionItem(HydraComplexModel):
