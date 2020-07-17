@@ -28,8 +28,9 @@ def cli():
 @click.option('-p', '--port', default=8080, help='Port Number')
 def run(port):
 
-    from hydra_server import s
-    s.run_server(port=port)
+    from hydra_server import initialize
+    application, api_server = initialize(None)
+    api_server.run_server(port=port)
 
 def start_cli():
     cli()
@@ -38,3 +39,4 @@ def start_cli():
 #ps -ef | grep 'server.py' | grep 'python' | awk '{print $2}' | xargs kill
 if __name__ == '__main__':
     start_cli()
+
