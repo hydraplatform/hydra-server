@@ -26,7 +26,7 @@ from .complexmodels import Network,\
     ResourceAttr,\
     ResourceScenario,\
     ResourceData
-from hydra_base.lib import network, scenario
+import hydra_base as hb
 from .service import HydraService
 import datetime
 import logging
@@ -61,7 +61,7 @@ class NetworkService(HydraService):
             complexmodels.Network: The full network structure, with correct IDs for all resources
 
         """
-        net = network.add_network(net, **ctx.in_header.__dict__)
+        net = hb.network.add_network(net, **ctx.in_header.__dict__)
         ret_net = Network(net, include_attributes=True)
 
         return ret_net
@@ -73,8 +73,9 @@ class NetworkService(HydraService):
          SpyneArray(Integer()), #scenario ids
          Integer(), #template id
          Unicode(pattern="[YN]", default='N'), #include non template attributes
+         Unicode(pattern="[YN]", default='N'), #include metadata
          _returns=Network)
-    def get_network(ctx, network_id, include_attributes, include_data, include_results, scenario_ids, template_id, include_non_template_attributes):
+    def get_network(ctx, network_id, include_attributes, include_data, include_results, scenario_ids, template_id, include_non_template_attributes, include_metadata):
         """
         Return a whole network as a complex model.
 
@@ -92,14 +93,15 @@ class NetworkService(HydraService):
         Raises:
             ResourceNotFoundError: If the network is not found.
         """
-        net  = network.get_network(network_id,
-                                   include_attributes in ('Y', None),
-                                   include_data,
-                                   include_results,
-                                   scenario_ids,
-                                   template_id,
-                                   include_non_template_attributes == 'Y',
-                                   **ctx.in_header.__dict__)
+        net  = hb.network.get_network(network_id,
+                                      include_attributes in ('Y', None),
+                                      include_data,
+                                      include_results,
+                                      scenario_ids,
+                                      template_id,
+                                      include_non_template_attributes == 'Y',
+                                      include_metadata=include_metadata == 'Y',
+                                      **ctx.in_header.__dict__)
 
         include_data = include_data in ('Y', None)
         include_attributes = include_attributes in ('Y', None)
@@ -135,7 +137,7 @@ class NetworkService(HydraService):
 
         """
 
-        newnetworkid = network.clone_network(network_id,
+        newnetworkid = hb.network.clone_network(network_id,
                                              recipient_user_id=recipient_user_id,
                                              new_network_name=new_network_name,
                                              project_id=project_id,
@@ -160,7 +162,7 @@ class NetworkService(HydraService):
             string: A json-encoded representation of the network
 
         """
-        net  = network.get_network(network_id,
+        net  = hb.network.get_network(network_id,
                                    False,
                                    'Y',
                                    [],
@@ -185,7 +187,7 @@ class NetworkService(HydraService):
             ResourceNotFoundError: If the project or network is not found
         """
 
-        net = network.get_network_by_name(project_id, network_name, **ctx.in_header.__dict__)
+        net = hb.network.get_network_by_name(project_id, network_name, **ctx.in_header.__dict__)
 
         return Network(net)
 
@@ -205,7 +207,7 @@ class NetworkService(HydraService):
             ResourceNotFoundError: If the project is not defined
         """
 
-        net_exists = network.network_exists(project_id, network_name, **ctx.in_header.__dict__)
+        net_exists = hb.network.network_exists(project_id, network_name, **ctx.in_header.__dict__)
 
         return net_exists
 
@@ -248,7 +250,7 @@ class NetworkService(HydraService):
         upd_groups = update_groups in ('Y', None)
         upd_scenarios = update_scenarios in ('Y', None)
 
-        net = network.update_network(net,
+        net = hb.network.update_network(net,
                                      upd_nodes,
                                      upd_links,
                                      upd_groups,
@@ -274,12 +276,12 @@ class NetworkService(HydraService):
             ResourceNotFoundError: If the node or scenario is not found
 
         """
-        node = network.get_node(node_id, **ctx.in_header.__dict__)
+        node = hb.network.get_node(node_id, **ctx.in_header.__dict__)
 
         if scenario_id is not None:
             ret_node = Node(node)
 
-            res_scens = scenario.get_resource_data('NODE', node_id, scenario_id, None)
+            res_scens =hb.scenario.get_resource_data('NODE', node_id, scenario_id, None)
 
             rs_dict = {}
             for rs in res_scens:
@@ -311,11 +313,11 @@ class NetworkService(HydraService):
             ResourceNotFoundError: If the link or scenario is not found
 
         """
-        link = network.get_link(link_id, **ctx.in_header.__dict__)
+        link = hb.network.get_link(link_id, **ctx.in_header.__dict__)
 
         if scenario_id is not None:
             ret_link = Link(link)
-            res_scens = scenario.get_resource_data('LINK', link_id, scenario_id, None)
+            res_scens =hb.scenario.get_resource_data('LINK', link_id, scenario_id, None)
             rs_dict = {}
             for rs in res_scens:
                 rs_dict[rs.resource_attr_id] = rs
@@ -346,11 +348,11 @@ class NetworkService(HydraService):
             ResourceNotFoundError: If the group or scenario is not found
 
         """
-        group = network.get_resourcegroup(group_id, **ctx.in_header.__dict__)
+        group = hb.network.get_resourcegroup(group_id, **ctx.in_header.__dict__)
 
         if scenario_id is not None:
             ret_group = ResourceGroup(group)
-            res_scens = scenario.get_resource_data('GROUP', group_id, scenario_id, None)
+            res_scens =hb.scenario.get_resource_data('GROUP', group_id, scenario_id, None)
             rs_dict = {}
             for rs in res_scens:
                 rs_dict[rs.resource_attr_id] = rs
@@ -380,7 +382,7 @@ class NetworkService(HydraService):
         Raises:
             ResourceNotFoundError: If the network is not found
         """
-        network.delete_network(network_id, purge_data, **ctx.in_header.__dict__)
+        hb.network.delete_network(network_id, purge_data, **ctx.in_header.__dict__)
         return 'OK'
 
     @rpc(Integer, Unicode(pattern="[YN]", default='Y'), _returns=Unicode)
@@ -399,7 +401,7 @@ class NetworkService(HydraService):
             ResourceNotFoundError: If the network is not found
         """
         #check_perm('delete_network')
-        network.purge_network(network_id, purge_data, **ctx.in_header.__dict__)
+        hb.network.purge_network(network_id, purge_data, **ctx.in_header.__dict__)
         return 'OK'
 
     @rpc(Integer, Unicode(pattern="[AX]"),  _returns=Unicode)
@@ -419,7 +421,7 @@ class NetworkService(HydraService):
         """
 
         #check_perm('edit_topology')
-        network.set_network_status(network_id, status.upper(), **ctx.in_header.__dict__)
+        hb.network.set_network_status(network_id, status.upper(), **ctx.in_header.__dict__)
         return 'OK'
 
 
@@ -439,7 +441,7 @@ class NetworkService(HydraService):
             ResourceNotFoundError: If the network is not found.
         """
         #check_perm('delete_network')
-        network.set_network_status(network_id, 'A', **ctx.in_header.__dict__)
+        hb.netset_network_status(network_id, 'A', **ctx.in_header.__dict__)
         return 'OK'
 
     @rpc(Integer, _returns=NetworkExtents)
@@ -461,7 +463,7 @@ class NetworkService(HydraService):
             ResourceNotFoundError: If the network is not found.
 
         """
-        extents = network.get_network_extents(network_id, **ctx.in_header.__dict__)
+        extents = hb.netget_network_extents(network_id, **ctx.in_header.__dict__)
 
         ne = NetworkExtents()
         ne.network_id = extents['network_id']
@@ -509,7 +511,7 @@ class NetworkService(HydraService):
             ResourceNotFoundError: If the network is not found
         """
 
-        node_dict = network.add_node(network_id, node, **ctx.in_header.__dict__)
+        node_dict = hb.netadd_node(network_id, node, **ctx.in_header.__dict__)
 
         new_node = Node(node_dict)
 
@@ -533,7 +535,7 @@ class NetworkService(HydraService):
             ResourceNotFoundError: If the network is not found
         """
 
-        node_s = network.add_nodes(network_id, nodes, **ctx.in_header.__dict__)
+        node_s = hb.netadd_nodes(network_id, nodes, **ctx.in_header.__dict__)
         new_nodes=[]
         for node in nodes:
             for node_ in node_s:
@@ -560,7 +562,7 @@ class NetworkService(HydraService):
             ResourceNotFoundError: If the network is not found
 
         """
-        link_s = network.add_links(network_id, links, **ctx.in_header.__dict__)
+        link_s = hb.netadd_links(network_id, links, **ctx.in_header.__dict__)
 
         new_links=[]
         for link in links:
@@ -618,7 +620,7 @@ class NetworkService(HydraService):
             ResourceNotFoundError: If the node is not found
         """
 
-        node_dict = network.update_node(node, **ctx.in_header.__dict__)
+        node_dict = hb.netupdate_node(node, **ctx.in_header.__dict__)
         updated_node = Node(node_dict)
 
         return updated_node
@@ -639,7 +641,7 @@ class NetworkService(HydraService):
             ResourceNotFoundError: If the node is not found
         """
         #check_perm('edit_topology')
-        network.set_node_status(node_id, status.upper(), **ctx.in_header.__dict__)
+        hb.netset_node_status(node_id, status.upper(), **ctx.in_header.__dict__)
         return 'OK'
 
 
@@ -659,7 +661,7 @@ class NetworkService(HydraService):
             ResourceNotFoundError: If the node is not found
 
         """
-        network.delete_node(node_id, purge_data, **ctx.in_header.__dict__)
+        hb.netdelete_node(node_id, purge_data, **ctx.in_header.__dict__)
         return 'OK'
 
     @rpc(Integer, _returns=Unicode)
@@ -680,7 +682,7 @@ class NetworkService(HydraService):
             ResourceNotFoundError: If the node is not found.
         """
         #check_perm('edit_topology')
-        network.set_node_status(node_id, 'A', **ctx.in_header.__dict__)
+        hb.netset_node_status(node_id, 'A', **ctx.in_header.__dict__)
         return 'OK'
 
     @rpc(Integer, Unicode(pattern="[YN]", default='Y'), _returns=Unicode)
@@ -701,7 +703,7 @@ class NetworkService(HydraService):
         Raises:
             ResourceNotFoundError: If the node is not found
         """
-        network.delete_node(node_id, purge_data, **ctx.in_header.__dict__)
+        hb.network.delete_node(node_id, purge_data, **ctx.in_header.__dict__)
         return 'OK'
 
     @rpc(Integer, Link, _returns=Link)
@@ -720,7 +722,7 @@ class NetworkService(HydraService):
             ResourceNotFoundError: If the network is not found
         """
 
-        link_dict = network.add_link(network_id, link, **ctx.in_header.__dict__)
+        link_dict = hb.network.add_link(network_id, link, **ctx.in_header.__dict__)
         new_link = Link(link_dict)
 
         return new_link
@@ -739,7 +741,7 @@ class NetworkService(HydraService):
         Raises:
             ResourceNotFoundError: If the link is not found
         """
-        link_dict = network.update_link(link, **ctx.in_header.__dict__)
+        link_dict = hb.network.update_link(link, **ctx.in_header.__dict__)
         updated_link = Link(link_dict)
 
         return updated_link
@@ -760,7 +762,7 @@ class NetworkService(HydraService):
             ResourceNotFoundError: If the link is not found
 
         """
-        network.delete_link(link_id, purge_data, **ctx.in_header.__dict__)
+        hb.network.delete_link(link_id, purge_data, **ctx.in_header.__dict__)
         return 'OK'
 
     @rpc(Integer, Unicode(pattern='[AX]'), _returns=Unicode)
@@ -779,7 +781,7 @@ class NetworkService(HydraService):
             ResourceNotFoundError: If the link is not found.
 
         """
-        network.set_link_status(link_id, status_code, **ctx.in_header.__dict__)
+        hb.network.set_link_status(link_id, status_code, **ctx.in_header.__dict__)
         return 'OK'
 
     @rpc(Integer, _returns=Unicode)
@@ -797,7 +799,7 @@ class NetworkService(HydraService):
             ResourceNotFoundError: If the link is not found.
 
         """
-        network.set_link_status(link_id, 'A', **ctx.in_header.__dict__)
+        hb.network.set_link_status(link_id, 'A', **ctx.in_header.__dict__)
         return 'OK'
 
     @rpc(Integer, Unicode(pattern="[YN]", default='Y'), _returns=Unicode)
@@ -817,7 +819,7 @@ class NetworkService(HydraService):
         Raises:
             ResourceNotFoundError: If the link is not found.
         """
-        network.delete_link(link_id, purge_data, **ctx.in_header.__dict__)
+        hb.network.delete_link(link_id, purge_data, **ctx.in_header.__dict__)
         return 'OK'
 
     @rpc(Integer, ResourceGroup, _returns=ResourceGroup)
@@ -836,7 +838,7 @@ class NetworkService(HydraService):
             ResourceNotFoundError: If the network is not found
         """
 
-        group_i = network.add_group(network_id, group, **ctx.in_header.__dict__)
+        group_i = hb.network.add_group(network_id, group, **ctx.in_header.__dict__)
         new_group = ResourceGroup(group_i)
 
         return new_group
@@ -856,7 +858,7 @@ class NetworkService(HydraService):
             ResourceNotFoundError: If the resource group is not found
 
         """
-        network.delete_group(group_id, purge_data, **ctx.in_header.__dict__)
+        hb.network.delete_group(group_id, purge_data, **ctx.in_header.__dict__)
         return 'OK'
 
     @rpc(Integer, Unicode(pattern="[YN]", default='Y'), _returns=Unicode)
@@ -877,7 +879,7 @@ class NetworkService(HydraService):
             ResourceNotFoundError: If the resource group is not found
 
         """
-        network.delete_group(group_id, purge_data, **ctx.in_header.__dict__)
+        hb.network.delete_group(group_id, purge_data, **ctx.in_header.__dict__)
         return 'OK'
 
     @rpc(Integer, Unicode, _returns=Unicode)
@@ -896,7 +898,7 @@ class NetworkService(HydraService):
             ResourceNotFoundError: If the group is not found
         """
         #check_perm('edit_topology')
-        network.set_group_status(group_id, status.upper(), **ctx.in_header.__dict__)
+        hb.network.set_group_status(group_id, status.upper(), **ctx.in_header.__dict__)
         return 'OK'
 
     @rpc(Integer, _returns=Unicode)
@@ -914,7 +916,7 @@ class NetworkService(HydraService):
             ResourceNotFoundError: If the resource group is not found.
 
         """
-        network.set_group_status(group_id, 'A', **ctx.in_header.__dict__)
+        hb.network.set_group_status(group_id, 'A', **ctx.in_header.__dict__)
         return 'OK'
 
 
@@ -932,7 +934,7 @@ class NetworkService(HydraService):
         Raises:
             ResourceNotFoundError: If the network is not found
         """
-        scenarios_i = network.get_scenarios(network_id, **ctx.in_header.__dict__)
+        scenarios_i = hb.network.get_scenarios(network_id, **ctx.in_header.__dict__)
 
         scenarios = [Scenario(scen) for scen in scenarios_i]
 
@@ -952,7 +954,7 @@ class NetworkService(HydraService):
             ResourceNotFoundError: If the network is not found
 
         """
-        return network.validate_network_topology(network_id, **ctx.in_header.__dict__)
+        return hb.network.validate_network_topology(network_id, **ctx.in_header.__dict__)
 
     @rpc(Integer, Integer, _returns=SpyneArray(ResourceSummary))
     def get_resources_of_type(ctx, network_id, type_id):
@@ -971,7 +973,7 @@ class NetworkService(HydraService):
             ResourceNotFoundError: If the network or type is not found
         """
 
-        resources_of_type = network.get_resources_of_type(network_id, type_id, **ctx.in_header.__dict__)
+        resources_of_type = hb.network.get_resources_of_type(network_id, type_id, **ctx.in_header.__dict__)
 
         return [ResourceSummary(r) for r in resources_of_type]
 
@@ -991,7 +993,7 @@ class NetworkService(HydraService):
             ResourceNotFoundError: If the network is not found
 
         """
-        return network.clean_up_network(network_id, **ctx.in_header.__dict__)
+        return hb.network.clean_up_network(network_id, **ctx.in_header.__dict__)
 
     @rpc(Integer, #network id
          Integer, # scenario id
@@ -1026,7 +1028,7 @@ class NetworkService(HydraService):
         """
         start = datetime.datetime.now()
 
-        resourcescenarios = network.get_attributes_for_resource(network_id,
+        resourcescenarios = hb.network.get_attributes_for_resource(network_id,
                                                                 scenario_id,
                                                                 resource_type,
                                                                 resource_ids,
@@ -1063,7 +1065,7 @@ class NetworkService(HydraService):
         """
         start = datetime.datetime.now()
 
-        node_resourcescenarios = network.get_attributes_for_resource(network_id, scenario_id, 'NODE', node_ids, include_metadata)
+        node_resourcescenarios = hb.network.get_attributes_for_resource(network_id, scenario_id, 'NODE', node_ids, include_metadata)
 
         log.info("Qry done in %s", (datetime.datetime.now() - start))
         start = datetime.datetime.now()
@@ -1160,7 +1162,7 @@ class NetworkService(HydraService):
         start = datetime.datetime.now()
 
         log.info("Getting all resource data for scenario %s", scenario_id)
-        node_resourcedata = network.get_all_resource_data(scenario_id,
+        node_resourcedata = hb.network.get_all_resource_data(scenario_id,
                                                           include_metadata=include_metadata,
                                                           page_start=page_start,
                                                           page_end=page_end)
@@ -1202,7 +1204,7 @@ class NetworkService(HydraService):
         """
         start = datetime.datetime.now()
 
-        link_resourcescenarios = network.get_attributes_for_resource(network_id, scenario_id, 'LINK', link_ids, include_metadata)
+        link_resourcescenarios = hb.network.get_attributes_for_resource(network_id, scenario_id, 'LINK', link_ids, include_metadata)
 
         log.info("Qry done in %s", (datetime.datetime.now() - start))
         start = datetime.datetime.now()
@@ -1236,7 +1238,7 @@ class NetworkService(HydraService):
 
         """
 
-        group_resourcescenarios = network.get_attributes_for_resource(network_id, scenario_id, 'GROUP', group_ids, include_metadata)
+        group_resourcescenarios = hb.network.get_attributes_for_resource(network_id, scenario_id, 'GROUP', group_ids, include_metadata)
         return_ras = []
         for grouprs in group_resourcescenarios:
             ra = ResourceAttr(grouprs.resourceattr)
@@ -1250,7 +1252,7 @@ class NetworkService(HydraService):
         """
             Get all the resource attributes in a network, for a specified attribute ID
         """
-        network_ras = network.get_all_resource_attributes_in_network(attr_id, network_id, **ctx.in_header.__dict__)
+        network_ras = hb.network.get_all_resource_attributes_in_network(attr_id, network_id, **ctx.in_header.__dict__)
 
         return [ResourceAttr(ra) for ra in network_ras]
 
@@ -1270,7 +1272,7 @@ class NetworkService(HydraService):
             raises:
                 ValidationError if the supplied unit is incompatible with the attribute's dimension
         """
-        res = network.apply_unit_to_network_rs(
+        res = hb.network.apply_unit_to_network_rs(
             network_id,
             unit_id,
             attr_id,
