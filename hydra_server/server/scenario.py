@@ -40,8 +40,9 @@ class ScenarioService(HydraService):
          Unicode(pattern="['YN']", default='N'),
          Unicode(pattern="['YN']", default='N'),
          Unicode(pattern="['YN']", default='N'),
+         Unicode(pattern="['YN']", default='N'),
          _returns=Scenario)
-    def get_scenario(ctx, scenario_id, get_parent_data, include_data, include_group_items):
+    def get_scenario(ctx, scenario_id, get_parent_data, include_data, include_group_items, include_results):
         """
             Get the specified scenario
         """
@@ -61,10 +62,18 @@ class ScenarioService(HydraService):
         else:
             _include_group_items = False
 
+        if include_results is None or include_results.upper() == 'Y':
+            _include_results = True
+        else:
+            _include_results = False
+
+
+
         scen = scenario.get_scenario(scenario_id,
                                      get_parent_data=_get_parent_data,
                                      include_data=_include_data,
                                      include_group_items=_include_group_items,
+                                     include_results=_include_results,
                                      **ctx.in_header.__dict__)
 
         return Scenario(scen,
