@@ -256,7 +256,8 @@ class RuleService(HydraService):
             Returns:
                 List of Rule Complexmodels
         """
-        rules.get_network_rules(network_id,
+        net_rules = rules.get_network_rules(network_id,
                                 scenario_id=scenario_id,
                                 summary=summary=='Y',
                                 **ctx.in_header.__dict__)
+        return net_rules
