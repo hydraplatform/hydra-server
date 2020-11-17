@@ -95,8 +95,8 @@ class NetworkService(HydraService):
         """
         net  = hb.network.get_network(network_id,
                                       include_attributes in ('Y', None),
-                                      include_data,
-                                      include_results,
+                                      include_data in ('Y', None),
+                                      include_results in ('Y', None),
                                       scenario_ids,
                                       template_id,
                                       include_non_template_attributes == 'Y',
@@ -164,7 +164,7 @@ class NetworkService(HydraService):
         """
         net  = hb.network.get_network(network_id,
                                    False,
-                                   'Y',
+                                   True,
                                    [],
                                    None,
                                    **ctx.in_header.__dict__)

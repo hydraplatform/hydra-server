@@ -225,8 +225,9 @@ class Dataset(HydraComplexModel):
                 self.metadata = json.dumps(parent.metadata)
             else:
                 metadata = {}
-                for m in parent.metadata:
-                    metadata[m.key] = str(m.value)
+                if parent.metadata:
+                    for m in parent.metadata:
+                        metadata[m.key] = str(m.value)
                 self.metadata = json.dumps(metadata)
 
     def parse_value(self):
@@ -594,6 +595,9 @@ class TypeAttr(HydraComplexModel):
        - **cr_date**            Unicode(default=None)
     """
     _type_info = [
+
+        ('id', Integer(default=None)),
+        ('parent_id', Integer(default=None)),
         ('attr_id',            Integer(default=None)),
         ('attr',               Attr),
         ('type_id',            Integer(default=None)),
@@ -602,6 +606,7 @@ class TypeAttr(HydraComplexModel):
         ('unit_id',            Integer(default=None)),
         ('default_dataset',    Dataset),
         ('data_restriction',   AnyDict(default=None)),
+        ('status',             Unicode(default=None)),
         ('is_var',             Unicode(default=None)),
         ('description',        Unicode(default=None)),
         ('properties',         AnyDict(default=None)),
@@ -613,22 +618,27 @@ class TypeAttr(HydraComplexModel):
         if  parent is None:
             return
 
+        self.id = parent.id
+        self.parent_id = parent.parent_id
+
         self.attr_id = parent.attr_id
 
-        attr = parent.get_attr()
+        attr = parent.attr
+
         self.attr = None
         if attr:
             self.attr = Attr(attr)
 
         self.type_id = parent.type_id
         self.data_type = parent.data_type
-        if parent.unit:
-            self.unit_id = parent.unit.id
+        if parent.unit_id is not None:
+            self.unit_id = parent.unit_id
         else:
             self.unit_id = None
 
         if parent.default_dataset is not None:
             self.default_dataset = Dataset(parent.default_dataset)
+        self.status = parent.status
         self.description = parent.description
         self.properties = self.get_outgoing_layout(parent.properties)
         self.cr_date = str(parent.cr_date)
@@ -654,9 +664,12 @@ class TemplateType(HydraComplexModel):
     """
     _type_info = [
         ('id',          Integer(default=None)),
+        ('template_id', Integer(default=None)),
+        ('parent_id', Integer(default=None)),
         ('name',        Unicode(default=None)),
         ('resource_type', Unicode(values=['GROUP', 'NODE', 'LINK', 'NETWORK'], default=None)),
         ('alias',       Unicode(default=None)),
+        ('status',       Unicode(default=None)),
         ('layout',      AnyDict(min_occurs=0, max_occurs=1, default=None)),
         ('template_id', Integer(min_occurs=0, max_occurs=1, default=None)),
         ('typeattrs',   SpyneArray(TypeAttr)),
@@ -669,8 +682,11 @@ class TemplateType(HydraComplexModel):
             return
 
         self.id        = parent.id
+        self.template_id = parent.template_id
+        self.parent_id = parent.parent_id
         self.name      = parent.name
         self.alias     = parent.alias
+        self.status = parent.status
         self.resource_type = parent.resource_type
         self.cr_date = str(parent.cr_date)
         self.layout = self.get_outgoing_layout(parent.layout)
@@ -692,6 +708,7 @@ class Template(HydraComplexModel):
     """
     _type_info = [
         ('id',        Integer(default=None)),
+        ('parent_id', Integer(default=None)),
         ('name',      Unicode(default=None)),
         ('layout',    AnyDict(min_occurs=0, max_occurs=1, default=None)),
         ('templatetypes', SpyneArray(TemplateType)),
@@ -702,7 +719,7 @@ class Template(HydraComplexModel):
         super(Template, self).__init__()
         if parent is None:
             return
-
+        self.parent_id = parent.parent_id
         self.name   = parent.name
         self.id     = parent.id
         self.cr_date = str(parent.cr_date)

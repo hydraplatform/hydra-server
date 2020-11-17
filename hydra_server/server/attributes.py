@@ -33,6 +33,31 @@ class AttributeService(HydraService):
     """
         The attribute SOAP service
     """
+    @rpc(Attr, _returns=Attr)
+    def add_attribute_no_checks(ctx, attr):
+        """
+        Add a generic attribute, which can then be used in creating
+        a resource attribute, and put into a type.
+        ***NO VALIDATION IS PERFORMED WHEN ADDING THIS ATTRIBUTE WHICH CAN
+        LEAD TO DATABASE INCONSISTENCIES***
+
+        .. code-block:: python
+
+            (Attr){
+                name = "Test Attr"
+                dimen = "very big"
+                description = "I am a very big attribute"
+            }
+
+        Args:
+            attr (complexmodels.Attr): An attribute object, as described above.
+
+        Returns:
+            complexmodels.Attr: An attribute object, similar to the one sent in but with an ID.
+        """
+
+        attr = attributes.add_attribute_no_checks(attr, **ctx.in_header.__dict__)
+        return Attr(attr)
 
     @rpc(Attr, _returns=Attr)
     def add_attribute(ctx, attr):
@@ -1032,3 +1057,24 @@ class AttributeGroupService(HydraService):
         status = attributes.delete_attribute_group_items(attributegroupitems, **ctx.in_header.__dict__)
 
         return status
+
+    @rpc(_returns=Unicode)
+    def delete_all_duplicate_attributes(ctx):
+        """
+            remove attribute groups items .
+            ** attributegroupitems : a list of items, of the form:
+                ```{
+                        'attr_id'    : X,
+                        'group_id'   : Y,
+                        'network_id' : Z,
+                   }```
+        """
+
+        status = attributes.delete_all_duplicate_attributes(**ctx.in_header.__dict__)
+
+        return 'OK'
+
+    @rpc(Integer(default=None), _returns=Unicode)
+    def delete_duplicate_resourceattributes(ctx, network_id):
+        attributes.delete_duplicate_resourceattributes(network_id, **ctx.in_header.__dict__)
+        return 'OK'

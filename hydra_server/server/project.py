@@ -207,14 +207,14 @@ class ProjectService(HydraService):
 
         """
         if include_data is None:
-            include_data = 'N'
+            include_data = False
+        else:
+            include_data = include_data == 'Y'
 
         net_dicts = project_lib.get_networks(
             project_id,
             include_data=include_data,
             **ctx.in_header.__dict__)
-
-        include_data = include_data == 'Y'
 
         networks = [Network(n, include_data=include_data) for n in net_dicts]
 
