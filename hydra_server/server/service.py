@@ -148,7 +148,7 @@ class AuthenticationService(ServiceBase):
                 raise HydraError("No password specified")
             if isinstance(password, bytes):
                 password = password.encode('utf-8')
-            log.info("%s, %s",username, password)
+            log.debug("%s, %s",username, password)
             user_id = hydra_base.hdb.login_user(username, password)
         except HydraError as e:
             raise AuthenticationError(e)
