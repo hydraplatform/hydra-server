@@ -95,8 +95,8 @@ class NetworkService(HydraService):
         """
         net  = hb.network.get_network(network_id,
                                       include_attributes in ('Y', None),
-                                      include_data,
-                                      include_results,
+                                      include_data in ('Y', None),
+                                      include_results in ('Y', None),
                                       scenario_ids,
                                       template_id,
                                       include_non_template_attributes == 'Y',
@@ -164,7 +164,7 @@ class NetworkService(HydraService):
         """
         net  = hb.network.get_network(network_id,
                                    False,
-                                   'Y',
+                                   True,
                                    [],
                                    None,
                                    **ctx.in_header.__dict__)
@@ -441,7 +441,7 @@ class NetworkService(HydraService):
             ResourceNotFoundError: If the network is not found.
         """
         #check_perm('delete_network')
-        hb.netset_network_status(network_id, 'A', **ctx.in_header.__dict__)
+        hb.network.set_network_status(network_id, 'A', **ctx.in_header.__dict__)
         return 'OK'
 
     @rpc(Integer, _returns=NetworkExtents)
@@ -463,7 +463,7 @@ class NetworkService(HydraService):
             ResourceNotFoundError: If the network is not found.
 
         """
-        extents = hb.netget_network_extents(network_id, **ctx.in_header.__dict__)
+        extents = hb.network.get_network_extents(network_id, **ctx.in_header.__dict__)
 
         ne = NetworkExtents()
         ne.network_id = extents['network_id']
@@ -511,7 +511,7 @@ class NetworkService(HydraService):
             ResourceNotFoundError: If the network is not found
         """
 
-        node_dict = hb.netadd_node(network_id, node, **ctx.in_header.__dict__)
+        node_dict = hb.network.add_node(network_id, node, **ctx.in_header.__dict__)
 
         new_node = Node(node_dict)
 
@@ -535,7 +535,7 @@ class NetworkService(HydraService):
             ResourceNotFoundError: If the network is not found
         """
 
-        node_s = hb.netadd_nodes(network_id, nodes, **ctx.in_header.__dict__)
+        node_s = hb.network.add_nodes(network_id, nodes, **ctx.in_header.__dict__)
         new_nodes=[]
         for node in nodes:
             for node_ in node_s:
@@ -562,7 +562,7 @@ class NetworkService(HydraService):
             ResourceNotFoundError: If the network is not found
 
         """
-        link_s = hb.netadd_links(network_id, links, **ctx.in_header.__dict__)
+        link_s = hb.network.add_links(network_id, links, **ctx.in_header.__dict__)
 
         new_links=[]
         for link in links:
@@ -620,7 +620,7 @@ class NetworkService(HydraService):
             ResourceNotFoundError: If the node is not found
         """
 
-        node_dict = hb.netupdate_node(node, **ctx.in_header.__dict__)
+        node_dict = hb.network.update_node(node, **ctx.in_header.__dict__)
         updated_node = Node(node_dict)
 
         return updated_node
@@ -641,7 +641,7 @@ class NetworkService(HydraService):
             ResourceNotFoundError: If the node is not found
         """
         #check_perm('edit_topology')
-        hb.netset_node_status(node_id, status.upper(), **ctx.in_header.__dict__)
+        hb.network.set_node_status(node_id, status.upper(), **ctx.in_header.__dict__)
         return 'OK'
 
 
@@ -661,7 +661,7 @@ class NetworkService(HydraService):
             ResourceNotFoundError: If the node is not found
 
         """
-        hb.netdelete_node(node_id, purge_data, **ctx.in_header.__dict__)
+        hb.network.delete_node(node_id, purge_data, **ctx.in_header.__dict__)
         return 'OK'
 
     @rpc(Integer, _returns=Unicode)
@@ -682,7 +682,7 @@ class NetworkService(HydraService):
             ResourceNotFoundError: If the node is not found.
         """
         #check_perm('edit_topology')
-        hb.netset_node_status(node_id, 'A', **ctx.in_header.__dict__)
+        hb.network.set_node_status(node_id, 'A', **ctx.in_header.__dict__)
         return 'OK'
 
     @rpc(Integer, Unicode(pattern="[YN]", default='Y'), _returns=Unicode)

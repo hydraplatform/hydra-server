@@ -258,7 +258,7 @@ class UserService(HydraService):
             ResourceNotFoundError: If the perm_id is not found
         """
         success = 'OK'
-        users.delete_perm(perm_id)
+        users.delete_perm(perm_id, **ctx.in_header.__dict__)
         return success
 
     @rpc(Integer, Integer, _returns=Role)
@@ -526,3 +526,34 @@ class UserService(HydraService):
         """
         perms = users.get_user_permissions(user_id, **ctx.in_header.__dict__)
         return [Perm(p) for p in perms]
+
+    @rpc(Unicode, _returns=Integer)
+    def get_failed_login_count(ctx, username):
+        failed_login_attempts = users.get_failed_login_count(username, **ctx.in_header.__dict__)
+        return failed_login_attempts
+
+
+    @rpc(_returns=Integer)
+    def get_max_login_attempts(ctx):
+        max_login_attempts = users.get_max_login_attempts(**ctx.in_header.__dict__)
+        return max_login_attempts
+
+
+    @rpc(Unicode, _returns=Integer)
+    def get_remaining_login_attempts(ctx, username):
+        remaining_login_attempts = users.get_remaining_login_attempts(username, **ctx.in_header.__dict__)
+        return remaining_login_attempts
+
+
+    @rpc(Unicode, _returns=Unicode)
+    def inc_failed_login_attempts(ctx, username):
+        users.inc_failed_login_attempts(username,**ctx.in_header.__dict__)
+        return 'OK'
+
+
+    @rpc(Unicode, _returns=Unicode)
+    def reset_failed_logins(ctx, username):
+        users.reset_failed_logins(username, **ctx.in_header.__dict__)
+        return 'OK'
+
+

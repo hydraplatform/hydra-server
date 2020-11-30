@@ -190,6 +190,18 @@ class TemplateService(HydraService):
 
         return Template(tmpl_i)
 
+    @rpc(Integer, Unicode, Unicode, _returns=Template)
+    def add_child_template(ctx, template_id, name, description):
+        """
+            Add template and a type and typeattrs.
+        """
+        tmpl_i = template.add_child_template(template_id,
+                                             name,
+                                             description,
+                                      **ctx.in_header.__dict__)
+
+        return Template(tmpl_i)
+
     @rpc(Template, _returns=Template)
     def update_template(ctx, tmpl):
         """
@@ -287,6 +299,17 @@ class TemplateService(HydraService):
 
         return TemplateType(tmpl_type)
 
+    @rpc(Integer, Integer, _returns=TemplateType)
+    def add_child_templatetype(ctx, parent_id, child_template_id):
+        """
+            Add a template type with typeattrs.
+        """
+
+        tmpl_type = template.add_child_templatetype(parent_id, child_template_id,
+                                              **ctx.in_header.__dict__)
+
+        return TemplateType(tmpl_type)
+
     @rpc(TemplateType, _returns=TemplateType)
     def update_templatetype(ctx, templatetype):
         """
@@ -330,12 +353,48 @@ class TemplateService(HydraService):
 
         return tmpltype
 
-    @rpc(TypeAttr, _returns=TemplateType)
+    @rpc(TypeAttr, _returns=TypeAttr)
     def add_typeattr(ctx, typeattr):
         """
             Add an typeattr to an existing type.
         """
         updated_template_type = template.add_typeattr(typeattr,
+                                           **ctx.in_header.__dict__)
+
+        ta = TypeAttr(updated_template_type)
+
+        return ta
+
+    @rpc(TypeAttr, _returns=TypeAttr)
+    def update_typeattr(ctx, typeattr):
+        """
+            Update a typeattr
+        """
+        updated_template_type = template.update_typeattr(typeattr,
+                                           **ctx.in_header.__dict__)
+
+        ta = TypeAttr(updated_template_type)
+
+        return ta
+
+    @rpc(Integer, Unicode, _returns=TypeAttr)
+    def get_typeattr(ctx, typeattr_id, include_parent_data):
+        typeattr = template.get_typeattr(typeattr_id,
+                                         include_parent_data == 'Y',
+                                           **ctx.in_header.__dict__)
+
+        ta = TypeAttr(typeattr)
+
+        return ta
+
+
+
+    @rpc(Integer, Integer, _returns=TypeAttr)
+    def add_child_typeattr(ctx, parent_id, child_template_id):
+        """
+            Add an typeattr to an existing type.
+        """
+        updated_template_type = template.add_child_typeattr(parent_id, child_template_id,
                                            **ctx.in_header.__dict__)
 
         ta = TypeAttr(updated_template_type)
@@ -446,3 +505,9 @@ class TemplateService(HydraService):
         errors = template.check_type_compatibility(type_1_id, type_2_id,
                                                             **ctx.in_header.__dict__)
         return errors
+
+    @rpc(AnyDict, Integer(default=None), _returns=SpyneArray(TemplateType))
+    def get_types_by_attr(ctx, resource, template_id):
+        types_by_attr = template.get_types_by_attr(resource, template_id,
+                                                  **ctx.in_header.__dict__)
+        return [TemplateType(ta) for ta in types_by_attr]
