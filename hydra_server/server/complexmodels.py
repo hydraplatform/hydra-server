@@ -577,6 +577,7 @@ class ResourceTypeDef(HydraComplexModel):
         ('ref_key', Unicode(default=None)),
         ('ref_id',  Integer(default=None)),
         ('type_id', Integer(default=None)),
+        ('template_id', Integer(default=None)),
     ]
 
 class TypeAttr(HydraComplexModel):
