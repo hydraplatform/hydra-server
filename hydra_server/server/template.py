@@ -246,7 +246,6 @@ class TemplateService(HydraService):
         """
             Get all resource template templates.
         """
-        import pudb; pudb.set_trace()
         load_all = load_all != 'N' #it can be null or 'Y' etc
         include_inactive = include_inactive=='Y'
         tmpls = template.get_templates(load_all=load_all, include_inactive=include_inactive, **ctx.in_header.__dict__)
