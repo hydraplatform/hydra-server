@@ -710,6 +710,7 @@ class Template(HydraComplexModel):
     _type_info = [
         ('id',        Integer(default=None)),
         ('parent_id', Integer(default=None)),
+        ('status',       Unicode(default=None)),
         ('name',      Unicode(default=None)),
         ('layout',    AnyDict(min_occurs=0, max_occurs=1, default=None)),
         ('templatetypes', SpyneArray(TemplateType)),
@@ -722,6 +723,7 @@ class Template(HydraComplexModel):
             return
         self.parent_id = parent.parent_id
         self.name   = parent.name
+        self.status = parent.status
         self.id     = parent.id
         self.cr_date = str(parent.cr_date)
         self.layout = self.get_outgoing_layout(parent.layout)

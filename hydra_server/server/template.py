@@ -108,8 +108,9 @@ class TemplateService(HydraService):
         return ret_types
 
     @rpc(SpyneArray(ResourceTypeDef),
+         Integer(default=None),
          _returns=SpyneArray(TemplateType))
-    def assign_types_to_resources(ctx, resource_types):
+    def assign_types_to_resources(ctx, resource_types, template_id):
         """Assign new types to list of resources.
         This function checks if the necessary
         attributes are present and adds them if needed. Non existing attributes
@@ -118,7 +119,8 @@ class TemplateService(HydraService):
         changed.
         """
         types = template.assign_types_to_resources(resource_types,
-                                                    **ctx.in_header.__dict__)
+                                                   template_id
+                                                   **ctx.in_header.__dict__)
         ret_val = [TemplateType(t) for t in types]
         return ret_val
 
@@ -211,6 +213,24 @@ class TemplateService(HydraService):
                                            **ctx.in_header.__dict__)
         return Template(tmpl_i)
 
+    @rpc(Integer, _returns=Template)
+    def activate_template(ctx, template_id):
+        """
+        Set the status of a template to 'A'
+        """
+        template.activate_template(template_id,
+                                           **ctx.in_header.__dict__)
+        return 'OK'
+
+    @rpc(Integer, _returns=Template)
+    def deactivate_template(ctx, template_id):
+        """
+        Set the status of a template to 'X'
+        """
+        template.deactivate_template(template_id,
+                                           **ctx.in_header.__dict__)
+        return 'OK'
+
 
     @rpc(Integer, _returns=Template)
     def delete_template(ctx, template_id):
@@ -221,12 +241,15 @@ class TemplateService(HydraService):
                                            **ctx.in_header.__dict__)
         return 'OK'
 
-    @rpc(_returns=SpyneArray(Template))
-    def get_templates(ctx):
+    @rpc(Unicode(pattern='[YN]', default='Y'), Unicode(pattern='[YN]', default='N'), _returns=SpyneArray(Template))
+    def get_templates(ctx, load_all, include_inactive):
         """
             Get all resource template templates.
         """
-        tmpls = template.get_templates(**ctx.in_header.__dict__)
+        import pudb; pudb.set_trace()
+        load_all = load_all != 'N' #it can be null or 'Y' etc
+        include_inactive = include_inactive=='Y'
+        tmpls = template.get_templates(load_all=load_all, include_inactive=include_inactive, **ctx.in_header.__dict__)
         ret_templates = [Template(t) for t in tmpls]
 
         return ret_templates
