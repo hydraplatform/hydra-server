@@ -747,6 +747,7 @@ class TypeSummary(HydraComplexModel):
         ('type_id',      Integer),
         ('template_name', Unicode),
         ('template_id', Integer),
+        ('child_template_id', Integer),
     ]
 
     def __init__(self, parent=None):
@@ -755,6 +756,7 @@ class TypeSummary(HydraComplexModel):
         if parent is None:
             return
 
+        self.child_template_id = parent.child_template_id
 
         if hasattr(parent, 'templatetype') and parent.templatetype is not None:
             # Here just if the parent contains templatetype and it is not None
