@@ -119,7 +119,7 @@ class TemplateService(HydraService):
         changed.
         """
         types = template.assign_types_to_resources(resource_types,
-                                                   template_id
+                                                   template_id,
                                                    **ctx.in_header.__dict__)
         ret_val = [TemplateType(t) for t in types]
         return ret_val
@@ -232,12 +232,13 @@ class TemplateService(HydraService):
         return 'OK'
 
 
-    @rpc(Integer, _returns=Template)
-    def delete_template(ctx, template_id):
+    @rpc(Integer, Unicode(pattern='[YN]', default='N'),  _returns=Template)
+    def delete_template(ctx, template_id, force):
         """
             Update template and a type and typeattrs.
         """
         template.delete_template(template_id,
+                                 force = force == 'Y',
                                            **ctx.in_header.__dict__)
         return 'OK'
 
@@ -343,13 +344,14 @@ class TemplateService(HydraService):
                                               **ctx.in_header.__dict__)
         return TemplateType(type_i)
 
-    @rpc(Integer, _returns=Template)
-    def delete_templatetype(ctx, type_id):
+    @rpc(Integer, Unicode(pattern='[YN]', default='N'), _returns=Template)
+    def delete_templatetype(ctx, type_id, force):
         """
             Update template and a type and typeattrs.
         """
         template.delete_templatetype(type_id,
-                                           **ctx.in_header.__dict__)
+                                     force=force == 'Y',
+                                     **ctx.in_header.__dict__)
         return 'OK'
 
     @rpc(Integer, _returns=TemplateType)
@@ -424,13 +426,14 @@ class TemplateService(HydraService):
         return ta
 
 
-    @rpc(TypeAttr, _returns=Unicode)
-    def delete_typeattr(ctx, typeattr):
+    @rpc(TypeAttr, Unicode(pattern='[YN]', default='N'), _returns=Unicode)
+    def delete_typeattr(ctx, typeattr, force):
         """
             Remove an typeattr from an existing type
         """
         success = 'OK'
         template.delete_typeattr(typeattr,
+                                 force = force == 'Y',
                                  **ctx.in_header.__dict__)
         return success
 
