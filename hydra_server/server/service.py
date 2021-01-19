@@ -69,7 +69,7 @@ class HydraService(ServiceBase):
     __tns__ = 'hydra.base'
     __in_header__ = RequestHeader
 
-class AuthenticationError(Fault):
+class AuthenticationError(Fault, HydraError):
     __namespace__ = 'hydra.base'
 
     def __init__(self, user_name):
@@ -77,11 +77,12 @@ class AuthenticationError(Fault):
                        faultcode='Client.AuthenticationError',
                        faultstring='Invalid authentication request for %r' % user_name
                       )
+        HydraError.__init__(self, 'Invalid authentication request for %r' % user_name)
 
-class AuthorizationError(Fault):
+class AuthorizationError(Fault, HydraError):
     __namespace__ = 'hydra.authentication'
 
-    def __init__(self):
+    def __init__(self, code="AuthorizationError"):
 
         Fault.__init__(self,
                        faultcode='Client.AuthorizationError',
