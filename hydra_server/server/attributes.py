@@ -84,6 +84,16 @@ class AttributeService(HydraService):
         return Attr(attr)
 
     @rpc(Attr, _returns=Attr)
+    def add_attribute_no_checks(ctx, attr):
+        """
+        ***WARNING*** This is used for test purposes only, and can allow
+        duplicate attributes to be created
+        """
+        log.debug("Adding attribute: %s", attr.name)
+        attr = attributes.add_attribute_no_checks(attr, **ctx.in_header.__dict__)
+        return Attr(attr)
+
+    @rpc(Attr, _returns=Attr)
     def update_attribute(ctx, attr):
         """
         Update a generic attribute, which can then be used in creating a resource attribute, and put into a type.
@@ -1061,20 +1071,28 @@ class AttributeGroupService(HydraService):
     @rpc(_returns=Unicode)
     def delete_all_duplicate_attributes(ctx):
         """
-            remove attribute groups items .
-            ** attributegroupitems : a list of items, of the form:
-                ```{
-                        'attr_id'    : X,
-                        'group_id'   : Y,
-                        'network_id' : Z,
-                   }```
+            duplicate attributes can appear i the DB when attributes are added
+            with a dimension of None (because muysql allows multiple entries
+            even if there is a unique constraint where one of the values is null)
+
+            This identifies one attribute of a duplicate set and then remaps all pointers to duplicates
+            to that attribute, before deleting all other duplicate attributes.
+
+            steps are:
+                1: Identify all duplicate attributes
+                2: Select one of the duplicates to be the one to keep
+                3: Remap all resource attributes and type attributes to point from
+                   duplicate attrs to the keeper.
+                4: Delete the duplicates.
         """
 
-        status = attributes.delete_all_duplicate_attributes(**ctx.in_header.__dict__)
+        attributes.delete_all_duplicate_attributes(**ctx.in_header.__dict__)
 
-        return 'OK'
-
-    @rpc(Integer(default=None), _returns=Unicode)
-    def delete_duplicate_resourceattributes(ctx, network_id):
-        attributes.delete_duplicate_resourceattributes(network_id, **ctx.in_header.__dict__)
-        return 'OK'
+    @rpc(_returns=Unicode)
+    def delete_duplicate_resourceattributes(ctx):
+        """
+        for every resource, find any situations where there are duplicate attribute
+        names, ex 2 max_flows, but where the attribute IDs are different. In this case,
+        remove one of them, and keep the one which is used in the template for that node.
+        """
+        attributes.delete_duplicate_resourceattributes(**ctx.in_header.__dict__)

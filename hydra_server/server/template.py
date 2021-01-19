@@ -21,6 +21,7 @@ TemplateType,\
 TypeAttr,\
 TypeSummary,\
 ResourceTypeDef,\
+Resource,\
 ValidationError
 
 from .service import HydraService
@@ -193,16 +194,12 @@ class TemplateService(HydraService):
         return Template(tmpl_i)
 
     @rpc(Integer, Unicode, Unicode, _returns=Template)
-    def add_child_template(ctx, template_id, name, description):
-        """
-            Add template and a type and typeattrs.
-        """
-        tmpl_i = template.add_child_template(template_id,
-                                             name,
-                                             description,
-                                      **ctx.in_header.__dict__)
-
-        return Template(tmpl_i)
+    def add_child_template(ctx, parent_id, name=None, description=None):
+        child_tmpl_i = template.add_child_template(parent_id,
+                                                   name,
+                                                   description=description,
+                                                   **ctx.in_header.__dict__)
+        return Template(child_tmpl_i)
 
     @rpc(Template, _returns=Template)
     def update_template(ctx, tmpl):
@@ -327,11 +324,12 @@ class TemplateService(HydraService):
         """
             Add a template type with typeattrs.
         """
-
-        tmpl_type = template.add_child_templatetype(parent_id, child_template_id,
-                                              **ctx.in_header.__dict__)
+        tmpl_type = template.add_child_templatetype(parent_id,
+                                                    child_template_id,
+                                                    **ctx.in_header.__dict__)
 
         return TemplateType(tmpl_type)
+
 
     @rpc(TemplateType, _returns=TemplateType)
     def update_templatetype(ctx, templatetype):
@@ -382,10 +380,49 @@ class TemplateService(HydraService):
         """
             Add an typeattr to an existing type.
         """
-        updated_template_type = template.add_typeattr(typeattr,
+        new_typeattr = template.add_typeattr(typeattr,
                                            **ctx.in_header.__dict__)
 
-        ta = TypeAttr(updated_template_type)
+        ta = TypeAttr(new_typeattr)
+
+        return ta
+
+    @rpc(Integer, _returns=TypeAttr)
+    def get_typeattr(ctx, typeattr_id):
+        """
+            Add an typeattr to an existing type.
+        """
+        typeattr = template.get_typeattr(typeattr_id,
+                                         **ctx.in_header.__dict__)
+
+        ta = TypeAttr(typeattr)
+
+        return ta
+
+
+
+    @rpc(TypeAttr, _returns=TypeAttr)
+    def update_typeattr(ctx, typeattr):
+        """
+            update an typeattr to an existing type.
+        """
+        updated_typeattr = template.update_typeattr(typeattr,
+                                           **ctx.in_header.__dict__)
+
+        ta = TypeAttr(updated_typeattr)
+
+        return ta
+
+    @rpc(Integer, Integer, _returns=TypeAttr)
+    def add_child_typeattr(ctx, parent_id, child_template_id):
+        """
+            Add a child template type attribute
+        """
+        child_typeattr = template.add_child_typeattr(parent_id,
+                                                     child_template_id,
+                                                     **ctx.in_header.__dict__)
+
+        ta = TypeAttr(child_typeattr)
 
         return ta
 
@@ -410,7 +447,6 @@ class TemplateService(HydraService):
         ta = TypeAttr(typeattr)
 
         return ta
-
 
 
     @rpc(Integer, Integer, _returns=TypeAttr)
@@ -531,8 +567,24 @@ class TemplateService(HydraService):
                                                             **ctx.in_header.__dict__)
         return errors
 
-    @rpc(AnyDict, Integer(default=None), _returns=SpyneArray(TemplateType))
-    def get_types_by_attr(ctx, resource, template_id):
-        types_by_attr = template.get_types_by_attr(resource, template_id,
-                                                  **ctx.in_header.__dict__)
-        return [TemplateType(ta) for ta in types_by_attr]
+    @rpc(AnyDict, Integer, _returns=SpyneArray(TemplateType))
+    def get_types_by_attr(ctx, resource, template_id=None):
+        """
+            Using the attributes of the resource, get all the
+            types that this resource matches.
+            args:
+                resource (a resource object (node, link etc), assumed to have a
+                        '.attributes' attribute)
+                template_id: The ID of a template, which will filter the result to
+                            just types in that template
+            returns:
+                dict: keyed on the template name, with the
+                value being the list of type names which match the resources
+                attributes.
+        """
+
+        templatetypes = template.get_types_by_attr(resource,
+                                          template_id,
+                                          **ctx.in_header.__dict__)
+
+        return [TemplateType(templatetype) for templatetype in templatetypes]

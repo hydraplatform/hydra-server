@@ -555,5 +555,3 @@ class UserService(HydraService):
     def reset_failed_logins(ctx, username):
         users.reset_failed_logins(username, **ctx.in_header.__dict__)
         return 'OK'
-
-
