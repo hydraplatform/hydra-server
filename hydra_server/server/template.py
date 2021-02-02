@@ -342,13 +342,16 @@ class TemplateService(HydraService):
                                               **ctx.in_header.__dict__)
         return TemplateType(type_i)
 
-    @rpc(Integer, Unicode(pattern='[YN]', default='N'), _returns=Template)
-    def delete_templatetype(ctx, type_id, force):
+    @rpc(Integer,
+         Unicode(pattern='[YN]', default='N'),
+         Unicode(pattern='[YN]', default='N'), _returns=Template)
+    def delete_templatetype(ctx, type_id, force, delete_children):
         """
             Update template and a type and typeattrs.
         """
         template.delete_templatetype(type_id,
                                      force=force == 'Y',
+                                     delete_children=delete_children == 'Y',
                                      **ctx.in_header.__dict__)
         return 'OK'
 
