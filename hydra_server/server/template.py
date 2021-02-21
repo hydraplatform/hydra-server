@@ -230,12 +230,12 @@ class TemplateService(HydraService):
 
 
     @rpc(Integer, Unicode(pattern='[YN]', default='N'),  _returns=Template)
-    def delete_template(ctx, template_id, force):
+    def delete_template(ctx, template_id, delete_resourcetypes):
         """
             Update template and a type and typeattrs.
         """
         template.delete_template(template_id,
-                                 force = force == 'Y',
+                                 delete_resourcetypes = delete_resourcetypes == 'Y',
                                            **ctx.in_header.__dict__)
         return 'OK'
 
@@ -345,12 +345,12 @@ class TemplateService(HydraService):
     @rpc(Integer,
          Unicode(pattern='[YN]', default='N'),
          Unicode(pattern='[YN]', default='N'), _returns=Template)
-    def delete_templatetype(ctx, type_id, force, delete_children):
+    def delete_templatetype(ctx, type_id, delete_resourcetypes, delete_children):
         """
             Update template and a type and typeattrs.
         """
         template.delete_templatetype(type_id,
-                                     force=force == 'Y',
+                                     delete_resourcetypes = delete_resourcetypes == 'Y',
                                      delete_children=delete_children == 'Y',
                                      **ctx.in_header.__dict__)
         return 'OK'
@@ -465,14 +465,13 @@ class TemplateService(HydraService):
         return ta
 
 
-    @rpc(TypeAttr, Unicode(pattern='[YN]', default='N'), _returns=Unicode)
-    def delete_typeattr(ctx, typeattr, force):
+    @rpc(Integer, _returns=Unicode)
+    def delete_typeattr(ctx, typeattr_id):
         """
             Remove an typeattr from an existing type
         """
         success = 'OK'
-        template.delete_typeattr(typeattr,
-                                 force = force == 'Y',
+        template.delete_typeattr(typeattr_id,
                                  **ctx.in_header.__dict__)
         return success
 
