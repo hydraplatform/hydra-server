@@ -1368,6 +1368,7 @@ class Network(Resource):
        - **created_by**          Integer(default=None)
        - **cr_date**             Unicode(default=None)
        - **layout**              AnyDict(min_occurs=0, max_occurs=1, default=None)
+       - **appdata**             AnyDict(min_occurs=0, max_occurs=1, default=None)
        - **status**              Unicode(default='A')
        - **attributes**          SpyneArray(ResourceAttr)
        - **scenarios**           SpyneArray(Scenario)
@@ -1386,6 +1387,7 @@ class Network(Resource):
         ('created_by', Integer(default=None)),
         ('cr_date', Unicode(default=None)),
         ('layout', AnyDict(min_occurs=0, max_occurs=1, default=None)),
+        ('appdata', AnyDict(min_occurs=0, max_occurs=1, default=None)),
         ('status', Unicode(default='A', pattern="[AX]")),
         ('attributes', SpyneArray(ResourceAttr)),
         ('scenarios', SpyneArray(Scenario)),
@@ -1409,6 +1411,7 @@ class Network(Resource):
         self.created_by = parent.created_by
         self.cr_date = str(parent.cr_date)
         self.layout = self.get_outgoing_layout(parent.layout)
+        self.appdata = self.get_outgoing_layout(parent.appdata)
         self.status = parent.status
         self.scenarios = [Scenario(s, include_data=include_data, include_group_items=include_data) for s in parent.scenarios]
         self.nodes = [Node(n, include_attributes) for n in parent.nodes]
