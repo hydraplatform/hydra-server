@@ -30,7 +30,7 @@ from hydra_base.util import generate_data_hash
 import json
 import zlib
 from hydra_base import config
-from hydra_base.util import get_layout_as_dict
+from hydra_base.util import get_json_as_dict
 
 from hydra_base.lib.HydraTypes.Registry import HydraObjectFactory
 from hydra_base.exceptions import HydraError
@@ -50,7 +50,7 @@ class HydraComplexModel(ComplexModel):
     __namespace__ = 'server.complexmodels'
 
     def get_outgoing_layout(self, resource_layout):
-        return get_layout_as_dict(resource_layout)
+        return get_json_as_dict(resource_layout)
 
 class LoginResponse(HydraComplexModel):
     """
