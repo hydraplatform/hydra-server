@@ -133,7 +133,7 @@ def _on_method_call(ctx):
     #otherwise it must have a 'req_env' as it's a wsgi application
     env = ctx.transport.req_env
 
-    if ctx.function == AuthenticationService.login:
+    if ctx.function == AuthenticationService.login or ctx.function == AuthenticationService.get_remote_session:
         return
 
     if ctx.in_object is None:
@@ -142,6 +142,7 @@ def _on_method_call(ctx):
     if ctx.in_header is None:
         raise AuthenticationError("No headers!")
 
+    env.get('beaker.get_session')()
     session = env.get('beaker.session', {})
 
     if session.get('user_id') is None:
