@@ -182,7 +182,7 @@ class AuthenticationService(ServiceBase):
         endpoint = config.get('SSO', 'endpoint', 'get_hydra_session').strip('/')
 
         if remote_hydra_server is None:
-            logging.critical("No remote hydra server specified")
+            log.critical("No remote hydra server specified")
             return None
 
         full_endpoint = f"{remote_hydra_server}/{endpoint}/{session_id}"
@@ -190,12 +190,12 @@ class AuthenticationService(ServiceBase):
         try:
             resp = requests.get(full_endpoint)
         except requests.exceptions.ConnectionError as e:
-            logging.critical("Unable to connect")
+            log.critical("Unable to connect")
             return None
         except Exception as e:
-            logging.critical(e)
+            log.critical(e)
             return None
-
+        data = {}
         if resp.ok:
             data = json.loads(resp.content)
             ctx.transport.req_env['beaker.session']['user_id'] = data['user_id']
@@ -204,6 +204,6 @@ class AuthenticationService(ServiceBase):
             ctx.transport.req_env['beaker.session'].save()
 
         login_response = LoginResponse()
-        login_response.user_id = data['user_id']
-        login_response.username = data['username']
+        login_response.user_id = data.get('user_id')
+        login_response.username = data.get('username')
         return login_response
