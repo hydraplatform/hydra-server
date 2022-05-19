@@ -178,7 +178,7 @@ class AuthenticationService(ServiceBase):
             From here we can set the session ID as though it was generated here.
 
         """
-        remote_hydra_server = config.get('SSO', 'url', 'localhost').strip('/')
+        remote_hydra_server = config.get('SSO', 'url', 'http://localhost').strip('/')
         endpoint = config.get('SSO', 'endpoint', 'get_hydra_session').strip('/')
 
         if remote_hydra_server is None:
