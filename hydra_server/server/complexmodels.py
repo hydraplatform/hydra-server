@@ -364,8 +364,11 @@ class Attr(HydraComplexModel):
     """
     _type_info = [
         ('id', Integer(default=None)),
+        ('network_id', Integer(default=None)),
+        ('project_id', Integer(default=None)),
         ('name', Unicode(default=None)),
         ('dimension_id', Integer(default=None)),
+        ('dimension', Unicode(default=None)),#The dimension name, which is accepted on incoming requests in lieu of an ID
         ('description', Unicode(default=None)),
         ('cr_date', Unicode(default=None)),
     ]
@@ -375,7 +378,10 @@ class Attr(HydraComplexModel):
         if  parent is None:
             return
         self.id = parent.id
+        self.network_id = parent.network_id
+        self.project_id = parent.project_id
         self.name = parent.name
+        self.dimension = parent.dimension.name if parent.dimension and hasattr(parent.dimension, 'name') else parent.dimension
         self.dimension_id = parent.dimension_id
 
         self.description = parent.description
@@ -500,6 +506,10 @@ class ResourceAttr(HydraComplexModel):
         self.id = parent.id
         if hasattr(parent, 'name'):
             self.name = parent.name
+
+        if hasattr(parent, 'attr'):
+            self.name = parent.attr.name
+
         self.attr_id = parent.attr_id
         self.ref_key  = parent.ref_key
         self.cr_date = str(parent.cr_date)

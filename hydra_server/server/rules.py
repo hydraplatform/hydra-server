@@ -106,7 +106,7 @@ class RuleService(HydraService):
 
     @rpc(Unicode,
          Integer,
-         SpyneArray(Integer),
+         Integer,
          _returns=SpyneArray(Rule))
     def get_resource_rules(ctx, ref_key, ref_id, scenario_id=None, **kwargs):
         """

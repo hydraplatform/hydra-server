@@ -169,18 +169,18 @@ class AttributeService(HydraService):
         return ret_attrs
 
     @rpc(Integer, _returns=Attr)
-    def get_attribute_by_id(ctx, ID):
+    def get_attribute_by_id(ctx, attr_id):
         """
         Get a specific attribute by its ID.
 
         Args:
-            ID (int): The ID of the attribute
+            attr_id (int): The ID of the attribute
 
         Returns:
             complexmodels.Attr: An attribute complex model.
                 Returns None if no attribute is found.
         """
-        attr = attributes.get_attribute_by_id(ID, **ctx.in_header.__dict__)
+        attr = attributes.get_attribute_by_id(attr_id, **ctx.in_header.__dict__)
 
         return Attr(attr)
 
@@ -408,14 +408,14 @@ class AttributeService(HydraService):
         return [ResourceAttr(ra) for ra in new_resource_attrs]
 
     @rpc(Unicode, Integer, Integer(min_occurs=0, max_occurs=1), _returns=SpyneArray(ResourceAttr))
-    def get_resource_attributes(ctx, resource_type, resource_id, type_id):
+    def get_resource_attributes(ctx, ref_key, ref_id, type_id):
         """
         Get all a resources's attributes
 
         Args:
-            resource_id (int): ID of the network
-            resource_type (string): NODE, LINK, GROUP, NETWORK
-            type_id    (int) (optional): ID of the type. If specified will only return the resource attributes relative to that type
+            ref_id (int): ID of the network / node / link / group
+            ref_key (string): NODE, LINK, GROUP, NETWORK
+            type_id (int) (optional): ID of the type. If specified will only return the resource attributes relative to that type
 
         Returns:
             List(complexmodels.ResourceAttr): All the resource's attributes
@@ -425,9 +425,12 @@ class AttributeService(HydraService):
 
 
         """
+        if ref_key is None or ref_id is None:
+            raise HydraError(f"Resource Type {ref_key} or Resource ID {ref_id} is None")
+
         resource_attrs = attributes.get_resource_attributes(
-            resource_type,
-            resource_id,
+            ref_key,
+            ref_id,
             type_id)
 
         return [ResourceAttr(ra) for ra in resource_attrs]
