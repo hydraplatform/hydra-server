@@ -66,7 +66,10 @@ import spyne.decorator
 
 from spyne.error import Fault, ArgumentError
 
-from hydra_base.db import connect
+import hydra_base as hb
+from hydra_base.exceptions import HydraError
+from hydra_base.util import hdb
+
 
 from hydra_server.server.network import NetworkService
 from hydra_server.server.project import ProjectService
@@ -112,10 +115,7 @@ applications = [
     NoteService,
 ]
 
-from hydra_base.exceptions import HydraError
 
-from hydra_base import config
-from hydra_base.util import hdb
 
 import datetime
 import traceback
@@ -210,7 +210,7 @@ class HydraServer():
 
     def __init__(self, db_uri):
 
-        connect(db_uri)
+        hb.connect(db_uri)
 
         hdb.create_default_users_and_perms()
         hdb.create_default_units_and_dimensions()
@@ -260,21 +260,21 @@ class HydraServer():
 
         initialize(db_uri)
 
-        log.info("home_dir %s", config.get('DEFAULT', 'home_dir'))
-        log.info("hydra_base_dir %s", config.get('DEFAULT', 'hydra_base_dir'))
-        log.info("common_app_data_folder %s", config.get('DEFAULT', 'common_app_data_folder'))
-        log.info("win_common_documents %s", config.get('DEFAULT', 'win_common_documents'))
-        log.info("sqlite url %s", config.get('mysqld', 'url'))
-        log.info("layout_xsd_path %s", config.get('hydra_server', 'layout_xsd_path'))
-        log.info("default_directory %s", config.get('plugin', 'default_directory'))
-        log.info("result_file %s", config.get('plugin', 'result_file'))
-        log.info("plugin_xsd_path %s", config.get('plugin', 'plugin_xsd_path'))
-        log.info("log_config_path %s", config.get('logging_conf', 'log_config_path'))
+        log.info("home_dir %s", hb.config.get('DEFAULT', 'home_dir'))
+        log.info("hydra_base_dir %s", hb.config.get('DEFAULT', 'hydra_base_dir'))
+        log.info("common_app_data_folder %s", hb.config.get('DEFAULT', 'common_app_data_folder'))
+        log.info("win_common_documents %s", hb.config.get('DEFAULT', 'win_common_documents'))
+        log.info("sqlite url %s", hb.config.get('mysqld', 'url'))
+        log.info("layout_xsd_path %s", hb.config.get('hydra_server', 'layout_xsd_path'))
+        log.info("default_directory %s", hb.config.get('plugin', 'default_directory'))
+        log.info("result_file %s", hb.config.get('plugin', 'result_file'))
+        log.info("plugin_xsd_path %s", hb.config.get('plugin', 'plugin_xsd_path'))
+        log.info("log_config_path %s", hb.config.get('logging_conf', 'log_config_path'))
 
         if port is None:
-            port = config.getint('hydra_server', 'port', 8080)
+            port = hb.config.getint('hydra_server', 'port', 8080)
 
-        domain = config.get('hydra_server', 'domain', '127.0.0.1')
+        domain = hb.config.get('hydra_server', 'domain', '127.0.0.1')
 
         check_port_available(domain, port)
 
@@ -333,10 +333,10 @@ def initialize_api_server(db_uri, test=False):
 def initialise_wsgi_application(api_server):
 
     wsgi_application = WsgiMounter({
-        config.get('hydra_server', 'soap_path', 'soap'): api_server.soap_application,
-        config.get('hydra_server', 'json_path', 'json'): api_server.json_application,
+        hb.config.get('hydra_server', 'soap_path', 'soap'): api_server.soap_application,
+        hb.config.get('hydra_server', 'json_path', 'json'): api_server.json_application,
         'jsonp': api_server.jsonp_application,
-        config.get('hydra_server', 'http_path', 'http'): api_server.http_application,
+        hb.config.get('hydra_server', 'http_path', 'http'): api_server.http_application,
     })
 
     for server in wsgi_application.mounts.values():
@@ -344,10 +344,11 @@ def initialise_wsgi_application(api_server):
 
     # Configure the SessionMiddleware
     session_opts = {
-        'session.type': 'file',
+        'session.type': 'file' if hb.db.hydra_db_url.startswith('sqlite') else 'ext:database',
         'session.cookie_expires': True,
         'session.data_dir':'/tmp',
         'session.file_dir':'/tmp/auth',
+        'session.url': hb.db.hydra_db_url
     }
     app = SessionMiddleware(wsgi_application, session_opts)
 

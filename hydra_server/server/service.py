@@ -21,7 +21,7 @@ from spyne.error import Fault
 from spyne.model.complex import ComplexModel
 from spyne.decorator import rpc
 from .complexmodels import LoginResponse
-import hydra_base
+import hydra_base as hb
 from hydra_base import config
 from hydra_base.exceptions import HydraError
 from spyne.protocol.json import JsonDocument
@@ -152,7 +152,7 @@ class AuthenticationService(ServiceBase):
             if isinstance(password, bytes):
                 password = password.encode('utf-8')
             log.debug("%s, %s",username, password)
-            user_id = hydra_base.hdb.login_user(username, password)
+            user_id = hb.hdb.login_user(username, password)
         except HydraError as e:
             raise AuthenticationError(e)
 
@@ -178,32 +178,17 @@ class AuthenticationService(ServiceBase):
             From here we can set the session ID as though it was generated here.
 
         """
-        remote_hydra_server = config.get('SSO', 'url', 'http://localhost').strip('/')
-        endpoint = config.get('SSO', 'endpoint', 'get_hydra_session').strip('/')
+        session_data = hb.get_session_user(session_id)
 
-        if remote_hydra_server is None:
-            log.critical("No remote hydra server specified")
+        if session_data is None:
             return None
 
-        full_endpoint = f"{remote_hydra_server}/{endpoint}/{session_id}"
-
-        try:
-            resp = requests.get(full_endpoint)
-        except requests.exceptions.ConnectionError as e:
-            log.critical("Unable to connect")
-            return None
-        except Exception as e:
-            log.critical(e)
-            return None
-        data = {}
-        if resp.ok:
-            data = json.loads(resp.content)
-            ctx.transport.req_env['beaker.session']['user_id'] = data['user_id']
-            ctx.transport.req_env['beaker.session']['username'] = data['username']
-            ctx.transport.req_env['beaker.session']['id'] = session_id
-            ctx.transport.req_env['beaker.session'].save()
+        ctx.transport.req_env['beaker.session']['user_id'] = session_data['user_id']
+        ctx.transport.req_env['beaker.session']['username'] = session_data['username']
+        ctx.transport.req_env['beaker.session']['id'] = session_id
+        ctx.transport.req_env['beaker.session'].save()
 
         login_response = LoginResponse()
-        login_response.user_id = data.get('user_id')
-        login_response.username = data.get('username')
+        login_response.user_id = session_data.get('user_id')
+        login_response.username = session_data.get('username')
         return login_response
