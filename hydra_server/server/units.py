@@ -47,7 +47,7 @@ class UnitService(HydraService):
 
         return Dimension(dimension)
 
-    @rpc(Integer, _returns=Dimension)
+    @rpc(Unicode, _returns=Dimension)
     def get_dimension_by_name(ctx, dimension_name):
         """
             Gets the dimension details and the list of all units assigned to the dimension.
