@@ -1480,6 +1480,7 @@ class Project(Resource):
         ('status',      Unicode(default='A', pattern="[AX]")),
         ('cr_date',     Unicode(default=None)),
         ('created_by',  Integer(default=None)),
+        ('appdata',     AnyDict(min_occurs=0, max_occurs=1, default=None)),
         ('attributes',  SpyneArray(ResourceAttr)),
         ('attribute_data', SpyneArray(ResourceScenario)),
     ]
@@ -1496,6 +1497,16 @@ class Project(Resource):
         self.status      = parent.status
         self.cr_date     = str(parent.cr_date)
         self.created_by  = parent.created_by
+
+        #this is a failsafe to ensure that the 'appdata' column
+        #is processed correctly, as it is a JSON column type which may
+        #not work with with serialising data.
+        appdata = {}
+        if parent.appdata is not None:
+            for k, v in parent.appdata.items():
+                appdata[k] = v
+        self.appdata = appdata
+
         self.attributes  = [ResourceAttr(ra) for ra in parent.attributes]
         self.attribute_data  = [ResourceScenario(rs) for rs in parent.attribute_data]
 
