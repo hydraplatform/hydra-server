@@ -1470,6 +1470,7 @@ class Project(Resource):
    - **status**      Unicode(default='A')
    - **cr_date**     Unicode(default=None)
    - **created_by**  Integer(default=None)
+   - **appdata**     AnyDict(default=None)
    - **attributes**  SpyneArray(ResourceAttr)
    - **attribute_data** SpyneArray(ResourceScenario)
     """
