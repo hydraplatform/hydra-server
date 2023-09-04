@@ -30,7 +30,7 @@ from hydra_base.util import generate_data_hash
 import json
 import zlib
 from hydra_base import config
-from hydra_base.util import get_json_as_dict
+from hydra_base.util import get_json_as_dict, get_json_as_string
 
 from hydra_base.lib.HydraTypes.Registry import HydraObjectFactory
 from hydra_base.exceptions import HydraError
@@ -852,6 +852,15 @@ class Resource(HydraComplexModel):
         else:
             return None
 
+    def get_json(self, key):
+        if not hasattr(self, key):
+            return None
+
+        attr = getattr(self, key)
+
+        val = get_json_as_string(attr).replace('{%s}'%NS, '')
+
+        return val
 
 class ResourceSummary(HydraComplexModel):
     """
