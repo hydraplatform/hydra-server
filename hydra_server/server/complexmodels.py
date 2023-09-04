@@ -858,7 +858,10 @@ class Resource(HydraComplexModel):
 
         attr = getattr(self, key)
 
-        val = get_json_as_string(attr).replace('{%s}'%NS, '')
+        val = get_json_as_string(attr)
+
+        if val:
+            val = val.replace('{%s}'%NS, '')
 
         return val
 
