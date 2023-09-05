@@ -878,6 +878,7 @@ class ResourceSummary(HydraComplexModel):
         ('ref_key',     Unicode(default=None)),
         ('id',          Integer(default=None)),
         ('name',        Unicode(default=None)),
+        ('appdata',     AnyDict(min_occurs=0, max_occurs=1, default=None)),
         ('description', Unicode(min_occurs=1, default="")),
         ('attributes',  SpyneArray(ResourceAttr)),
         ('types',       SpyneArray(TypeSummary)),
@@ -904,6 +905,16 @@ class ResourceSummary(HydraComplexModel):
             self.ref_key = 'LINK'
         elif hasattr(parent, 'group_id'):
             self.ref_key = 'GROUP'
+        if hasattr(parent, 'appdata'):
+            #this is a failsafe to ensure that the 'appdata' column
+            #is processed correctly, as it is a JSON column type which may
+            #not work with with serialising data.
+            appdata = {}
+            if parent.appdata is not None:
+                for k, v in parent.appdata.items():
+                    appdata[k] = v
+            self.appdata = appdata
+
         if include_attributes:
             self.attributes = [ResourceAttr(ra) for ra in parent.attributes]
 
