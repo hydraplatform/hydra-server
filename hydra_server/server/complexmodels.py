@@ -883,11 +883,17 @@ class ResourceSummary(HydraComplexModel):
         ('types',       SpyneArray(TypeSummary)),
     ]
 
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, include_attributes=True):
+        """
+            args:
+                parent: The ORM or JSONObject representing the Node / Link / Group / Network / Project
+                include_attributes: Include resource attributes or not. Setting to False is has significant performance benefits.
+        """
         super(ResourceSummary, self).__init__()
 
         if parent is None:
-            parent
+            return
+
         self.id   = parent.id
         self.name = parent.name
         self.description = parent.description
@@ -898,8 +904,9 @@ class ResourceSummary(HydraComplexModel):
             self.ref_key = 'LINK'
         elif hasattr(parent, 'group_id'):
             self.ref_key = 'GROUP'
+        if include_attributes:
+            self.attributes = [ResourceAttr(ra) for ra in parent.attributes]
 
-        self.attributes = [ResourceAttr(ra) for ra in parent.attributes]
         self.types = [TypeSummary(t) for t in parent.types]
 
 class Node(Resource):
