@@ -883,7 +883,7 @@ class ResourceSummary(HydraComplexModel):
         ('types',       SpyneArray(TypeSummary)),
     ]
 
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, include_attributes=True):
         super(ResourceSummary, self).__init__()
 
         if parent is None:
@@ -898,8 +898,9 @@ class ResourceSummary(HydraComplexModel):
             self.ref_key = 'LINK'
         elif hasattr(parent, 'group_id'):
             self.ref_key = 'GROUP'
+        if include_attributes:
+            self.attributes = [ResourceAttr(ra) for ra in parent.attributes]
 
-        self.attributes = [ResourceAttr(ra) for ra in parent.attributes]
         self.types = [TypeSummary(t) for t in parent.types]
 
 class Node(Resource):
