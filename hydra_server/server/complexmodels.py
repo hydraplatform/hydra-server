@@ -910,7 +910,7 @@ class ResourceSummary(HydraComplexModel):
             #is processed correctly, as it is a JSON column type which may
             #not work with with serialising data.
             if isinstance(parent.appdata, str):
-                appdata = json.loads(appdata)
+                appdata = json.loads(parent.appdata)
 
             appdata = {}
             if parent.appdata is not None:
