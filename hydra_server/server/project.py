@@ -19,6 +19,7 @@ from spyne.model.complex import Array as SpyneArray
 from .complexmodels import Project,\
 ProjectSummary,\
 ResourceScenario,\
+ResourceSummary,\
 Network
 from .service import HydraService
 from hydra_base.lib import project as project_lib
@@ -189,7 +190,7 @@ class ProjectService(HydraService):
         project_lib.delete_project(project_id, **ctx.in_header.__dict__)
         return 'OK'
 
-    @rpc(Integer, Unicode(pattern="[YN]", default='N'), _returns=SpyneArray(Network))
+    @rpc(Integer, Unicode(pattern="[YN]", default='N'), _returns=SpyneArray(ResourceSummary))
     def get_networks(ctx, project_id, include_data):
         """
         Get all networks in a project
@@ -216,7 +217,7 @@ class ProjectService(HydraService):
             include_data=include_data,
             **ctx.in_header.__dict__)
 
-        networks = [Network(n, include_data=include_data) for n in net_dicts]
+        networks = [ResourceSummary(n, include_data=include_data) for n in net_dicts]
 
         return networks
 
