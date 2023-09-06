@@ -207,17 +207,13 @@ class ProjectService(HydraService):
             ResourceNotFoundError: If the Project is not found.
 
         """
-        if include_data is None:
-            include_data = False
-        else:
-            include_data = include_data == 'Y'
 
         net_dicts = project_lib.get_networks(
             project_id,
-            include_data=include_data,
+            include_data=False,
             **ctx.in_header.__dict__)
 
-        networks = [ResourceSummary(n, include_data=include_data) for n in net_dicts]
+        networks = [ResourceSummary(n, include_attributes=False) for n in net_dicts]
 
         return networks
 
