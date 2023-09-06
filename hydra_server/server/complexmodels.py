@@ -909,14 +909,17 @@ class ResourceSummary(HydraComplexModel):
             #this is a failsafe to ensure that the 'appdata' column
             #is processed correctly, as it is a JSON column type which may
             #not work with with serialising data.
-            if isinstance(parent.appdata, str):
-                appdata = json.loads(parent.appdata)
-
-            appdata = {}
             if parent.appdata is not None:
-                for k, v in parent.appdata.items():
+                if isinstance(parent.appdata, str):
+                    parent_appdata = json.loads(parent.appdata)
+                else:
+                    parent_appdata = parent.appdata
+
+                appdata = {}
+                for k, v in parent_appdata.items():
                     appdata[k] = v
-            self.appdata = appdata
+
+                self.appdata = appdata
 
         if include_attributes:
             self.attributes = [ResourceAttr(ra) for ra in parent.attributes]
