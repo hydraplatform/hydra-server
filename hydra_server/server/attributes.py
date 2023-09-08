@@ -15,6 +15,7 @@
 #
 from spyne.model.primitive import Integer, Unicode
 from spyne.model.complex import Array as SpyneArray
+from spyne.model.primitive import AnyDict
 from spyne.decorator import rpc
 from .complexmodels import Attr
 from .complexmodels import ResourceAttr
@@ -25,6 +26,7 @@ from .complexmodels import AttrGroupItem
 from .service import HydraService
 
 from hydra_base.lib import attributes
+from hydra_base.lib.objects import JSONObject
 
 import logging
 log = logging.getLogger(__name__)
@@ -407,7 +409,7 @@ class AttributeService(HydraService):
                                                         **ctx.in_header.__dict__)
         return [ResourceAttr(ra) for ra in new_resource_attrs]
 
-    @rpc(Unicode, Integer, Integer(min_occurs=0, max_occurs=1), _returns=SpyneArray(ResourceAttr))
+    @rpc(Unicode, Integer, Integer(min_occurs=0, max_occurs=1), _returns=SpyneArray(AnyDict))
     def get_resource_attributes(ctx, ref_key, ref_id, type_id):
         """
         Get all a resources's attributes
@@ -433,7 +435,9 @@ class AttributeService(HydraService):
             ref_id,
             type_id)
 
-        return [ResourceAttr(ra) for ra in resource_attrs]
+        ret_data = [JSONObject(ra) for ra in resource_attrs]
+
+        return ret_data
 
     @rpc(Unicode, Integer, Integer(min_occurs=0, max_occurs=1), _returns=SpyneArray(ResourceAttr))
     def get_all_resource_attributes(ctx, resource_type, resource_id, template_id):
@@ -500,12 +504,15 @@ class AttributeService(HydraService):
 
 
         """
+        print("Getting attributes")
         resource_attrs = attributes.get_resource_attributes(
                 'NETWORK',
                 network_id,
                 type_id)
-
-        return [ResourceAttr(ra) for ra in resource_attrs]
+        print("Got attributes")
+        return_vals = [ResourceAttr(ra) for ra in resource_attrs]
+        print("Returning data")
+        return return_vals
 
 
     @rpc(Integer, Integer, Unicode(pattern="['YN']", default='N'), _returns=ResourceAttr)
