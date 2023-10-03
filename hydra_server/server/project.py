@@ -211,7 +211,6 @@ class ProjectService(HydraService):
         net_dicts = project_lib.get_networks(
             project_id,
             include_data=False,
-            include_attributes=False,
             **ctx.in_header.__dict__)
 
         networks = [ResourceSummary(n, include_attributes=False) for n in net_dicts]

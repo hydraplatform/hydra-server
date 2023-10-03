@@ -846,10 +846,10 @@ class Resource(HydraComplexModel):
             - scenario
             - project
     """
+
     def get_layout(self):
         if hasattr(self, 'layout') and self.layout is not None:
-            layoutstr =  str(self.layout).replace('{%s}'%NS, '')
-            return get_json_as_string(layoutstr)
+            return get_json_as_string(self.layout)
         else:
             return None
 
