@@ -266,3 +266,27 @@ class ProjectService(HydraService):
         proj_i = project_lib.get_project_by_network_id(network_id,
                                                **ctx.in_header.__dict__)
         return Project(proj_i)
+
+    @rpc(Integer, Integer, _returns=Project)
+    def move_project(ctx, project_id, target_project_id):
+        """
+        Get the project of a specified network
+
+        Args:
+            project_id (int): The ID of the project to be moved
+            target_project_id (int): The ID of the project to which the project should be moved
+
+        Returns:
+            complexmodels.Project: The moved project
+
+        Raises:
+            ResourceNotFoundError: If the Project is not found.
+
+
+        """
+        proj = project_lib.move_project(
+            project_id,
+            target_project_id,
+            **ctx.in_header.__dict__)
+
+        return Project(proj)

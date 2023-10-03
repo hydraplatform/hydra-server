@@ -312,27 +312,83 @@ class ScenarioService(HydraService):
          Integer,
          Integer,
          Integer(min_occurs=0, max_occurs=1),
-         Unicode(pattern="['YN']", default='N'),
+         Unicode(pattern="['YN']", default='Y'),#get_parent_data
+         Unicode(pattern="['YN']", default='Y'),#include_inputs
+         Unicode(pattern="['YN']", default='Y'), #include_outputs
+         SpyneArray(Unicode), # include_data_types
+         SpyneArray(Unicode), # exclude_data_types
+         Unicode(pattern="['YN']", default='Y'),#include_values
+         SpyneArray(Unicode), # include_data_type_values
+         SpyneArray(Unicode), # exclude_data_type_values
          _returns=SpyneArray(ResourceScenario))
-    def get_resource_data(ctx, resource_type, resource_id, scenario_id, type_id=None, get_parent_data='N'):
+    def get_resource_data(ctx, 
+                      resource_type,
+                      resource_id,
+                      scenario_id,
+                      type_id=None,
+                      get_parent_data='N',
+                      include_inputs='Y',
+                      include_outputs='Y',
+                      include_data_types=None,
+                      exclude_data_types=None,
+                      include_values='Y',
+                      include_data_type_values=None,
+                      exclude_data_type_values=None,
+                      **kwargs):
         """
             Get all the resource scenarios for a given resource
             in a given scenario. If type_id is specified, only
             return the resource scenarios for the attributes
             within the type.
+            args:
+            ref_key (string): 'NETWORK', 'NODE', 'LINK', 'GROUP'
+            ref_id (int): The ID of the network / node / link / group
+            scenario_id (int): The ID of the scenario from which to get the resource scenarios
+            type_id (int): A filter which limits the resource scenarios to just the attributes defined by the resource type
+            expunge_session (bool): Expunge the DB session -- means that modifying the results will not update the database. Default True
+            get_parent_data (bool): Return the data of the parent scenario of the requestsed scenario in addition to the specified scenario. Default False.
+            include_inputs (bool) : Return resource scenarios which relate to resource attribtues where the attr_is_var=N. Default True
+            include_outputs (bool): Return resource scenarios which relate to resource attribtues where the attr_is_var=Y. Default True
+            include_data_types (list(string)): Return only resource scenarios with a dataset that has the type of one of these specified data types. Default None, meaning no filter is applied.
+            exclude_data_types (list(string)): Return resource scenarios with a dataset that do NOT have the type of one of these specified data types. Default None, meaning no filter is applied.
+            include_values (bool): Return the 'value' column of tDataset. Default True. Setting this to False can increase performance substantaally due to the size of some dataset values.
+            include_data_type_values (list(string)): When include_values is True, specify which dataset types should return with the value column included.
+            exclude_data_type_values (list(string)): When include_values is True, specify which dataset types should return with the value column NOT included.
+
+        returns:
+            A list of ResourceScenario objects representing Resource Scenarios, with a 'dataset' attribute and 'attribute' attribute.
         """
+
         if get_parent_data is None or get_parent_data.upper() != 'Y':
             get_parent_data = False
         else:
             get_parent_data = True
+        
+        if include_inputs is None or include_inputs.upper() != 'N':
+            include_inputs = True
+        else:
+            include_inputs = False
 
-        resource_data = scenario.get_resource_data(resource_type,
-                                               resource_id,
-                                               scenario_id,
-                                               type_id,
-                                               get_parent_data=get_parent_data,
-                                               **ctx.in_header.__dict__
-                                              )
+        if include_outputs is None or include_outputs.upper() != 'N':
+            include_outputs = True
+        else:
+            include_outputs = False
+
+        resource_data = scenario.get_resource_data(
+            resource_type,
+            resource_id,
+            scenario_id,
+            type_id,
+            get_parent_data=get_parent_data,
+            include_inputs=include_inputs,
+            include_outputs=include_outputs,
+            include_data_types=include_data_types,
+            exclude_data_types=exclude_data_types,
+            include_values=include_values,
+            include_data_type_values=include_data_type_values,
+            exclude_data_type_values=exclude_data_type_values,
+            **ctx.in_header.__dict__
+        )
 
         ret_data = [ResourceScenario(rs) for rs in resource_data]
         return ret_data
