@@ -1,4 +1,3 @@
-#Fixtures.py
 import pytest
 from hydra_client.connection import RemoteJSONConnection
 
