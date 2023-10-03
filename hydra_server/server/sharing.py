@@ -56,6 +56,31 @@ class SharingService(HydraService):
 
         return 'OK'
 
+    @rpc(Integer, Unicode(max_occurs='unbounded'), _returns=Unicode())
+    def unshare_network(ctx, network_id, usernames):
+        """
+
+        UnShare a network with a list of users, identified by their usernames.
+
+        Args:
+            network_id (int): The ID of the network to un-share
+            usernames  (List(Unicode)): THe list of usernames with whom to un-share the network
+
+        Returns:
+            string: 'OK'
+
+        Raises:
+            ResourceNotFoundError: If the network is not found
+            ResourceNotFoundError: If one of the usernames is incorrect or does not exist
+
+        """
+
+        sharing.unshare_network(network_id,
+                              usernames,
+                              **ctx.in_header.__dict__)
+
+        return 'OK'
+
     @rpc(Integer, Unicode(max_occurs='unbounded'),
          Unicode(pattern="[YN]"), Unicode(pattern="[YN]"), _returns=Unicode)
     def share_project(ctx, project_id, usernames, read_only, share):
@@ -82,6 +107,31 @@ class SharingService(HydraService):
                               usernames,
                               read_only,
                               share,
+                              **ctx.in_header.__dict__)
+        return "OK"
+    
+
+    @rpc(Integer, Unicode(max_occurs='unbounded'), _returns=Unicode)
+    def unshare_project(ctx, project_id, usernames):
+        """
+
+        Un-Share an entire project with a list of users, identifed by their usernames.
+        All the project's networks will be un-shared also.
+
+        Args:
+            project_id (int): The ID of the project to un-share
+            usernames  (List(Unicode)): The list of usernames with whom to un-share the project
+
+        Returns:
+            string: 'OK'
+
+        Raises:
+            ResourceNotFoundError: If the project is not found
+            ResourceNotFoundError: If one of the usernames is incorrect or does not exist
+
+        """
+        sharing.unshare_project(project_id,
+                              usernames,
                               **ctx.in_header.__dict__)
         return "OK"
 
