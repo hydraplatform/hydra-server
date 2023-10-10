@@ -29,6 +29,8 @@ log = logging.getLogger(__name__)
 from hydra_base.lib import scenario
 from .service import HydraService
 
+from hydra_base.lib.objects import JSONObject
+
 class ScenarioService(HydraService):
     """
         The scenario SOAP service
