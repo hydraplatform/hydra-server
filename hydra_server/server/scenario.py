@@ -134,7 +134,7 @@ class ScenarioService(HydraService):
     @rpc(Scenario,
          Unicode(pattern="['YN']", default='Y'),
          Unicode(pattern="['YN']", default='Y'),
-         Unicode(pattern="['YN']", default='N'), _returns=Scenario)
+         Unicode(pattern="['YN']", default='N'), _returns=AnyDict)
     def update_scenario(ctx, scen, update_data, update_groups, return_summary):
         """
             Update a single scenario
@@ -153,9 +153,7 @@ class ScenarioService(HydraService):
                                                 update_groups=upd_grp,
                                                 **ctx.in_header.__dict__)
 
-        return Scenario(updated_scen,
-                        include_data=not _return_summary,
-                        include_group_items=not _return_summary)
+        return JSONObject(updated_scen)
 
     @rpc(Integer, _returns=Unicode)
     def purge_scenario(ctx, scenario_id):
