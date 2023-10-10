@@ -13,7 +13,7 @@
 # You should have received a copy of the GNU General Public License
 # along with HydraPlatform.  If not, see <http://www.gnu.org/licenses/>
 #
-from spyne.model.primitive import Integer, Integer32, Unicode
+from spyne.model.primitive import Integer, Integer32, Unicode, AnyDict
 from spyne.model.complex import Array as SpyneArray
 from spyne.decorator import rpc
 from .complexmodels import Scenario,\
