@@ -28,6 +28,7 @@ import logging
 log = logging.getLogger(__name__)
 from hydra_base.lib import scenario
 from .service import HydraService
+from hydra_base.lib.objects import JSONObject
 
 from hydra_base.lib.objects import JSONObject
 
@@ -43,7 +44,7 @@ class ScenarioService(HydraService):
          Unicode(pattern="['YN']", default='N'),
          Unicode(pattern="['YN']", default='N'),
          Unicode(pattern="['YN']", default='N'),
-         _returns=Scenario)
+         _returns=AnyDict)
     def get_scenario(ctx, scenario_id, get_parent_data, include_data, include_group_items, include_results):
         """
             Get the specified scenario
@@ -78,9 +79,7 @@ class ScenarioService(HydraService):
                                      include_results=_include_results,
                                      **ctx.in_header.__dict__)
 
-        return Scenario(scen,
-                        include_data=_include_data,
-                        include_group_items=_include_group_items)
+        return JSONObject(scen)
 
     @rpc(Integer,
          Unicode,
@@ -133,7 +132,7 @@ class ScenarioService(HydraService):
                         include_data=not _return_summary,
                         include_group_items=not _return_summary)
 
-    @rpc(Scenario,
+    @rpc(AnyDict,
          Unicode(pattern="['YN']", default='Y'),
          Unicode(pattern="['YN']", default='Y'),
          Unicode(pattern="['YN']", default='N'), _returns=AnyDict)
@@ -143,6 +142,7 @@ class ScenarioService(HydraService):
             as all resources already exist, there is no need to worry
             about negative IDS
         """
+        scen = JSONObject(scen)
         upd_data = update_data in ('Y', None)
         upd_grp  = update_groups in ('Y', None)
 
@@ -155,7 +155,10 @@ class ScenarioService(HydraService):
                                                 update_groups=upd_grp,
                                                 **ctx.in_header.__dict__)
 
-        return JSONObject(updated_scen)
+        returndict = {}
+        for col in [c.name for c in updated_scen.__table__.columns]:
+            returndict[col] = getattr(updated_scen, col)
+        return JSONObject(returndict)
 
     @rpc(Integer, _returns=Unicode)
     def purge_scenario(ctx, scenario_id):

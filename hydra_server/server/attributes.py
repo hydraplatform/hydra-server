@@ -225,21 +225,26 @@ class AttributeService(HydraService):
 
         return [Attr(a) for a in attrs]
 
-    @rpc(_returns=SpyneArray(Attr))
-    def get_attributes(ctx):
+    @rpc(Integer(default=None), Integer(default=None), Unicode(pattern="['YN']", default='N'), _returns=SpyneArray(AnyDict))
+    def get_attributes(ctx, network_id, project_id, include_global):
         """
         Get all attributes
 
         Args:
-            attrs (List(Attr)): A list of attribute complex models
+            network_id: Include any attributes scoped to this network
+            project_id: Include any attribute scoped to this project
+            include_global: Include un-scoped attributes (Note this can return a LOT of attributes, and affect performance.)
 
         Returns:
-            List(complexmodels.Attr): List of Attr complex models
+            List(AnyDict): List of Dicts
 
         """
-        attrs = attributes.get_attributes()
 
-        return [Attr(a) for a in attrs]
+        include_global = include_global == 'Y'
+
+        attrs = attributes.get_attributes(network_id=network_id, project_id=project_id, include_global=include_global)
+
+        return [JSONObject(a) for a in attrs]
 
     @rpc(Unicode, Integer, Integer, Unicode(pattern="['YN']", default='N'), _returns=ResourceAttr)
     def add_resource_attribute(ctx,resource_type, resource_id, attr_id, is_var):
@@ -268,6 +273,39 @@ class AttributeService(HydraService):
             **ctx.in_header.__dict__)
 
         return ResourceAttr(new_ra)
+
+    @rpc(SpyneArray(AnyDict), _returns=SpyneArray(AnyDict))
+    def add_resource_attributes(ctx,resource_attributes):
+        """
+        Add a resource attribute to a node.
+
+        Args:
+            A list of dicts containing:
+                resource_type (string) : NODE | LINK | GROUP | NETWORK
+                resource_id (int): The ID of the Node
+                attr_id (int): The ID if the attribute being added.
+                is_var (char): Y or N. Indicates whether the attribute is a variable or not.
+
+        Returns:
+            complexmodels.AnyDict: The newly created node attribute
+
+        Raises:
+            ResourceNotFoundError: If the node or attribute do not exist
+            HydraError: If this addition causes a duplicate attribute on the node.
+
+        """
+
+        new_ras = []
+
+        for resource_attribute in resource_attributes:
+            new_ra = attributes.add_resource_attribute(
+                resource_attribute['resource_type'],
+                resource_attribute['resource_id'],
+                resource_attribute['attr_id'],
+                resource_attribute['is_var'],
+                **ctx.in_header.__dict__)
+            new_ras.append(JSONObject(new_ra))
+        return new_ras
 
     @rpc(Integer, Unicode(pattern="['YN']"), _returns=ResourceAttr)
     def update_resource_attribute(ctx, resource_attr_id, is_var):
