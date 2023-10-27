@@ -14,7 +14,7 @@
 # along with HydraPlatform.  If not, see <http://www.gnu.org/licenses/>
 #
 from spyne.decorator import rpc
-from spyne.model.primitive import Integer, Unicode
+from spyne.model.primitive import Integer, Unicode, AnyDict
 from spyne.model.complex import Array as SpyneArray
 from .complexmodels import Project,\
 ProjectSummary,\
@@ -23,6 +23,7 @@ ResourceSummary,\
 Network
 from .service import HydraService
 from hydra_base.lib import project as project_lib
+from hydra_base.lib.objects import JSONObject
 
 class ProjectService(HydraService):
     """
@@ -71,7 +72,7 @@ class ProjectService(HydraService):
         return Project(proj_i)
 
 
-    @rpc(Integer, _returns=Project)
+    @rpc(Integer, _returns=AnyDict)
     def get_project(ctx, project_id):
         """
         Get an existing Project
@@ -88,7 +89,31 @@ class ProjectService(HydraService):
 
         proj_dict = project_lib.get_project(project_id, **ctx.in_header.__dict__)
 
-        return Project(proj_dict)
+        return JSONObject(proj_dict)
+
+
+    @rpc(Integer, _returns=SpyneArray(AnyDict))
+    def get_project_hierarchy(ctx, project_id):
+        """
+        Return a list of project-ids which represent the links in the chain up to the root project
+        [project_id, parent_id, parent_parent_id ...etc]
+        If the project has no parent, return [project_id]
+
+        Args:
+            project_id (int): The ID of the project to retrieve
+
+        Returns:
+            Array(complexmodels.AnyDict): A list of the projects in the hierarchy (just the top level result)
+
+        Raises:
+            ResourceNotFoundError: If the project is not found.
+        """
+
+        #This returns a list of JSONObjects
+        proj_dicts = project_lib.get_project_hierarchy(project_id, **ctx.in_header.__dict__)
+
+        return proj_dicts
+
 
     @rpc(Integer, _returns=SpyneArray(ResourceScenario))
     def get_project_attribute_data(ctx, project_id):
