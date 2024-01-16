@@ -30,8 +30,6 @@ from hydra_base.lib import scenario
 from .service import HydraService
 from hydra_base.lib.objects import JSONObject
 
-from hydra_base.lib.objects import JSONObject
-
 class ScenarioService(HydraService):
     """
         The scenario SOAP service
@@ -260,7 +258,7 @@ class ScenarioService(HydraService):
         ret = [ResourceScenario(r) for r in res]
         return ret
 
-    @rpc(SpyneArray(Integer32), SpyneArray(ResourceScenario), _returns=Unicode)
+    @rpc(SpyneArray(Integer32), SpyneArray(AnyDict), _returns=Unicode)
     def bulk_update_resourcedata(ctx, scenario_ids, resource_scenarios):
         """
             Update the data associated with a scenario.
@@ -269,7 +267,7 @@ class ScenarioService(HydraService):
         """
 
         scenario.bulk_update_resourcedata(scenario_ids,
-                                          resource_scenarios,
+                                          [JSONObject(rs) for rs in resource_scenarios],
                                          **ctx.in_header.__dict__)
 
         return 'OK'
