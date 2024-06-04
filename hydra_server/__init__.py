@@ -145,6 +145,7 @@ def _on_method_call(ctx):
     session = env.get('beaker.session', {})
 
     if session.get('user_id') is None:
+
         raise Fault("No Session!")
 
     ctx.in_header.user_id = session['user_id']
@@ -347,7 +348,8 @@ def initialise_wsgi_application(api_server):
         'session.cookie_expires': True,
         'session.data_dir':'/tmp',
         'session.file_dir':'/tmp/auth',
-        'session.url': hb.db.hydra_db_url
+        'session.url': hb.db.hydra_db_url,
+        'session.sa_opts': {'sa.pool_pre_ping': True}
     }
     app = SessionMiddleware(wsgi_application, session_opts)
 
