@@ -935,6 +935,8 @@ class Node(Resource):
        - **layout**      AnyDict(min_occurs=0, max_occurs=1, default=None)
        - **x**           Double(min_occurs=1, default=0)
        - **y**           Double(min_occurs=1, default=0)
+       - **alt_x**       Double(min_occurs=0, default=0)
+       - **alt_y**       Double(min_occurs=0, default=0)
        - **status**      Unicode(default='A** pattern="[AX]")
        - **attributes**  SpyneArray(ResourceAttr)
        - **types**       SpyneArray(TypeSummary)
@@ -947,6 +949,8 @@ class Node(Resource):
         ('layout',      AnyDict(min_occurs=0, max_occurs=1, default=None)),
         ('x',           Double(min_occurs=1, default=0)),
         ('y',           Double(min_occurs=1, default=0)),
+        ('alt_x',       Double(min_occurs=1, default=0)),
+        ('alt_y',       Double(min_occurs=1, default=0)),
         ('status',      Unicode(default='A', pattern="[AX]")),
         ('attributes',  SpyneArray(ResourceAttr)),
         ('types',       SpyneArray(TypeSummary)),
@@ -962,8 +966,10 @@ class Node(Resource):
 
         self.id = parent.id
         self.name = parent.name
-        self.x = float(parent.x)
-        self.y = float(parent.y)
+        self.x = float(parent.x) if parent.x else None
+        self.y = float(parent.y) if parent.y else None
+        self.alt_x = float(parent.alt_x) if parent.alt_x else None
+        self.alt_y = float(parent.alt_y) if parent.alt_y else None
         self.description = parent.description
         self.cr_date = str(parent.cr_date)
         self.layout = self.get_outgoing_layout(parent.layout)
