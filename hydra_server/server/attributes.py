@@ -186,6 +186,22 @@ class AttributeService(HydraService):
 
         return Attr(attr)
 
+    @rpc(SpyneArray(Integer), _returns=SpyneArray(Attr))
+    def get_attributes_by_id(ctx, attr_ids):
+        """
+        Get a list of specified attributes by their ID.
+
+        Args:
+            attr_ids (list(int)): The list of IDs of the attribute
+
+        Returns:
+            list(complexmodels.Attr): An attribute complex model.
+                Returns [] if no attribute is found.
+        """
+        attrs = attributes.get_attributes_by_id(attr_ids, **ctx.in_header.__dict__)
+
+        return [Attr(attr) for attr in attrs]
+
     @rpc(Unicode, Integer, _returns=Attr)
     def get_attribute_by_name_and_dimension(ctx, name, dimension_id):
         """
