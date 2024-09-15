@@ -186,8 +186,8 @@ class AttributeService(HydraService):
 
         return Attr(attr)
 
-    @rpc(Unicode, Integer, _returns=Attr)
-    def get_attribute_by_name_and_dimension(ctx, name, dimension_id):
+    @rpc(Unicode, Integer, Integer(default=None), Integer(default=None), _returns=Attr)
+    def get_attribute_by_name_and_dimension(ctx, name, dimension_id, network_id, project_id):
         """
         Get a specific attribute by its name and dimension (this combination
         is unique for attributes in Hydra Platform).
@@ -195,6 +195,8 @@ class AttributeService(HydraService):
         Args:
             name (unicode): The name of the attribute
             dimension (unicode): The dimension of the attribute
+            network_id (integer): Search for attributes only within this network scope
+            project_id (integer): Search for attributes only within this project scope
 
         Returns:
             complexmodels.Attr: An attribute complex model.
@@ -203,6 +205,8 @@ class AttributeService(HydraService):
         """
         attr = attributes.get_attribute_by_name_and_dimension(name,
                                                               dimension_id,
+                                                              network_id,
+                                                              project_id,
                                                               **ctx.in_header.__dict__)
         if attr:
             return Attr(attr)
