@@ -609,3 +609,48 @@ class DataService(HydraService):
             return "Unable to process JSON string. error was: %s"%e
 
         return 'OK'
+
+    @rpc(Unicode, _returns=Unicode)
+    def get_hdf_filesize(ctx, url):
+        """
+          Returns the size in bytes of the hdf file <url> argument
+        """
+        return data.hdf_filesize(url)
+
+    @rpc(Unicode, Unicode, _returns=Unicode)
+    def get_hdf_dataset_info(ctx, url, dataset_name):
+        """
+          Returns information about the <dataset_name> argument:
+          {
+            "name": str: Name of the dataset,
+            "size": int: Number of rows in dataset series,
+            "dtype": str: The numpy.dtype of the dataset
+          }
+        """
+        return data.get_dataset_info_url(url, dataset_name)
+
+    @rpc(Unicode, Unicode, Integer, Integer, _returns=Unicode)
+    def get_hdf_dataframe(ctx, url, dataset_name, start, end, **kwargs):
+        """
+          Returns the rows from <start> to <end> of <dataset_name> in
+          the hdf file <url> as the json representation of a Pandas
+          DataFrame. This may then be read directly in a client with
+          pandas.read_json().
+        """
+        return data.hdf_dataset_to_pandas_dataframe(url, dataset_name, start, end)
+
+    @rpc(Unicode, _returns=Unicode)
+    def resolve_url_to_path(ctx, url, **kwargs):
+        """
+          Returns the path, either on a local filesystem or remote
+          storage, to which the <url> arg resolves.
+        """
+        return data.url_to_filestore_path(url)
+
+    @rpc(Unicode, _returns=Boolean)
+    def file_exists_at_url(ctx, url, **kwargs):
+        """
+          Return a boolean corresponding to the existence of a readable
+          file at the <url> arg.
+        """
+        return data.file_exists_at_url(url)
