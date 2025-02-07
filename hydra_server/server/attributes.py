@@ -225,8 +225,8 @@ class AttributeService(HydraService):
 
         return [Attr(a) for a in attrs]
 
-    @rpc(Integer(default=None), Integer(default=None), Unicode(pattern="['YN']", default='N'), _returns=SpyneArray(AnyDict))
-    def get_attributes(ctx, network_id, project_id, include_global, ):
+    @rpc(Integer(default=None), Integer(default=None), Unicode(pattern="['YN']", default='N'), Unicode(pattern="['YN']", default='N'), _returns=SpyneArray(AnyDict))
+    def get_attributes(ctx, network_id, project_id, include_global, include_hierarchy):
         """
         Get all attributes
 
@@ -234,6 +234,7 @@ class AttributeService(HydraService):
             network_id: Include any attributes scoped to this network
             project_id: Include any attribute scoped to this project
             include_global: Include un-scoped attributes (Note this can return a LOT of attributes, and affect performance.)
+            include_hierarchy: Include attributes defined on the parent projects to the specified project
 
         Returns:
             List(AnyDict): List of Dicts
@@ -241,8 +242,12 @@ class AttributeService(HydraService):
         """
 
         include_global = include_global == 'Y'
+        include_hierarchy = include_hierarchy == 'Y'
 
-        attrs = attributes.get_attributes(network_id=network_id, project_id=project_id, include_global=include_global)
+        attrs = attributes.get_attributes(network_id=network_id,
+                                          project_id=project_id,
+                                          include_global=include_global,
+                                          include_hierarchy=include_hierarchy)
 
         return [JSONObject(a) for a in attrs]
 
