@@ -279,7 +279,7 @@ class AttributeService(HydraService):
 
         return ResourceAttr(new_ra)
 
-    @rpc(SpyneArray(AnyDict), _returns=SpyneArray(AnyDict))
+    @rpc(SpyneArray(AnyDict), _returns=Integer)
     def add_resource_attributes(ctx,resource_attributes):
         """
         Add a resource attribute to a node.
@@ -300,20 +300,9 @@ class AttributeService(HydraService):
             HydraError: If this addition causes a duplicate attribute on the node.
 
         """
+        num_added = attributes.add_resource_attributes(resource_attributes, **ctx.in_header.__dict__)
 
-        new_ras = []
-
-        for resource_attribute in resource_attributes:
-            new_ra = attributes.add_resource_attribute(
-                resource_attribute['resource_type'],
-                resource_attribute['resource_id'],
-                resource_attribute['attr_id'],
-                resource_attribute['is_var'],
-                resource_attribute['error_on_duplicate']=='Y',
-                **ctx.in_header.__dict__)
-            new_ras.append(JSONObject(new_ra))
-
-        return new_ras
+        return num_added
 
     @rpc(Integer, Unicode(pattern="['YN']"), _returns=ResourceAttr)
     def update_resource_attribute(ctx, resource_attr_id, is_var):
