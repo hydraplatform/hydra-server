@@ -78,7 +78,7 @@ class NetworkService(HydraService):
          Integer(), #template id
          Unicode(pattern="[YN]", default='N'), #include non template attributes
          Unicode(pattern="[YN]", default='N'), #include metadata
-         _returns=Network)
+         _returns=AnyDict)
     def get_network(ctx, network_id, include_attributes, include_data, include_results, scenario_ids, template_id, include_non_template_attributes, include_metadata):
         """
         Return a whole network as a complex model.
@@ -110,7 +110,7 @@ class NetworkService(HydraService):
         include_data = include_data in ('Y', None)
         include_attributes = include_attributes in ('Y', None)
 
-        ret_net = Network(net, include_attributes, include_data)
+        ret_net = JSONObject(net)
 
         return ret_net
 

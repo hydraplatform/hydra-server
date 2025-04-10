@@ -13,6 +13,7 @@
 # You should have received a copy of the GNU General Public License
 # along with HydraPlatform.  If not, see <http://www.gnu.org/licenses/>
 #
+import time
 from spyne.model.primitive import Integer, Integer32, Unicode, AnyDict
 from spyne.model.complex import Array as SpyneArray
 from spyne.decorator import rpc
@@ -68,7 +69,7 @@ class ScenarioService(HydraService):
         else:
             _include_results = False
 
-
+        t = time.time()
 
         scen = scenario.get_scenario(scenario_id,
                                      get_parent_data=_get_parent_data,
@@ -76,7 +77,7 @@ class ScenarioService(HydraService):
                                      include_group_items=_include_group_items,
                                      include_results=_include_results,
                                      **ctx.in_header.__dict__)
-
+        log.info('get_scenario took %s seconds' % (time.time() - t))
         return JSONObject(scen)
 
     @rpc(Integer,

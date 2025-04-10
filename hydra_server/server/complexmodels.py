@@ -1244,6 +1244,7 @@ class Rule(HydraComplexModel):
         ('name', Unicode),
         ('description', Unicode),
         ('scenario_id', Integer),
+        ('project_id', Integer),
         ('ref_key', Unicode),
         ('ref_id', Integer),
         ('format', Unicode(default='text')),
@@ -1263,7 +1264,9 @@ class Rule(HydraComplexModel):
         self.name = parent.name
         self.description = parent.description
         self.ref_key = parent.ref_key
-        if self.ref_key == 'NETWORK':
+        if self.ref_key == 'PROJECT':
+            self.ref_id = parent.project_id
+        elif self.ref_key == 'NETWORK':
             self.ref_id = parent.network_id
         elif self.ref_key == 'NODE':
             self.ref_id = parent.node_id
