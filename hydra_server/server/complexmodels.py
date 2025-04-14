@@ -36,7 +36,7 @@ from hydra_base.lib.HydraTypes.Registry import HydraObjectFactory
 from hydra_base.exceptions import HydraError
 import six
 
-from hydra_base.lib.objects import Dataset
+from hydra_base.lib.objects import JSONObject, Dataset
 
 NS = "server.complexmodels"
 log = logging.getLogger(__name__)
@@ -1244,6 +1244,7 @@ class Rule(HydraComplexModel):
         ('name', Unicode),
         ('description', Unicode),
         ('scenario_id', Integer),
+        ('project_id', Integer),
         ('ref_key', Unicode),
         ('ref_id', Integer),
         ('network_id', Integer),
@@ -1272,8 +1273,8 @@ class Rule(HydraComplexModel):
         self.template_id=parent.template_id
         self.value = parent.value
         self.cr_date = str(parent.cr_date)
-        self.types = [AnyDict(t) for t in parent.types]
-        self.owners = [AnyDict(t) for t in parent.owners]
+        self.types = [JSONObject(t) for t in parent.types]
+        self.owners = [JSONObject(t) for t in parent.owners]
 
 class Note(HydraComplexModel):
     """
