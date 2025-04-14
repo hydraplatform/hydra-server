@@ -300,7 +300,7 @@ class AttributeService(HydraService):
             HydraError: If this addition causes a duplicate attribute on the node.
 
         """
-        num_added = attributes.add_resource_attributes(resource_attributes, **ctx.in_header.__dict__)
+        num_added = attributes.add_resource_attributes([JSONObject(ra) for ra in resource_attributes], **ctx.in_header.__dict__)
 
         return num_added
 
