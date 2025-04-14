@@ -1246,6 +1246,9 @@ class Rule(HydraComplexModel):
         ('scenario_id', Integer),
         ('ref_key', Unicode),
         ('ref_id', Integer),
+        ('network_id', Integer),
+        ('project_id', Integer),
+        ('template_id', Integer),
         ('format', Unicode(default='text')),
         ('status', Unicode(default='A', pattern="[ASXD]")),
         ('value', Unicode),
@@ -1263,16 +1266,10 @@ class Rule(HydraComplexModel):
         self.name = parent.name
         self.description = parent.description
         self.ref_key = parent.ref_key
-        if self.ref_key == 'NETWORK':
-            self.ref_id = parent.network_id
-        elif self.ref_key == 'NODE':
-            self.ref_id = parent.node_id
-        elif self.ref_key == 'LINK':
-            self.ref_id = parent.link_id
-        elif self.ref_key == 'GROUP':
-            self.ref_id = parent.group_id
-
-        self.scenario_id = parent.scenario_id
+        self.ref_id = parent.network_id
+        self.network_id=parent.network_id
+        self.project_id=parent.project_id
+        self.template_id=parent.template_id
         self.value = parent.value
         self.cr_date = str(parent.cr_date)
         self.types = [RuleTypeLink(t) for t in parent.types]
