@@ -1252,8 +1252,8 @@ class Rule(HydraComplexModel):
         ('format', Unicode(default='text')),
         ('status', Unicode(default='A', pattern="[ASXD]")),
         ('value', Unicode),
-        ('types', SpyneArray(RuleTypeLink)),
-        ('owners', SpyneArray(RuleOwner)),
+        ('types', SpyneArray(AnyDict)),
+        ('owners', SpyneArray(AnyDict)),
         ('cr_date', Unicode(default=None)),
     ]
 
@@ -1272,8 +1272,8 @@ class Rule(HydraComplexModel):
         self.template_id=parent.template_id
         self.value = parent.value
         self.cr_date = str(parent.cr_date)
-        self.types = [RuleTypeLink(t) for t in parent.types]
-        self.owners = [RuleOwner(t) for t in parent.owners]
+        self.types = [AnyDict(t) for t in parent.types]
+        self.owners = [AnyDict(t) for t in parent.owners]
 
 class Note(HydraComplexModel):
     """
