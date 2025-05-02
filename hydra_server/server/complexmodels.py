@@ -1554,7 +1554,7 @@ class Project(Resource):
             self.attribute_data  = [ResourceScenario(rs) for rs in parent.attribute_data]
         if hasattr(parent, 'projects') and parent.projects is not None:
             self.projects = [JSONObject(p) for p in parent.projects]
-        if hasattr(parent, 'networks') and parent.networks is not None:
+        if getattr(parent, 'networks', None):
             self.networks = [JSONObject(p) for p in parent.networks]
 class ProjectSummary(Resource):
     """
