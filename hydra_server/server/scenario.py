@@ -312,7 +312,7 @@ class ScenarioService(HydraService):
          Integer,
          Integer,
          Integer(min_occurs=0, max_occurs=1),
-         Unicode(pattern="['YN']", default='Y'),#get_parent_data
+         Unicode(pattern="['YN']", default='N'), #get_parent_data
          Unicode(pattern="['YN']", default='Y'),#include_inputs
          Unicode(pattern="['YN']", default='Y'), #include_outputs
          SpyneArray(Unicode), # include_data_types
