@@ -269,7 +269,7 @@ class ProjectService(HydraService):
     @rpc(Integer, Integer, _returns=Project)
     def move_project(ctx, project_id, target_project_id):
         """
-        Get the project of a specified network
+        Move a Project into a new parent Project
 
         Args:
             project_id (int): The ID of the project to be moved
