@@ -247,7 +247,7 @@ class ScenarioService(HydraService):
 
         return [Scenario(s, include_data=False, include_group_items=False) for s in scenarios]
 
-    @rpc(Integer, SpyneArray(ResourceScenario), _returns=SpyneArray(ResourceScenario))
+    @rpc(Integer, SpyneArray(AnyDict), _returns=SpyneArray(AnyDict))
     def update_resourcedata(ctx,scenario_id, resource_scenarios):
         """
             Update the data associated with a scenario.
@@ -260,7 +260,7 @@ class ScenarioService(HydraService):
         ret = [ResourceScenario(r) for r in res]
         return ret
 
-    @rpc(SpyneArray(Integer32), SpyneArray(ResourceScenario), _returns=Unicode)
+    @rpc(SpyneArray(Integer32), SpyneArray(AnyDict), _returns=Unicode)
     def bulk_update_resourcedata(ctx, scenario_ids, resource_scenarios):
         """
             Update the data associated with a scenario.

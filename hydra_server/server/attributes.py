@@ -285,6 +285,7 @@ class AttributeService(HydraService):
                 resource_id (int): The ID of the Node
                 attr_id (int): The ID if the attribute being added.
                 is_var (char): Y or N. Indicates whether the attribute is a variable or not.
+                error_on_duplicate: Y or N: Indicates whether to throw an error on finding a duplciate attribute on the resource, or just ignoring it.
 
         Returns:
             complexmodels.AnyDict: The newly created node attribute
@@ -303,6 +304,7 @@ class AttributeService(HydraService):
                 resource_attribute['resource_id'],
                 resource_attribute['attr_id'],
                 resource_attribute['is_var'],
+                resource_attribute['error_on_duplicate']=='Y',
                 **ctx.in_header.__dict__)
             new_ras.append(JSONObject(new_ra))
         return new_ras
