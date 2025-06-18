@@ -1207,15 +1207,23 @@ class RuleTypeLink(HydraComplexModel):
 class RuleOwner(HydraComplexModel):
     """
        - **rule_id**   Integer
-       - **user_id**  Integer
-       - **edit**     Unicode
-       - **view**     Unicode)
+       - **user_id**    Integer
+       - **edit**       Unicode
+       - **view**       Unicode,
+       - **cr_date**    Unicode(default=None)
+       - **updated_at** Unicode(default=None)
+       - **updated_by** Integer
+       - **created_by** Integer
     """
     _type_info = [
         ('rule_id', Integer),
         ('user_id', Integer),
         ('edit', Unicode),
-        ('view', Unicode)
+        ('view', Unicode),
+        ('cr_date', Unicode),
+        ('updated_at', Unicode),
+        ('updated_by', Integer),
+        ('created_by', Integer),
     ]
     def __init__(self, parent=None):
         super(RuleOwner, self).__init__()
@@ -1226,6 +1234,10 @@ class RuleOwner(HydraComplexModel):
         self.user_id = parent.user_id
         self.edit = parent.edit
         self.view = parent.view
+        self.cr_date = parent.cr_date
+        self.updated_at = parent.updated_at
+        self.updated_by = parent.updated_by
+        self.created_by = parent.created_by
 
 class Rule(HydraComplexModel):
     """
@@ -1385,13 +1397,21 @@ class NetworkOwner(HydraComplexModel):
        - **network_id**   Integer
        - **user_id**  Integer
        - **edit**     Unicode
-       - **view**     Unicode)
+       - **view**     Unicode
+        - **cr_date**   Unicode(default=None)
+       - **updated_at** Unicode(default=None)
+       - **updated_by** Integer
+       - **created_by** Integer
     """
     _type_info = [
         ('network_id',   Integer),
         ('user_id',  Integer),
         ('edit',     Unicode),
-        ('view',     Unicode)
+        ('view',     Unicode),
+        ('cr_date', Unicode),
+        ('updated_at', Unicode),
+        ('updated_by', Integer),
+        ('created_by', Integer),
     ]
     def __init__(self, parent=None):
         super(NetworkOwner, self).__init__()
@@ -1403,6 +1423,10 @@ class NetworkOwner(HydraComplexModel):
         self.edit       = parent.edit
         self.view       = parent.view
 
+        self.cr_date = parent.cr_date
+        self.updated_at = parent.updated_at
+        self.updated_by = parent.updated_by
+        self.created_by = parent.created_by
 
 class Network(Resource):
     """
@@ -1732,15 +1756,23 @@ class Plugin(HydraComplexModel):
 class ProjectOwner(HydraComplexModel):
     """
        - **project_id**   Integer
-       - **user_id**  Integer
-       - **edit**     Unicode
-       - **view**     Unicode)
+       - **user_id**    Integer
+       - **edit**       Unicode
+       - **view**       Unicode
+       - **cr_date**    Unicode(default=None)
+       - **updated_at** Unicode(default=None)
+       - **updated_by** Integer
+       - **created_by** Integer
     """
     _type_info = [
         ('project_id',   Integer),
         ('user_id',  Integer),
         ('edit',     Unicode),
         ('view',     Unicode)
+        ('cr_date', Unicode),
+        ('updated_at', Unicode),
+        ('updated_by', Integer),
+        ('created_by', Integer),
     ]
     def __init__(self, parent=None):
         super(ProjectOwner, self).__init__()
@@ -1751,19 +1783,31 @@ class ProjectOwner(HydraComplexModel):
         self.user_id    = parent.user_id
         self.edit       = parent.edit
         self.view       = parent.view
+        self.cr_date = parent.cr_date
+        self.updated_at = parent.updated_at
+        self.updated_by = parent.updated_by
+        self.created_by = parent.created_by
 
 class DatasetOwner(HydraComplexModel):
     """
        - **dataset_id**   Integer
-       - **user_id**  Integer
-       - **edit**     Unicode
-       - **view**     Unicode)
+       - **user_id**    Integer
+       - **edit**       Unicode
+       - **view**       Unicode
+       - **cr_date**    Unicode(default=None)
+       - **updated_at** Unicode(default=None)
+       - **updated_by** Integer
+       - **created_by** Integer
     """
     _type_info = [
         ('dataset_id',   Integer),
         ('user_id',  Integer),
         ('edit',     Unicode),
-        ('view',     Unicode)
+        ('view',     Unicode),
+        ('cr_date', Unicode),
+        ('updated_at', Unicode),
+        ('updated_by', Integer),
+        ('created_by', Integer),
     ]
     def __init__(self, parent=None):
         super(DatasetOwner, self).__init__()
@@ -1774,6 +1818,10 @@ class DatasetOwner(HydraComplexModel):
         self.user_id    = parent.user_id
         self.edit       = parent.edit
         self.view       = parent.view
+        self.cr_date = parent.cr_date
+        self.updated_at = parent.updated_at
+        self.updated_by = parent.updated_by
+        self.created_by = parent.created_by
 
 class Unit(HydraComplexModel):
     """
