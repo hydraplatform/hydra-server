@@ -59,7 +59,6 @@ class ProjectService(HydraService):
                 project (complexmodels.Project): The project to be updated.
                     All the attributes of this project will be used to update
                      the existing project
-
             Returns:
                 complexmodels.Project: The updated project
 

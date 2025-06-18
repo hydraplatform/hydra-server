@@ -186,6 +186,22 @@ class AttributeService(HydraService):
 
         return Attr(attr)
 
+    @rpc(SpyneArray(Integer), _returns=SpyneArray(Attr))
+    def get_attributes_by_id(ctx, attr_ids):
+        """
+        Get a list of specified attributes by their ID.
+
+        Args:
+            attr_ids (list(int)): The list of IDs of the attribute
+
+        Returns:
+            list(complexmodels.Attr): An attribute complex model.
+                Returns [] if no attribute is found.
+        """
+        attrs = attributes.get_attributes_by_id(attr_ids, **ctx.in_header.__dict__)
+
+        return [Attr(attr) for attr in attrs]
+
     @rpc(Unicode, Integer, _returns=Attr)
     def get_attribute_by_name_and_dimension(ctx, name, dimension_id):
         """
@@ -225,8 +241,8 @@ class AttributeService(HydraService):
 
         return [Attr(a) for a in attrs]
 
-    @rpc(Integer(default=None), Integer(default=None), Unicode(pattern="['YN']", default='N'), _returns=SpyneArray(AnyDict))
-    def get_attributes(ctx, network_id, project_id, include_global):
+    @rpc(Integer(default=None), Integer(default=None), Unicode(pattern="['YN']", default='N'), Unicode(pattern="['YN']", default='N'), _returns=SpyneArray(AnyDict))
+    def get_attributes(ctx, network_id, project_id, include_global, include_hierarchy):
         """
         Get all attributes
 
@@ -234,6 +250,7 @@ class AttributeService(HydraService):
             network_id: Include any attributes scoped to this network
             project_id: Include any attribute scoped to this project
             include_global: Include un-scoped attributes (Note this can return a LOT of attributes, and affect performance.)
+            include_hierarchy: Include attributes defined on the parent projects to the specified project
 
         Returns:
             List(AnyDict): List of Dicts
@@ -241,8 +258,12 @@ class AttributeService(HydraService):
         """
 
         include_global = include_global == 'Y'
+        include_hierarchy = include_hierarchy == 'Y'
 
-        attrs = attributes.get_attributes(network_id=network_id, project_id=project_id, include_global=include_global)
+        attrs = attributes.get_attributes(network_id=network_id,
+                                          project_id=project_id,
+                                          include_global=include_global,
+                                          include_hierarchy=include_hierarchy)
 
         return [JSONObject(a) for a in attrs]
 
@@ -274,7 +295,7 @@ class AttributeService(HydraService):
 
         return ResourceAttr(new_ra)
 
-    @rpc(SpyneArray(AnyDict), _returns=SpyneArray(AnyDict))
+    @rpc(SpyneArray(AnyDict), _returns=SpyneArray(Integer))
     def add_resource_attributes(ctx,resource_attributes):
         """
         Add a resource attribute to a node.
@@ -288,26 +309,16 @@ class AttributeService(HydraService):
                 error_on_duplicate: Y or N: Indicates whether to throw an error on finding a duplciate attribute on the resource, or just ignoring it.
 
         Returns:
-            complexmodels.AnyDict: The newly created node attribute
+            SpyneArray(Integer): The IDs of the newly created node attributes
 
         Raises:
             ResourceNotFoundError: If the node or attribute do not exist
             HydraError: If this addition causes a duplicate attribute on the node.
 
         """
+        new_ids = attributes.add_resource_attributes([JSONObject(ra) for ra in resource_attributes], **ctx.in_header.__dict__)
 
-        new_ras = []
-
-        for resource_attribute in resource_attributes:
-            new_ra = attributes.add_resource_attribute(
-                resource_attribute['resource_type'],
-                resource_attribute['resource_id'],
-                resource_attribute['attr_id'],
-                resource_attribute['is_var'],
-                resource_attribute['error_on_duplicate']=='Y',
-                **ctx.in_header.__dict__)
-            new_ras.append(JSONObject(new_ra))
-        return new_ras
+        return new_ids
 
     @rpc(Integer, Unicode(pattern="['YN']"), _returns=ResourceAttr)
     def update_resource_attribute(ctx, resource_attr_id, is_var):
