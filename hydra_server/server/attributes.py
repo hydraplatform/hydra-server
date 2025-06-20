@@ -295,7 +295,7 @@ class AttributeService(HydraService):
 
         return ResourceAttr(new_ra)
 
-    @rpc(SpyneArray(AnyDict), _returns=SpyneArray(Integer))
+    @rpc(SpyneArray(AnyDict), _returns=AnyDict)
     def add_resource_attributes(ctx,resource_attributes):
         """
         Add a resource attribute to a node.
