@@ -1768,8 +1768,8 @@ class ProjectOwner(HydraComplexModel):
         ('project_id',   Integer),
         ('user_id',  Integer),
         ('edit',     Unicode),
-        ('view',     Unicode)
-        ('cr_date', Unicode),
+        ('view',     Unicode),
+        ('cr_date',  Unicode),
         ('updated_at', Unicode),
         ('updated_by', Integer),
         ('created_by', Integer),
