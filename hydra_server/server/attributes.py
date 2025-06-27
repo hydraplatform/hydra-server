@@ -318,7 +318,15 @@ class AttributeService(HydraService):
         """
         new_ids = attributes.add_resource_attributes([JSONObject(ra) for ra in resource_attributes], **ctx.in_header.__dict__)
 
-        return new_ids
+        #this new_ids has is a dict, with the key being a tuple:
+        #(resource_id, attr_id), and value of the resource attr id. This needs to be
+        #reversed so that the ID is the key, to allow compatibiltiy with spyne which does
+        #not support tuples as dict keys
+        return_dict = {}
+        for k, v in new_ids.items():
+            return_dict[v] = list(k)
+
+        return return_dict
 
     @rpc(Integer, Unicode(pattern="['YN']"), _returns=ResourceAttr)
     def update_resource_attribute(ctx, resource_attr_id, is_var):
