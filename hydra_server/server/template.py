@@ -319,6 +319,17 @@ class TemplateService(HydraService):
 
         return TemplateType(tmpl_type)
 
+    @rpc(Integer, _returns=TemplateType)
+    def clone_templatetype(ctx, type_id):
+        """
+            Clone a template type with typeattrs.
+        """
+
+        cloned_type = template.clone_templatetype(type_id,
+                                                  **ctx.in_header.__dict__)
+
+        return TemplateType(cloned_type)
+
     @rpc(Integer, Integer, _returns=TemplateType)
     def add_child_templatetype(ctx, parent_id, child_template_id):
         """
