@@ -211,6 +211,8 @@ class AttributeService(HydraService):
         Args:
             name (unicode): The name of the attribute
             dimension (unicode): The dimension of the attribute
+            network_id (integer): Search for attributes only within this network scope
+            project_id (integer): Search for attributes only within this project scope
 
         Returns:
             complexmodels.Attr: An attribute complex model.
@@ -219,6 +221,8 @@ class AttributeService(HydraService):
         """
         attr = attributes.get_attribute_by_name_and_dimension(name,
                                                               dimension_id,
+                                                              network_id,
+                                                              project_id,
                                                               **ctx.in_header.__dict__)
         if attr:
             return Attr(attr)

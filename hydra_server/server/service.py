@@ -128,11 +128,12 @@ class LogoutService(HydraService):
         if ctx.transport.app.transport == 'noconn://null.spyne':
             return 'OK'
 
-        if session_id is not None and ctx.transport.req_env['beaker.session'].id != session_id:
-            #ignore
-            return 'OK'
+        if hasattr(ctx.transport, 'req_env'):
+            if session_id is not None and ctx.transport.req_env['beaker.session'].id != session_id:
+                #ignore
+                return 'OK'
 
-        ctx.transport.req_env['beaker.session'].delete()
+            ctx.transport.req_env['beaker.session'].delete()
 
         return "OK"
 
@@ -165,8 +166,6 @@ class AuthenticationService(ServiceBase):
         login_response.user_id = user_id
         login_response.username = username
 
-        log.info(ctx.transport.req_env['beaker.session'])
-
         return login_response
 
     @rpc(Unicode, _returns=LoginResponse)
@@ -182,11 +181,11 @@ class AuthenticationService(ServiceBase):
 
         if session_data is None:
             return None
-
-        ctx.transport.req_env['beaker.session']['user_id'] = session_data['user_id']
-        ctx.transport.req_env['beaker.session']['username'] = session_data['username']
-        ctx.transport.req_env['beaker.session']['id'] = session_id
-        ctx.transport.req_env['beaker.session'].save()
+        if hasattr(ctx.transport, 'req_env'):
+            ctx.transport.req_env['beaker.session']['user_id'] = session_data['user_id']
+            ctx.transport.req_env['beaker.session']['username'] = session_data['username']
+            ctx.transport.req_env['beaker.session']['id'] = session_id
+            ctx.transport.req_env['beaker.session'].save()
 
         login_response = LoginResponse()
         login_response.user_id = session_data.get('user_id')

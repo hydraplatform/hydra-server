@@ -1463,7 +1463,7 @@ class Network(Resource):
         ('nodes', SpyneArray(Node)),
         ('links', SpyneArray(Link)),
         ('resourcegroups', SpyneArray(ResourceGroup)),
-        ('owners', SpyneArray(NetworkOwner)),
+        ('owners', SpyneArray(AnyDict)),
         ('types', SpyneArray(TypeSummary)),
         ('projection', Unicode(default=None)),
     ]
@@ -1487,7 +1487,7 @@ class Network(Resource):
         self.links = [Link(l, include_attributes) for l in parent.links]
         self.resourcegroups = [ResourceGroup(rg, include_attributes) for rg in parent.resourcegroups]
         self.types = [TypeSummary(t) for t in parent.types]
-        self.owners = [NetworkOwner(o) for o in parent.owners]
+        self.owners = [dict(o) for o in parent.owners]
         self.projection = parent.projection
 
         if include_attributes:
@@ -1532,6 +1532,7 @@ class Project(Resource):
    - **appdata**     AnyDict(default=None)
    - **attributes**  SpyneArray(ResourceAttr)
    - **attribute_data** SpyneArray(ResourceScenario)
+   - **projects** SpyneArray(AnyDict)
     """
     _type_info = [
         ('id',          Integer(default=None)),
@@ -1543,6 +1544,8 @@ class Project(Resource):
         ('appdata',     AnyDict(min_occurs=0, max_occurs=1, default=None)),
         ('attributes',  SpyneArray(ResourceAttr)),
         ('attribute_data', SpyneArray(ResourceScenario)),
+        ('projects',       SpyneArray(AnyDict)),
+        ('networks',       SpyneArray(AnyDict)),
     ]
 
     def __init__(self, parent=None):
@@ -1567,9 +1570,14 @@ class Project(Resource):
                 appdata[k] = v
         self.appdata = appdata
 
-        self.attributes  = [ResourceAttr(ra) for ra in parent.attributes]
-        self.attribute_data  = [ResourceScenario(rs) for rs in parent.attribute_data]
-
+        if hasattr(parent, 'attributes') and parent.attributes is not None:
+            self.attributes  = [ResourceAttr(ra) for ra in parent.attributes]
+        if hasattr(parent, 'attribute_data') and parent.attribute_data is not None:
+            self.attribute_data  = [ResourceScenario(rs) for rs in parent.attribute_data]
+        if hasattr(parent, 'projects') and parent.projects is not None:
+            self.projects = [JSONObject(p) for p in parent.projects]
+        if getattr(parent, 'networks', None):
+            self.networks = [JSONObject(p) for p in parent.networks]
 class ProjectSummary(Resource):
     """
        - **id**          Integer(default=None)
