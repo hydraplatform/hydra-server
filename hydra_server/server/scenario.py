@@ -13,7 +13,8 @@
 # You should have received a copy of the GNU General Public License
 # along with HydraPlatform.  If not, see <http://www.gnu.org/licenses/>
 #
-from spyne.model.primitive import Integer, Integer32, Unicode
+import time
+from spyne.model.primitive import Integer, Integer32, Unicode, AnyDict
 from spyne.model.complex import Array as SpyneArray
 from spyne.decorator import rpc
 from .complexmodels import Scenario,\
@@ -28,6 +29,7 @@ import logging
 log = logging.getLogger(__name__)
 from hydra_base.lib import scenario
 from .service import HydraService
+from hydra_base.lib.objects import JSONObject
 
 class ScenarioService(HydraService):
     """
@@ -41,7 +43,7 @@ class ScenarioService(HydraService):
          Unicode(pattern="['YN']", default='N'),
          Unicode(pattern="['YN']", default='N'),
          Unicode(pattern="['YN']", default='N'),
-         _returns=Scenario)
+         _returns=AnyDict)
     def get_scenario(ctx, scenario_id, get_parent_data, include_data, include_group_items, include_results):
         """
             Get the specified scenario
@@ -67,7 +69,7 @@ class ScenarioService(HydraService):
         else:
             _include_results = False
 
-
+        t = time.time()
 
         scen = scenario.get_scenario(scenario_id,
                                      get_parent_data=_get_parent_data,
@@ -75,10 +77,8 @@ class ScenarioService(HydraService):
                                      include_group_items=_include_group_items,
                                      include_results=_include_results,
                                      **ctx.in_header.__dict__)
-
-        return Scenario(scen,
-                        include_data=_include_data,
-                        include_group_items=_include_group_items)
+        log.info('get_scenario took %s seconds' % (time.time() - t))
+        return JSONObject(scen)
 
     @rpc(Integer,
          Unicode,
@@ -131,16 +131,17 @@ class ScenarioService(HydraService):
                         include_data=not _return_summary,
                         include_group_items=not _return_summary)
 
-    @rpc(Scenario,
+    @rpc(AnyDict,
          Unicode(pattern="['YN']", default='Y'),
          Unicode(pattern="['YN']", default='Y'),
-         Unicode(pattern="['YN']", default='N'), _returns=Scenario)
+         Unicode(pattern="['YN']", default='N'), _returns=AnyDict)
     def update_scenario(ctx, scen, update_data, update_groups, return_summary):
         """
             Update a single scenario
             as all resources already exist, there is no need to worry
             about negative IDS
         """
+        scen = JSONObject(scen)
         upd_data = update_data in ('Y', None)
         upd_grp  = update_groups in ('Y', None)
 
@@ -153,9 +154,10 @@ class ScenarioService(HydraService):
                                                 update_groups=upd_grp,
                                                 **ctx.in_header.__dict__)
 
-        return Scenario(updated_scen,
-                        include_data=not _return_summary,
-                        include_group_items=not _return_summary)
+        returndict = {}
+        for col in [c.name for c in updated_scen.__table__.columns]:
+            returndict[col] = getattr(updated_scen, col)
+        return JSONObject(returndict)
 
     @rpc(Integer, _returns=Unicode)
     def purge_scenario(ctx, scenario_id):
@@ -244,7 +246,7 @@ class ScenarioService(HydraService):
 
         return [Scenario(s, include_data=False, include_group_items=False) for s in scenarios]
 
-    @rpc(Integer, SpyneArray(ResourceScenario), _returns=SpyneArray(ResourceScenario))
+    @rpc(Integer, SpyneArray(AnyDict), _returns=SpyneArray(AnyDict))
     def update_resourcedata(ctx,scenario_id, resource_scenarios):
         """
             Update the data associated with a scenario.
@@ -257,7 +259,7 @@ class ScenarioService(HydraService):
         ret = [ResourceScenario(r) for r in res]
         return ret
 
-    @rpc(SpyneArray(Integer32), SpyneArray(ResourceScenario), _returns=Unicode)
+    @rpc(SpyneArray(Integer32), SpyneArray(AnyDict), _returns=Unicode)
     def bulk_update_resourcedata(ctx, scenario_ids, resource_scenarios):
         """
             Update the data associated with a scenario.
@@ -266,7 +268,7 @@ class ScenarioService(HydraService):
         """
 
         scenario.bulk_update_resourcedata(scenario_ids,
-                                          resource_scenarios,
+                                          [JSONObject(rs) for rs in resource_scenarios],
                                          **ctx.in_header.__dict__)
 
         return 'OK'

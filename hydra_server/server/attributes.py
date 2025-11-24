@@ -186,8 +186,24 @@ class AttributeService(HydraService):
 
         return Attr(attr)
 
-    @rpc(Unicode, Integer, Integer(default=None), Integer(default=None), _returns=Attr)
-    def get_attribute_by_name_and_dimension(ctx, name, dimension_id, network_id, project_id):
+    @rpc(SpyneArray(Integer), _returns=SpyneArray(Attr))
+    def get_attributes_by_id(ctx, attr_ids):
+        """
+        Get a list of specified attributes by their ID.
+
+        Args:
+            attr_ids (list(int)): The list of IDs of the attribute
+
+        Returns:
+            list(complexmodels.Attr): An attribute complex model.
+                Returns [] if no attribute is found.
+        """
+        attrs = attributes.get_attributes_by_id(attr_ids, **ctx.in_header.__dict__)
+
+        return [Attr(attr) for attr in attrs]
+
+    @rpc(Unicode, Integer, _returns=Attr)
+    def get_attribute_by_name_and_dimension(ctx, name, dimension_id):
         """
         Get a specific attribute by its name and dimension (this combination
         is unique for attributes in Hydra Platform).
@@ -229,21 +245,31 @@ class AttributeService(HydraService):
 
         return [Attr(a) for a in attrs]
 
-    @rpc(_returns=SpyneArray(Attr))
-    def get_attributes(ctx):
+    @rpc(Integer(default=None), Integer(default=None), Unicode(pattern="['YN']", default='N'), Unicode(pattern="['YN']", default='N'), _returns=SpyneArray(AnyDict))
+    def get_attributes(ctx, network_id, project_id, include_global, include_hierarchy):
         """
         Get all attributes
 
         Args:
-            attrs (List(Attr)): A list of attribute complex models
+            network_id: Include any attributes scoped to this network
+            project_id: Include any attribute scoped to this project
+            include_global: Include un-scoped attributes (Note this can return a LOT of attributes, and affect performance.)
+            include_hierarchy: Include attributes defined on the parent projects to the specified project
 
         Returns:
-            List(complexmodels.Attr): List of Attr complex models
+            List(AnyDict): List of Dicts
 
         """
-        attrs = attributes.get_attributes()
 
-        return [Attr(a) for a in attrs]
+        include_global = include_global == 'Y'
+        include_hierarchy = include_hierarchy == 'Y'
+
+        attrs = attributes.get_attributes(network_id=network_id,
+                                          project_id=project_id,
+                                          include_global=include_global,
+                                          include_hierarchy=include_hierarchy)
+
+        return [JSONObject(a) for a in attrs]
 
     @rpc(Unicode, Integer, Integer, Unicode(pattern="['YN']", default='N'), _returns=ResourceAttr)
     def add_resource_attribute(ctx,resource_type, resource_id, attr_id, is_var):
@@ -272,6 +298,39 @@ class AttributeService(HydraService):
             **ctx.in_header.__dict__)
 
         return ResourceAttr(new_ra)
+
+    @rpc(SpyneArray(AnyDict), _returns=AnyDict)
+    def add_resource_attributes(ctx,resource_attributes):
+        """
+        Add a resource attribute to a node.
+
+        Args:
+            A list of dicts containing:
+                resource_type (string) : NODE | LINK | GROUP | NETWORK
+                resource_id (int): The ID of the Node
+                attr_id (int): The ID if the attribute being added.
+                is_var (char): Y or N. Indicates whether the attribute is a variable or not.
+                error_on_duplicate: Y or N: Indicates whether to throw an error on finding a duplciate attribute on the resource, or just ignoring it.
+
+        Returns:
+            SpyneArray(Integer): The IDs of the newly created node attributes
+
+        Raises:
+            ResourceNotFoundError: If the node or attribute do not exist
+            HydraError: If this addition causes a duplicate attribute on the node.
+
+        """
+        new_ids = attributes.add_resource_attributes([JSONObject(ra) for ra in resource_attributes], **ctx.in_header.__dict__)
+
+        #this new_ids has is a dict, with the key being a tuple:
+        #(resource_id, attr_id), and value of the resource attr id. This needs to be
+        #reversed so that the ID is the key, to allow compatibiltiy with spyne which does
+        #not support tuples as dict keys
+        return_dict = {}
+        for k, v in new_ids.items():
+            return_dict[v] = list(k)
+
+        return return_dict
 
     @rpc(Integer, Unicode(pattern="['YN']"), _returns=ResourceAttr)
     def update_resource_attribute(ctx, resource_attr_id, is_var):

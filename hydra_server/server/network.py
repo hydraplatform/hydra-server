@@ -13,7 +13,7 @@
 # You should have received a copy of the GNU General Public License
 # along with HydraPlatform.  If not, see <http://www.gnu.org/licenses/>
 #
-from spyne.model.primitive import Unicode, Integer
+from spyne.model.primitive import Unicode, Integer, AnyDict
 from spyne.model.complex import Array as SpyneArray
 from spyne.decorator import rpc
 from .complexmodels import Network,\
@@ -31,6 +31,8 @@ from .service import HydraService
 import datetime
 import logging
 import json
+from hydra_base.lib.objects import JSONObject
+
 log = logging.getLogger(__name__)
 
 class NetworkService(HydraService):
@@ -38,7 +40,7 @@ class NetworkService(HydraService):
         The network SOAP service.
     """
 
-    @rpc(Network, _returns=ResourceSummary)
+    @rpc(AnyDict, _returns=AnyDict)
     def add_network(ctx, net):
         """
         Takes an entire network complex model and saves it to the DB.  This
@@ -61,12 +63,12 @@ class NetworkService(HydraService):
             complexmodels.Network: The full network structure, with correct IDs for all resources
 
         """
-        net = hb.network.add_network(net, **ctx.in_header.__dict__)
+        net = hb.network.add_network(JSONObject(net), **ctx.in_header.__dict__)
         log.info("Creating response Network")
         ret_net = ResourceSummary(net, include_attributes=False)
         log.info("Response Network Created")
 
-        return ret_net
+        return JSONObject(ret_net)
 
     @rpc(Integer,
          Unicode(pattern="[YN]", default='N'), #include attributes
@@ -76,7 +78,7 @@ class NetworkService(HydraService):
          Integer(), #template id
          Unicode(pattern="[YN]", default='N'), #include non template attributes
          Unicode(pattern="[YN]", default='N'), #include metadata
-         _returns=Network)
+         _returns=AnyDict)
     def get_network(ctx, network_id, include_attributes, include_data, include_results, scenario_ids, template_id, include_non_template_attributes, include_metadata):
         """
         Return a whole network as a complex model.
@@ -108,7 +110,7 @@ class NetworkService(HydraService):
         include_data = include_data in ('Y', None)
         include_attributes = include_attributes in ('Y', None)
 
-        ret_net = Network(net, include_attributes, include_data)
+        ret_net = JSONObject(net)
 
         return ret_net
 

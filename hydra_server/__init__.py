@@ -145,6 +145,7 @@ def _on_method_call(ctx):
     session = env.get('beaker.session', {})
 
     if session.get('user_id') is None:
+
         raise Fault("No Session!")
 
     ctx.in_header.user_id = session['user_id']
@@ -212,12 +213,12 @@ class HydraServer():
 
         hb.connect(db_uri)
 
-        hdb.create_default_users_and_perms()
-        hdb.create_default_units_and_dimensions()
-        hdb.make_root_user()
-        hdb.create_default_net()
+        #hdb.create_default_users_and_perms()
+        #hdb.create_default_units_and_dimensions()
+        #hdb.make_root_user()
+        #hdb.create_default_net()
 
-        commit_transaction()
+        #commit_transaction()
 
         self.soap_application = None
         self.json_application = None
@@ -257,8 +258,6 @@ class HydraServer():
         self.http_application = app;
 
     def run_server(self, port=None, db_uri=None):
-
-        initialize(db_uri)
 
         log.info("home_dir %s", hb.config.get('DEFAULT', 'home_dir'))
         log.info("hydra_base_dir %s", hb.config.get('DEFAULT', 'hydra_base_dir'))
@@ -340,7 +339,8 @@ def initialise_wsgi_application(api_server):
     })
 
     for server in wsgi_application.mounts.values():
-        server.max_content_length = 100 * 0x100000 # 100 MB
+        server.max_content_length = 200 * 0x100000 # 200 MB
+        server.block_length = 10*0x10000 # 65KB
 
     # Configure the SessionMiddleware
     session_opts = {
@@ -348,7 +348,8 @@ def initialise_wsgi_application(api_server):
         'session.cookie_expires': True,
         'session.data_dir':'/tmp',
         'session.file_dir':'/tmp/auth',
-        'session.url': hb.db.hydra_db_url
+        'session.url': hb.db.hydra_db_url,
+        'session.sa_opts': {'sa.pool_pre_ping': True}
     }
     app = SessionMiddleware(wsgi_application, session_opts)
 
