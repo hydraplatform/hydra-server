@@ -80,6 +80,18 @@ class ScenarioService(HydraService):
         log.info('get_scenario took %s seconds' % (time.time() - t))
         return JSONObject(scen)
 
+    @rpc(SpyneArray(Integer),
+         _returns=AnyDict)
+    def get_scenarios(ctx, scenario_ids):
+        """
+            Get the specified scenario
+        """
+
+        scen = scenario.get_scenarios(scenario_ids,
+                                     **ctx.in_header.__dict__)
+
+        return [JSONObject(s) for s in scen]
+
     @rpc(Integer,
          Unicode,
          Unicode(pattern="['YN']", default='N'),
