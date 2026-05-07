@@ -925,7 +925,7 @@ class NetworkService(HydraService):
 
 
     @rpc(Integer, _returns=SpyneArray(Scenario))
-    def get_scenarios(ctx, network_id):
+    def get_network_scenarios(ctx, network_id):
         """
         Get all the scenarios in a given network.
 
@@ -938,7 +938,7 @@ class NetworkService(HydraService):
         Raises:
             ResourceNotFoundError: If the network is not found
         """
-        scenarios_i = hb.network.get_scenarios(network_id, **ctx.in_header.__dict__)
+        scenarios_i = hb.network.get_network_scenarios(network_id, **ctx.in_header.__dict__)
 
         scenarios = [Scenario(scen) for scen in scenarios_i]
 
