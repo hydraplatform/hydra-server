@@ -202,8 +202,8 @@ class AttributeService(HydraService):
 
         return [Attr(attr) for attr in attrs]
 
-    @rpc(Unicode, Integer, _returns=Attr)
-    def get_attribute_by_name_and_dimension(ctx, name, dimension_id):
+    @rpc(Unicode, Integer, Integer, Integer, _returns=Attr)
+    def get_attribute_by_name_and_dimension(ctx, name, dimension_id, project_id=None, network_id=None):
         """
         Get a specific attribute by its name and dimension (this combination
         is unique for attributes in Hydra Platform).
