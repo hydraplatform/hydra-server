@@ -938,7 +938,7 @@ class NetworkService(HydraService):
         Raises:
             ResourceNotFoundError: If the network is not found
         """
-        scenarios_i = hb.network.get_scenarios(network_id, **ctx.in_header.__dict__)
+        scenarios_i = hb.network.get_network_scenarios(network_id, **ctx.in_header.__dict__)
 
         scenarios = [Scenario(scen) for scen in scenarios_i]
 

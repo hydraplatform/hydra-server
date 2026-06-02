@@ -128,26 +128,21 @@ class ScenarioService(HydraService):
                         include_data=_include_data,
                         include_group_items=_include_group_items)
 
-    @rpc(Integer, Scenario, Unicode(pattern="['YN']", default='N'), _returns=Scenario)
-    def add_scenario(ctx, network_id, scen, return_summary):
+    @rpc(Integer, AnyDict, _returns=AnyDict)
+    def add_scenario(ctx, network_id, scen):
         """
             Add a scenario to a specified network.
         """
-        if return_summary is None:
-            return_summary = 'N'
-        _return_summary = return_summary.upper() == 'Y'
 
-        new_scen = scenario.add_scenario(network_id, scen, **ctx.in_header.__dict__)
+        new_scen = scenario.add_scenario(network_id, JSONObject(scen), **ctx.in_header.__dict__)
 
-        return Scenario(new_scen,
-                        include_data=not _return_summary,
-                        include_group_items=not _return_summary)
+        return JSONObject(new_scen)
 
     @rpc(AnyDict,
          Unicode(pattern="['YN']", default='Y'),
          Unicode(pattern="['YN']", default='Y'),
-         Unicode(pattern="['YN']", default='N'), _returns=AnyDict)
-    def update_scenario(ctx, scen, update_data, update_groups, return_summary):
+         _returns=AnyDict)
+    def update_scenario(ctx, scen, update_data, update_groups):
         """
             Update a single scenario
             as all resources already exist, there is no need to worry
@@ -156,10 +151,6 @@ class ScenarioService(HydraService):
         scen = JSONObject(scen)
         upd_data = update_data in ('Y', None)
         upd_grp  = update_groups in ('Y', None)
-
-        if return_summary is None:
-            return_summary = 'N'
-        _return_summary = return_summary.upper() == 'Y'
 
         updated_scen = scenario.update_scenario(scen,
                                                 update_data=upd_data,
@@ -335,7 +326,7 @@ class ScenarioService(HydraService):
          SpyneArray(Unicode), # include_data_type_values
          SpyneArray(Unicode), # exclude_data_type_values
          _returns=SpyneArray(ResourceScenario))
-    def get_resource_data(ctx, 
+    def get_resource_data(ctx,
                       resource_type,
                       resource_id,
                       scenario_id,
@@ -377,7 +368,7 @@ class ScenarioService(HydraService):
             get_parent_data = False
         else:
             get_parent_data = True
-        
+
         if include_inputs is None or include_inputs.upper() != 'N':
             include_inputs = True
         else:
