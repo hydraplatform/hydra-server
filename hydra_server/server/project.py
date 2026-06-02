@@ -214,8 +214,11 @@ class ProjectService(HydraService):
         project_lib.delete_project(project_id, **ctx.in_header.__dict__)
         return 'OK'
 
-    @rpc(Integer, Unicode(pattern="[YN]", default='N'), _returns=SpyneArray(ResourceSummary))
-    def get_networks(ctx, project_id, include_data):
+    @rpc(Integer,
+         Unicode(pattern="[YN]", default='N'),
+         Unicode(pattern="[YN]", default='N'),
+         _returns=SpyneArray(AnyDict))
+    def get_networks(ctx, project_id, include_data, include_attributes):
         """
         Get all networks in a project
 
@@ -234,10 +237,11 @@ class ProjectService(HydraService):
 
         net_dicts = project_lib.get_networks(
             project_id,
-            include_data=False,
+            include_data=include_data=='Y',
+            include_attributes=include_attributes=='Y',
             **ctx.in_header.__dict__)
 
-        networks = [ResourceSummary(n, include_attributes=False) for n in net_dicts]
+        networks = [JSONObject(n) for n in net_dicts]
 
         return networks
 

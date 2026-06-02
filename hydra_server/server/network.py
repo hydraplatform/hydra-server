@@ -925,7 +925,7 @@ class NetworkService(HydraService):
 
 
     @rpc(Integer, _returns=SpyneArray(Scenario))
-    def get_scenarios(ctx, network_id):
+    def get_network_scenarios(ctx, network_id):
         """
         Get all the scenarios in a given network.
 
