@@ -205,7 +205,7 @@ class HydraSoapApplication(Application):
             log.critical(e)
             traceback.print_exc(file=sys.stdout)
             rollback_transaction()
-            raise Fault('Server', e)
+            raise Fault('Server', str(e))
 
 class HydraServer():
 

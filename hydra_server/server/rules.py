@@ -18,6 +18,7 @@ from spyne.model.complex import Array as SpyneArray
 from spyne.decorator import rpc
 from .complexmodels import Rule, RuleTypeLink, RuleTypeDefinition
 from hydra_base.lib import rules
+from hydra_base.lib.objects import JSONObject
 
 from .service import HydraService
 
@@ -245,7 +246,7 @@ class RuleService(HydraService):
     @rpc(Integer,
          Integer(default=None),
          Unicode(pattern='[YN]', default='Y'),
-         _returns=SpyneArray(Rule))
+         _returns=SpyneArray(AnyDict))
     def get_network_rules(ctx, network_id, scenario_id, summary):
         """
             Get all the rules within a network -- including rules associated to
@@ -260,4 +261,4 @@ class RuleService(HydraService):
                                 scenario_id=scenario_id,
                                 summary=summary=='Y',
                                 **ctx.in_header.__dict__)
-        return net_rules
+        return [JSONObject(r) for r in net_rules]
