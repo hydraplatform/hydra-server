@@ -35,7 +35,7 @@ class AttributeService(HydraService):
     """
         The attribute SOAP service
     """
-    @rpc(Attr, _returns=Attr)
+    @rpc(Attr, _returns=AnyDict)
     def add_attribute_no_checks(ctx, attr):
         """
         Add a generic attribute, which can then be used in creating
@@ -55,13 +55,13 @@ class AttributeService(HydraService):
             attr (complexmodels.Attr): An attribute object, as described above.
 
         Returns:
-            complexmodels.Attr: An attribute object, similar to the one sent in but with an ID.
+            JSONObject: An attribute dict, similar to the one sent in but with an ID.
         """
 
         attr = attributes.add_attribute_no_checks(attr, **ctx.in_header.__dict__)
-        return Attr(attr)
+        return JSONObject(attr)
 
-    @rpc(Attr, _returns=Attr)
+    @rpc(Attr, _returns=AnyDict)
     def add_attribute(ctx, attr):
         """
         Add a generic attribute, which can then be used in creating
@@ -79,13 +79,13 @@ class AttributeService(HydraService):
             attr (complexmodels.Attr): An attribute object, as described above.
 
         Returns:
-            complexmodels.Attr: An attribute object, similar to the one sent in but with an ID.
+            JSONObject: An attribute dict, similar to the one sent in but with an ID.
         """
 
         attr = attributes.add_attribute(attr, **ctx.in_header.__dict__)
-        return Attr(attr)
+        return JSONObject(attr)
 
-    @rpc(Attr, _returns=Attr)
+    @rpc(Attr, _returns=AnyDict)
     def add_attribute_no_checks(ctx, attr):
         """
         ***WARNING*** This is used for test purposes only, and can allow
@@ -93,9 +93,9 @@ class AttributeService(HydraService):
         """
         log.debug("Adding attribute: %s", attr.name)
         attr = attributes.add_attribute_no_checks(attr, **ctx.in_header.__dict__)
-        return Attr(attr)
+        return JSONObject(attr)
 
-    @rpc(Attr, _returns=Attr)
+    @rpc(Attr, _returns=AnyDict)
     def update_attribute(ctx, attr):
         """
         Update a generic attribute, which can then be used in creating a resource attribute, and put into a type.
@@ -113,11 +113,11 @@ class AttributeService(HydraService):
             attr (complexmodels.Attr): An attribute complex model, as described above.
 
         Returns:
-            complexmodels.Attr: An attribute complex model, reflecting the one sent in.
+            JSONObject: An attribute dict, reflecting the one sent in.
 
         """
         attr = attributes.update_attribute(attr, **ctx.in_header.__dict__)
-        return Attr(attr)
+        return JSONObject(attr)
 
     @rpc(Integer, _returns=Unicode)
     def delete_attribute(ctx, attr_id):
@@ -135,7 +135,7 @@ class AttributeService(HydraService):
 
         return 'OK'
 
-    @rpc(SpyneArray(Attr), _returns=SpyneArray(Attr))
+    @rpc(SpyneArray(Attr), _returns=SpyneArray(AnyDict))
     def add_attributes(ctx, attrs):
         """
         Add multiple generic attributes
@@ -145,16 +145,15 @@ class AttributeService(HydraService):
                 as described above.
 
         Returns:
-            List[Attr]: A list of attribute complex models,
+            List[JSONObject]: A list of attribute dicts,
                 reflecting the ones sent in.
 
         """
 
         attrs = attributes.add_attributes(attrs, **ctx.in_header.__dict__)
-        ret_attrs = [Attr(attr) for attr in attrs]
-        return ret_attrs
+        return [JSONObject(attr) for attr in attrs]
 
-    @rpc(_returns=SpyneArray(Attr))
+    @rpc(_returns=SpyneArray(AnyDict))
     def get_all_attributes(ctx):
         """
         Get all the attributes in the system
@@ -163,14 +162,13 @@ class AttributeService(HydraService):
             None
 
         Returns:
-            List[Attr]: A list of attribute complex models
+            List[JSONObject]: A list of attribute dicts
         """
 
         attrs = attributes.get_attributes(**ctx.in_header.__dict__)
-        ret_attrs = [Attr(attr) for attr in attrs]
-        return ret_attrs
+        return [JSONObject(attr) for attr in attrs]
 
-    @rpc(Integer, _returns=Attr)
+    @rpc(Integer, _returns=AnyDict)
     def get_attribute_by_id(ctx, attr_id):
         """
         Get a specific attribute by its ID.
@@ -179,14 +177,14 @@ class AttributeService(HydraService):
             attr_id (int): The ID of the attribute
 
         Returns:
-            complexmodels.Attr: An attribute complex model.
+            JSONObject: An attribute dict.
                 Returns None if no attribute is found.
         """
         attr = attributes.get_attribute_by_id(attr_id, **ctx.in_header.__dict__)
 
-        return Attr(attr)
+        return JSONObject(attr)
 
-    @rpc(SpyneArray(Integer), _returns=SpyneArray(Attr))
+    @rpc(SpyneArray(Integer), _returns=SpyneArray(AnyDict))
     def get_attributes_by_id(ctx, attr_ids):
         """
         Get a list of specified attributes by their ID.
@@ -195,14 +193,14 @@ class AttributeService(HydraService):
             attr_ids (list(int)): The list of IDs of the attribute
 
         Returns:
-            list(complexmodels.Attr): An attribute complex model.
+            List[JSONObject]: A list of attribute dicts.
                 Returns [] if no attribute is found.
         """
         attrs = attributes.get_attributes_by_id(attr_ids, **ctx.in_header.__dict__)
 
-        return [Attr(attr) for attr in attrs]
+        return [JSONObject(attr) for attr in attrs]
 
-    @rpc(Unicode, Integer, Integer, Integer, _returns=Attr)
+    @rpc(Unicode, Integer, Integer, Integer, _returns=AnyDict)
     def get_attribute_by_name_and_dimension(ctx, name, dimension_id, project_id=None, network_id=None):
         """
         Get a specific attribute by its name and dimension (this combination
@@ -215,7 +213,7 @@ class AttributeService(HydraService):
             project_id (integer): Search for attributes only within this project scope
 
         Returns:
-            complexmodels.Attr: An attribute complex model.
+            JSONObject: An attribute dict.
                 Returns None if no attribute is found.
 
         """
@@ -225,11 +223,11 @@ class AttributeService(HydraService):
                                                               project_id,
                                                               **ctx.in_header.__dict__)
         if attr:
-            return Attr(attr)
+            return JSONObject(attr)
 
         return None
 
-    @rpc(Integer, _returns=SpyneArray(Attr))
+    @rpc(Integer, _returns=SpyneArray(AnyDict))
     def get_template_attributes(ctx, template_id):
         """
             Get all the attributes in a template.
@@ -239,11 +237,11 @@ class AttributeService(HydraService):
 
             Returns
 
-                List(Attr)
+                List[JSONObject]
         """
         attrs = attributes.get_template_attributes(template_id,**ctx.in_header.__dict__)
 
-        return [Attr(a) for a in attrs]
+        return [JSONObject(a) for a in attrs]
 
     @rpc(Integer(default=None), Integer(default=None), Unicode(pattern="['YN']", default='N'), Unicode(pattern="['YN']", default='N'), _returns=SpyneArray(AnyDict))
     def get_attributes(ctx, network_id, project_id, include_global, include_hierarchy):
@@ -257,7 +255,7 @@ class AttributeService(HydraService):
             include_hierarchy: Include attributes defined on the parent projects to the specified project
 
         Returns:
-            List(AnyDict): List of Dicts
+            List[JSONObject]: List of attribute dicts
 
         """
 
@@ -271,7 +269,7 @@ class AttributeService(HydraService):
 
         return [JSONObject(a) for a in attrs]
 
-    @rpc(Unicode, Integer, Integer, Unicode(pattern="['YN']", default='N'), _returns=ResourceAttr)
+    @rpc(Unicode, Integer, Integer, Unicode(pattern="['YN']", default='N'), _returns=AnyDict)
     def add_resource_attribute(ctx,resource_type, resource_id, attr_id, is_var):
         """
         Add a resource attribute to a node.
@@ -283,7 +281,7 @@ class AttributeService(HydraService):
             is_var (char): Y or N. Indicates whether the attribute is a variable or not.
 
         Returns:
-            complexmodels.ResourceAttr: The newly created node attribute
+            JSONObject: The newly created resource attribute
 
         Raises:
             ResourceNotFoundError: If the node or attribute do not exist
@@ -297,7 +295,7 @@ class AttributeService(HydraService):
             is_var,
             **ctx.in_header.__dict__)
 
-        return ResourceAttr(new_ra)
+        return JSONObject(new_ra)
 
     @rpc(SpyneArray(AnyDict), _returns=AnyDict)
     def add_resource_attributes(ctx,resource_attributes):
@@ -313,7 +311,7 @@ class AttributeService(HydraService):
                 error_on_duplicate: Y or N: Indicates whether to throw an error on finding a duplciate attribute on the resource, or just ignoring it.
 
         Returns:
-            SpyneArray(Integer): The IDs of the newly created node attributes
+            JSONObject: The IDs of the newly created node attributes
 
         Raises:
             ResourceNotFoundError: If the node or attribute do not exist
@@ -322,17 +320,9 @@ class AttributeService(HydraService):
         """
         new_ids = attributes.add_resource_attributes([JSONObject(ra) for ra in resource_attributes], **ctx.in_header.__dict__)
 
-        #this new_ids has is a dict, with the key being a tuple:
-        #(resource_id, attr_id), and value of the resource attr id. This needs to be
-        #reversed so that the ID is the key, to allow compatibiltiy with spyne which does
-        #not support tuples as dict keys
-        return_dict = {}
-        for k, v in new_ids.items():
-            return_dict[v] = list(k)
+        return new_ids
 
-        return return_dict
-
-    @rpc(Integer, Unicode(pattern="['YN']"), _returns=ResourceAttr)
+    @rpc(Integer, Unicode(pattern="['YN']"), _returns=AnyDict)
     def update_resource_attribute(ctx, resource_attr_id, is_var):
         """
         Update a resource attribute (which means update the is_var flag
@@ -343,7 +333,7 @@ class AttributeService(HydraService):
             is_var           (unicode): 'Y' or 'N'
 
         Returns:
-            List(complexmodels.ResourceAttr): Updated ResourceAttr
+            JSONObject: The updated resource attribute
 
         Raises:
             ResourceNotFoundError if the resource_attr_id is not in the DB
@@ -351,7 +341,7 @@ class AttributeService(HydraService):
         updated_ra = attributes.update_resource_attribute(resource_attr_id,
                                                           is_var,
                                                           **ctx.in_header.__dict__)
-        return ResourceAttr(updated_ra)
+        return JSONObject(updated_ra)
 
 
     @rpc(Integer, _returns=Unicode)
@@ -394,7 +384,7 @@ class AttributeService(HydraService):
         return "OK"
 
 
-    @rpc(Integer, Integer, Unicode(pattern="['YN']", default='N'), _returns=ResourceAttr)
+    @rpc(Integer, Integer, Unicode(pattern="['YN']", default='N'), _returns=AnyDict)
     def add_network_attribute(ctx,network_id, attr_id, is_var):
         """
         Add a resource attribute to a network.
@@ -407,7 +397,7 @@ class AttributeService(HydraService):
                 so therefore doesn't need data assigned to it initially)
 
         Returns:
-            complexmodels.ResourceAttr: A complex model of the newly created resource attribute.
+            JSONObject: The newly created resource attribute.
         Raises:
             ResourceNotFoundError: If the network or attribute are not in the DB.
             HydraError           : If the attribute is already on the network.
@@ -420,10 +410,10 @@ class AttributeService(HydraService):
                                                        is_var,
                                                        **ctx.in_header.__dict__)
 
-        return ResourceAttr(new_ra)
+        return JSONObject(new_ra)
 
 
-    @rpc(Integer, Integer, _returns=SpyneArray(ResourceAttr))
+    @rpc(Integer, Integer, _returns=SpyneArray(AnyDict))
     def add_network_attrs_from_type(ctx, type_id, network_id):
         """
         Adds all the attributes defined by a type to a network.
@@ -433,7 +423,7 @@ class AttributeService(HydraService):
             network_id (int): ID of the network
 
         Returns:
-            List(complexmodels.ResourceAttr): All the newly created network attributes
+            List[JSONObject]: All the newly created network attributes
 
         Raises:
             ResourceNotFoundError if the type_id or network_id are not in the DB
@@ -444,10 +434,10 @@ class AttributeService(HydraService):
                                                         network_id,
                                                         **ctx.in_header.__dict__)
 
-        return [ResourceAttr(ra) for ra in new_resource_attrs]
+        return [JSONObject(ra) for ra in new_resource_attrs]
 
 
-    @rpc(Integer, Unicode, Integer, _returns=SpyneArray(ResourceAttr))
+    @rpc(Integer, Unicode, Integer, _returns=SpyneArray(AnyDict))
     def add_resource_attrs_from_type(ctx, type_id, resource_type, resource_id):
         """
         Adds all the attributes defined by a type to a group.
@@ -458,7 +448,7 @@ class AttributeService(HydraService):
             resource_id (int): ID of the resource
 
         Returns:
-            List(complexmodels.ResourceAttr): All the newly created resource attributes
+            List[JSONObject]: All the newly created resource attributes
 
         Raises:
             ResourceNotFoundError if the type_id or group_id are not in the DB
@@ -470,7 +460,7 @@ class AttributeService(HydraService):
                                                         resource_type,
                                                         resource_id,
                                                         **ctx.in_header.__dict__)
-        return [ResourceAttr(ra) for ra in new_resource_attrs]
+        return [JSONObject(ra) for ra in new_resource_attrs]
 
     @rpc(Unicode, Integer, Integer(min_occurs=0, max_occurs=1), _returns=SpyneArray(AnyDict))
     def get_resource_attributes(ctx, ref_key, ref_id, type_id):
@@ -483,7 +473,7 @@ class AttributeService(HydraService):
             type_id (int) (optional): ID of the type. If specified will only return the resource attributes relative to that type
 
         Returns:
-            List(complexmodels.ResourceAttr): All the resource's attributes
+            List[JSONObject]: All the resource's attributes
 
         Raises:
             ResourceNotFoundError if the type_id or resource id are not in the DB
@@ -498,11 +488,9 @@ class AttributeService(HydraService):
             ref_id,
             type_id)
 
-        ret_data = [JSONObject(ra) for ra in resource_attrs]
+        return [JSONObject(ra) for ra in resource_attrs]
 
-        return ret_data
-
-    @rpc(Unicode, Integer, Integer(min_occurs=0, max_occurs=1), _returns=SpyneArray(ResourceAttr))
+    @rpc(Unicode, Integer, Integer(min_occurs=0, max_occurs=1), _returns=SpyneArray(AnyDict))
     def get_all_resource_attributes(ctx, resource_type, resource_id, template_id):
         """
         Get all the resource attributes for all the nodes in the network.
@@ -513,17 +501,18 @@ class AttributeService(HydraService):
             template_id (int) (optional): If this is specified, then it will only return the attributes in this template.
 
         Returns:
-            List(complexmodels.ResourceAttr): The resource attributes of all the nodes in the resource.
+            List[JSONObject]: The resource attributes of all the nodes in the resource.
         """
         resource_attrs = attributes.get_all_resource_attributes(
                 resource_type,
                 resource_id,
-                template_id)
+                template_id,
+                **ctx.in_header.__dict__)
 
-        return [ResourceAttr(ra) for ra in resource_attrs]
+        return [JSONObject(ra) for ra in resource_attrs]
 
 
-    @rpc(Integer, Integer(default=None), _returns=SpyneArray(ResourceAttr))
+    @rpc(Integer, Integer(default=None), _returns=SpyneArray(AnyDict))
     def get_all_network_attributes(ctx, network_id, template_id):
         """
             Get all the attributes for all the nodes, links and groups in the network
@@ -548,9 +537,9 @@ class AttributeService(HydraService):
         network_attributes = attributes.get_all_network_attributes(network_id,
                                                                    template_id,
                                                                    **ctx.in_header.__dict__)
-        return [ResourceAttr(ra) for ra in network_attributes]
+        return [JSONObject(ra) for ra in network_attributes]
 
-    @rpc(Integer, Integer(min_occurs=0, max_occurs=1), _returns=SpyneArray(ResourceAttr))
+    @rpc(Integer, Integer(min_occurs=0, max_occurs=1), _returns=SpyneArray(AnyDict))
     def get_network_attributes(ctx, network_id, type_id):
         """
         Get all a network's attributes (not the attributes of the nodes and links. just the network itself).
@@ -560,7 +549,7 @@ class AttributeService(HydraService):
             type_id    (int) (optional): ID of the type. If specified will only return the resource attributes relative to that type
 
         Returns:
-            List(complexmodels.ResourceAttr): All the network attributes
+            List[JSONObject]: All the network attributes
 
         Raises:
             ResourceNotFoundError if the type_id or network_id are not in the DB
@@ -573,12 +562,12 @@ class AttributeService(HydraService):
                 network_id,
                 type_id)
         print("Got attributes")
-        return_vals = [ResourceAttr(ra) for ra in resource_attrs]
+        return_vals = [JSONObject(ra) for ra in resource_attrs]
         print("Returning data")
         return return_vals
 
 
-    @rpc(Integer, Integer, Unicode(pattern="['YN']", default='N'), _returns=ResourceAttr)
+    @rpc(Integer, Integer, Unicode(pattern="['YN']", default='N'), _returns=AnyDict)
     def add_node_attribute(ctx,node_id, attr_id, is_var):
         """
         Add a resource attribute to a node.
@@ -589,7 +578,7 @@ class AttributeService(HydraService):
             is_var (char): Y or N. Indicates whether the attribute is a variable or not.
 
         Returns:
-            complexmodels.ResourceAttr: The newly created node attribute
+            JSONObject: The newly created node attribute
 
         Raises:
             ResourceNotFoundError: If the node or attribute do not exist
@@ -603,10 +592,10 @@ class AttributeService(HydraService):
                                                        is_var,
                                                        **ctx.in_header.__dict__)
 
-        return ResourceAttr(new_ra)
+        return JSONObject(new_ra)
 
 
-    @rpc(Integer, Integer, _returns=SpyneArray(ResourceAttr))
+    @rpc(Integer, Integer, _returns=SpyneArray(AnyDict))
     def add_node_attrs_from_type(ctx, type_id, node_id):
         """
         Adds all the attributes defined by a type to a node.
@@ -616,7 +605,7 @@ class AttributeService(HydraService):
             node_id (int): ID of the node
 
         Returns:
-            List(complexmodels.ResourceAttr): All the newly created node attributes
+            List[JSONObject]: All the newly created node attributes
 
         Raises:
             ResourceNotFoundError if the type_id or node_id are not in the DB
@@ -627,9 +616,9 @@ class AttributeService(HydraService):
                                                         'NODE',
                                                         node_id,
                                                         **ctx.in_header.__dict__)
-        return [ResourceAttr(ra) for ra in new_resource_attrs]
+        return [JSONObject(ra) for ra in new_resource_attrs]
 
-    @rpc(Integer, Integer(min_occurs=0, max_occurs=1), _returns=SpyneArray(ResourceAttr))
+    @rpc(Integer, Integer(min_occurs=0, max_occurs=1), _returns=SpyneArray(AnyDict))
     def get_node_attributes(ctx, node_id, type_id):
         """
         Get all a node's attributes.
@@ -639,7 +628,7 @@ class AttributeService(HydraService):
             type_id (int) (optional): ID of the type. If specified will only return the resource attributes relative to that type
 
         Returns:
-            List(complexmodels.ResourceAttr): All the node's attributes
+            List[JSONObject]: All the node's attributes
 
         Raises:
             ResourceNotFoundError if the type_id or node_id do not exist.
@@ -650,9 +639,9 @@ class AttributeService(HydraService):
                 node_id,
                 type_id)
 
-        return [ResourceAttr(ra) for ra in resource_attrs]
+        return [JSONObject(ra) for ra in resource_attrs]
 
-    @rpc(Integer, Integer(min_occurs=0, max_occurs=1), _returns=SpyneArray(ResourceAttr))
+    @rpc(Integer, Integer(min_occurs=0, max_occurs=1), _returns=SpyneArray(AnyDict))
     def get_all_node_attributes(ctx, network_id, template_id):
         """
         Get all the resource attributes for all the nodes in the network.
@@ -662,16 +651,17 @@ class AttributeService(HydraService):
             template_id (int) (optional): If this is specified, then it will only return the attributes in this template.
 
         Returns:
-            List(complexmodels.ResourceAttr): The resource attributes of all the nodes in the network.
+            List[JSONObject]: The resource attributes of all the nodes in the network.
         """
         resource_attrs = attributes.get_all_resource_attributes(
                 'NODE',
                 network_id,
-                template_id)
+                template_id,
+                **ctx.in_header.__dict__)
 
-        return [ResourceAttr(ra) for ra in resource_attrs]
+        return [JSONObject(ra) for ra in resource_attrs]
 
-    @rpc(Integer, Integer, Unicode(pattern="['YN']", default='N'), _returns=ResourceAttr)
+    @rpc(Integer, Integer, Unicode(pattern="['YN']", default='N'), _returns=AnyDict)
     def add_link_attribute(ctx,link_id, attr_id, is_var):
         """
         Add a resource attribute to a link.
@@ -682,7 +672,7 @@ class AttributeService(HydraService):
             is_var (char): Y or N. Indicates whether the attribute is a variable or not.
 
         Returns:
-            complexmodels.ResourceAttr: The newly created link attribute
+            JSONObject: The newly created link attribute
 
         Raises:
             ResourceNotFoundError: If the link or attribute do not exist
@@ -696,10 +686,10 @@ class AttributeService(HydraService):
                                                        is_var,
                                                        **ctx.in_header.__dict__)
 
-        return ResourceAttr(new_ra)
+        return JSONObject(new_ra)
 
 
-    @rpc(Integer, Integer, _returns=SpyneArray(ResourceAttr))
+    @rpc(Integer, Integer, _returns=SpyneArray(AnyDict))
     def add_link_attrs_from_type(ctx, type_id, link_id):
         """
         Adds all the attributes defined by a type to a link.
@@ -709,7 +699,7 @@ class AttributeService(HydraService):
             link_id (int): ID of the link
 
         Returns:
-            List(complexmodels.ResourceAttr): All the newly created link attributes
+            List[JSONObject]: All the newly created link attributes
 
         Raises:
             ResourceNotFoundError if the type_id or link_id are not in the DB
@@ -721,9 +711,9 @@ class AttributeService(HydraService):
                                                         'LINK',
                                                         link_id,
                                                         **ctx.in_header.__dict__)
-        return [ResourceAttr(ra) for ra in new_resource_attrs]
+        return [JSONObject(ra) for ra in new_resource_attrs]
 
-    @rpc(Integer, Integer(min_occurs=0, max_occurs=1), _returns=SpyneArray(ResourceAttr))
+    @rpc(Integer, Integer(min_occurs=0, max_occurs=1), _returns=SpyneArray(AnyDict))
     def get_link_attributes(ctx, link_id, type_id):
         """
         Get all a link's attributes.
@@ -733,7 +723,7 @@ class AttributeService(HydraService):
             type_id (int) (optional): ID of the type. If specified will only return the resource attributes relative to that type
 
         Returns:
-            List(complexmodels.ResourceAttr): All the link's attributes
+            List[JSONObject]: All the link's attributes
 
         Raises:
             ResourceNotFoundError if the type_id or link_id do not exist.
@@ -744,9 +734,9 @@ class AttributeService(HydraService):
                 link_id,
                 type_id)
 
-        return [ResourceAttr(ra) for ra in resource_attrs]
+        return [JSONObject(ra) for ra in resource_attrs]
 
-    @rpc(Integer, Integer(min_occurs=0, max_occurs=1), _returns=SpyneArray(ResourceAttr))
+    @rpc(Integer, Integer(min_occurs=0, max_occurs=1), _returns=SpyneArray(AnyDict))
     def get_all_link_attributes(ctx, network_id, template_id):
         """
         Get all the resource attributes for all the links in the network.
@@ -756,17 +746,18 @@ class AttributeService(HydraService):
             template_id (int) (optional): If this is specified, then it will only return the attributes in this template.
 
         Returns:
-            List(complexmodels.ResourceAttr): The resource attributes of all the links in the network.
+            List[JSONObject]: The resource attributes of all the links in the network.
         """
 
         resource_attrs = attributes.get_all_resource_attributes(
                 'LINK',
                 network_id,
-                template_id)
+                template_id,
+                **ctx.in_header.__dict__)
 
-        return [ResourceAttr(ra) for ra in resource_attrs]
+        return [JSONObject(ra) for ra in resource_attrs]
 
-    @rpc(Integer, Integer, Unicode(pattern="['YN']", default='N'), _returns=ResourceAttr)
+    @rpc(Integer, Integer, Unicode(pattern="['YN']", default='N'), _returns=AnyDict)
     def add_group_attribute(ctx,group_id, attr_id, is_var):
         """
         Add a resource attribute to a group.
@@ -777,7 +768,7 @@ class AttributeService(HydraService):
             is_var (char): Y or N. Indicates whether the attribute is a variable or not.
 
         Returns:
-            complexmodels.ResourceAttr: The newly created group attribute
+            JSONObject: The newly created group attribute
 
         Raises:
             ResourceNotFoundError: If the group or attribute do not exist
@@ -792,10 +783,10 @@ class AttributeService(HydraService):
                                                        is_var,
                                                        **ctx.in_header.__dict__)
 
-        return ResourceAttr(new_ra)
+        return JSONObject(new_ra)
 
 
-    @rpc(Integer, Integer, _returns=SpyneArray(ResourceAttr))
+    @rpc(Integer, Integer, _returns=SpyneArray(AnyDict))
     def add_group_attrs_from_type(ctx, type_id, group_id):
         """
         Adds all the attributes defined by a type to a group.
@@ -805,7 +796,7 @@ class AttributeService(HydraService):
             group_id (int): ID of the group
 
         Returns:
-            List(complexmodels.ResourceAttr): All the newly created group attributes
+            List[JSONObject]: All the newly created group attributes
 
         Raises:
             ResourceNotFoundError if the type_id or group_id are not in the DB
@@ -816,9 +807,9 @@ class AttributeService(HydraService):
                                                         'GROUP',
                                                         group_id,
                                                         **ctx.in_header.__dict__)
-        return [ResourceAttr(ra) for ra in new_resource_attrs]
+        return [JSONObject(ra) for ra in new_resource_attrs]
 
-    @rpc(Integer, Integer(min_occurs=0, max_occurs=1), _returns=SpyneArray(ResourceAttr))
+    @rpc(Integer, Integer(min_occurs=0, max_occurs=1), _returns=SpyneArray(AnyDict))
     def get_group_attributes(ctx, group_id, type_id):
         """
         Get all a group's attributes.
@@ -828,7 +819,7 @@ class AttributeService(HydraService):
             type_id (int) (optional): ID of the type. If specified will only return the resource attributes relative to that type
 
         Returns:
-            List(complexmodels.ResourceAttr): All the group's attributes
+            List[JSONObject]: All the group's attributes
 
         Raises:
             ResourceNotFoundError if the type_id or group_id do not exist.
@@ -840,9 +831,9 @@ class AttributeService(HydraService):
                 type_id,
                 **ctx.in_header.__dict__)
 
-        return [ResourceAttr(ra) for ra in resource_attrs]
+        return [JSONObject(ra) for ra in resource_attrs]
 
-    @rpc(Integer, Integer(min_occurs=0, max_occurs=1), _returns=SpyneArray(ResourceAttr))
+    @rpc(Integer, Integer(min_occurs=0, max_occurs=1), _returns=SpyneArray(AnyDict))
     def get_all_group_attributes(ctx, network_id, template_id):
         """
         Get all the resource attributes for all the groups in the network.
@@ -852,7 +843,7 @@ class AttributeService(HydraService):
             template_id (int) (optional): If this is specified, then it will only return the attributes in this template.
 
         Returns:
-            List(complexmodels.ResourceAttr): The resource attributes of all the groups in the network.
+            List[JSONObject]: The resource attributes of all the groups in the network.
         """
 
 
@@ -862,7 +853,7 @@ class AttributeService(HydraService):
                 template_id,
                 **ctx.in_header.__dict__)
 
-        return [ResourceAttr(ra) for ra in resource_attrs]
+        return [JSONObject(ra) for ra in resource_attrs]
 
 
     @rpc(Integer, _returns=Unicode)
@@ -926,7 +917,7 @@ class AttributeService(HydraService):
 
         return 'OK'
 
-    @rpc(Integer, Integer(min_occurs=0, max_occurs=1), _returns=SpyneArray(ResourceAttrMap))
+    @rpc(Integer, Integer(min_occurs=0, max_occurs=1), _returns=SpyneArray(AnyDict))
     def get_mappings_in_network(ctx, network_id, network_2_id):
         """
         Get all the resource attribute mappings in a network (both from and to). If another network
@@ -937,12 +928,11 @@ class AttributeService(HydraService):
             network_2_id (int) (optional): The partner network
 
         Returns:
-            List(complexmodels.ResourceAttrMap): All the mappings to and from the network(s) in question.
+            List[JSONObject]: All the mappings to and from the network(s) in question.
         """
         mapping_rs = attributes.get_mappings_in_network(network_id, network_2_id, **ctx.in_header.__dict__)
 
-        mappings = [ResourceAttrMap(m) for m in mapping_rs]
-        return mappings
+        return [JSONObject(m) for m in mapping_rs]
 
     @rpc(Integer, Integer(min_occurs=0, max_occurs=1), _returns=Unicode)
     def delete_mappings_in_network(ctx, network_id, network_2_id):
@@ -961,7 +951,7 @@ class AttributeService(HydraService):
 
         return 'OK'
 
-    @rpc(Integer, Integer(min_occurs=0, max_occurs=1), _returns=SpyneArray(ResourceAttrMap))
+    @rpc(Integer, Integer(min_occurs=0, max_occurs=1), _returns=SpyneArray(AnyDict))
     def get_node_mappings(ctx, node_id, node_2_id):
         """
         Get the mappings for all the attributes of a given node. If a second node
@@ -972,12 +962,11 @@ class AttributeService(HydraService):
             node_2_id (int) (optional): The partner node
 
         Returns:
-            List(complexmodels.ResourceAttrMap): All the mappings to and from the node(s) in question.
+            List[JSONObject]: All the mappings to and from the node(s) in question.
         """
         mapping_rs = attributes.get_node_mappings(node_id, node_2_id, **ctx.in_header.__dict__)
 
-        mappings = [ResourceAttrMap(m) for m in mapping_rs]
-        return mappings
+        return [JSONObject(m) for m in mapping_rs]
 
 
     @rpc(Integer, Integer, _returns=Unicode)
@@ -999,16 +988,16 @@ class AttributeService(HydraService):
         return is_mapped
 
 class AttributeGroupService(HydraService):
-    @rpc(Integer, _returns=AttrGroup)
+    @rpc(Integer, _returns=AnyDict)
     def get_attribute_group(ctx, group_id):
         """
 
         """
         group_i = attributes.get_attribute_group(group_id, **ctx.in_header.__dict__)
 
-        return AttrGroup(group_i)
+        return JSONObject(group_i)
 
-    @rpc(AttrGroup, _returns=AttrGroup)
+    @rpc(AttrGroup, _returns=AnyDict)
     def add_attribute_group(ctx, attributegroup):
         """
             Add a new attribute group.
@@ -1025,13 +1014,16 @@ class AttributeGroupService(HydraService):
                     'layout'     : 'my group layout'      (optional)
                     'exclusive'  : 'N' (or 'Y' )          (optional, default to 'N')
                 }
+
+            Returns:
+                JSONObject: The newly created attribute group.
         """
 
         newgroup_i = attributes.add_attribute_group(attributegroup, **ctx.in_header.__dict__)
 
-        return AttrGroup(newgroup_i)
+        return JSONObject(newgroup_i)
 
-    @rpc(AttrGroup, _returns=AttrGroup)
+    @rpc(AttrGroup, _returns=AnyDict)
     def update_attribute_group(ctx, attributegroup):
         """
             Update an existing attribute group.
@@ -1048,10 +1040,13 @@ class AttributeGroupService(HydraService):
                     'layout'     : 'my group layout'      (optional)
                     'exclusive'  : 'N' (or 'Y' )          (optional, default to 'N')
                 }
+
+            Returns:
+                JSONObject: The updated attribute group.
         """
 
         updated_group_i = attributes.update_attribute_group(attributegroup, **ctx.in_header.__dict__)
-        return AttrGroup(updated_group_i)
+        return JSONObject(updated_group_i)
 
     @rpc(Integer, _returns=Unicode)
     def delete_attribute_group(ctx, group_id):
@@ -1063,43 +1058,46 @@ class AttributeGroupService(HydraService):
 
         return status
 
-    @rpc(Integer, _returns=SpyneArray(AttrGroupItem))
+    @rpc(Integer, _returns=SpyneArray(AnyDict))
     def get_network_attributegroup_items(ctx, network_id):
         """
-            Get all the group items in a network
+            Get all the group items in a network.
+
+            Returns:
+                List[JSONObject]: All attribute group items in the network.
         """
 
         agis = attributes.get_network_attributegroup_items(network_id, **ctx.in_header.__dict__)
 
-        complex_agis = [AttrGroupItem(agi) for agi in agis]
+        return [JSONObject(agi) for agi in agis]
 
-        return complex_agis
-
-    @rpc(Integer, Integer, _returns=SpyneArray(AttrGroupItem))
+    @rpc(Integer, Integer, _returns=SpyneArray(AnyDict))
     def get_group_attributegroup_items(ctx, network_id, group_id):
         """
-            Get all the items in a specified group, within a network
+            Get all the items in a specified group, within a network.
+
+            Returns:
+                List[JSONObject]: All attribute group items in the specified group.
         """
 
         agis = attributes.get_group_attributegroup_items(network_id, group_id, **ctx.in_header.__dict__)
 
-        complex_agis = [AttrGroupItem(agi) for agi in agis]
+        return [JSONObject(agi) for agi in agis]
 
-        return complex_agis
-
-    @rpc(Integer, Integer, _returns=SpyneArray(AttrGroupItem))
+    @rpc(Integer, Integer, _returns=SpyneArray(AnyDict))
     def get_attribute_item_groups(ctx, network_id, attr_id):
         """
-            Get all the group items in a network with a given attribute_id
+            Get all the group items in a network with a given attribute_id.
+
+            Returns:
+                List[JSONObject]: All attribute group items matching the given attribute.
         """
 
         agis = attributes.get_attribute_item_groups(network_id, attr_id, **ctx.in_header.__dict__)
 
-        complex_agis = [AttrGroupItem(agi) for agi in agis]
+        return [JSONObject(agi) for agi in agis]
 
-        return complex_agis
-
-    @rpc(SpyneArray(AttrGroupItem), _returns=SpyneArray(AttrGroupItem))
+    @rpc(SpyneArray(AttrGroupItem), _returns=SpyneArray(AnyDict))
     def add_attribute_group_items(ctx, attributegroupitems):
         """
             Populate attribute groups with items.
@@ -1117,13 +1115,14 @@ class AttributeGroupService(HydraService):
             based on the 'exclusivity' setup of the groups -- if a group is specified
             as being 'exclusive', then any attributes within that group cannot appear
             in any other group (within a network).
+
+            Returns:
+                List[JSONObject]: The newly created attribute group items.
         """
 
         agis = attributes.add_attribute_group_items(attributegroupitems, **ctx.in_header.__dict__)
 
-        complex_agis = [AttrGroupItem(agi) for agi in agis]
-
-        return complex_agis
+        return [JSONObject(agi) for agi in agis]
 
     @rpc(SpyneArray(AttrGroupItem), _returns=Unicode)
     def delete_attribute_group_items(ctx, attributegroupitems):
