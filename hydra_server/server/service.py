@@ -28,6 +28,8 @@ from spyne.protocol.json import JsonDocument
 
 from spyne.service import ServiceBase
 
+from .headers import filter_header_fields
+
 log = logging.getLogger(__name__)
 
 class HydraDocument(JsonDocument):
@@ -53,8 +55,8 @@ class HydraDocument(JsonDocument):
         if ctx.descriptor.in_header:
             in_header_class = ctx.descriptor.in_header[0]
             ctx.in_header = in_header_class()
-            for k, v in ctx.in_header_doc.items():
-                setattr(ctx.in_header, k, v[0])
+            for k, v in filter_header_fields(ctx.in_header_doc).items():
+                setattr(ctx.in_header, k, v)
 
 class RequestHeader(ComplexModel):
     __namespace__ = 'hydra.base'
