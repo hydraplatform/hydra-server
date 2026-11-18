@@ -22,6 +22,7 @@ from spyne.model.complex import ComplexModel
 from spyne.decorator import rpc
 from .complexmodels import LoginResponse
 import hydra_base as hb
+from hydra_base.lib import users
 from hydra_base import config
 from hydra_base.exceptions import HydraError
 from spyne.protocol.json import JsonDocument
@@ -156,6 +157,12 @@ class AuthenticationService(ServiceBase):
             user_id = hb.hdb.login_user(username, password)
         except HydraError as e:
             raise AuthenticationError(e)
+
+        # Checked after the password so it reveals nothing to someone who does not know it. A user who
+        # must use a second factor can only authenticate with a bearer token issued after it (see bearer.py).
+        if users.is_password_login_disabled(username):
+            log.info("Password login refused for %s: bearer token required", username)
+            raise AuthenticationError("password login is not permitted for this account; use a bearer token")
 
         if hasattr(ctx.transport, 'req_env'):
             ctx.transport.req_env['beaker.session']['user_id'] = user_id

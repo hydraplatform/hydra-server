@@ -31,6 +31,7 @@ install_requires=[
     "lxml",
     "spyne",
     "click",
+    "requests",
     ]
 
 dependency_links=[
