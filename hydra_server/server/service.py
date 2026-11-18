@@ -28,6 +28,8 @@ from spyne.protocol.json import JsonDocument
 
 from spyne.service import ServiceBase
 
+from .headers import filter_header_fields
+
 log = logging.getLogger(__name__)
 
 class HydraDocument(JsonDocument):
@@ -53,8 +55,8 @@ class HydraDocument(JsonDocument):
         if ctx.descriptor.in_header:
             in_header_class = ctx.descriptor.in_header[0]
             ctx.in_header = in_header_class()
-            for k, v in ctx.in_header_doc.items():
-                setattr(ctx.in_header, k, v[0])
+            for k, v in filter_header_fields(ctx.in_header_doc).items():
+                setattr(ctx.in_header, k, v)
 
 class RequestHeader(ComplexModel):
     __namespace__ = 'hydra.base'
@@ -75,12 +77,13 @@ class HydraService(ServiceBase):
 class AuthenticationError(Fault, HydraError):
     __namespace__ = 'hydra.base'
 
-    def __init__(self, user_name):
+    def __init__(self, user_name, message=None):
+        message = message or 'Invalid authentication request for %r' % user_name
         Fault.__init__(self,
                        faultcode='Client.AuthenticationError',
-                       faultstring='Invalid authentication request for %r' % user_name
+                       faultstring=message
                       )
-        HydraError.__init__(self, 'Invalid authentication request for %r' % user_name)
+        HydraError.__init__(self, message)
 
 class AuthorizationError(Fault, HydraError):
     __namespace__ = 'hydra.authentication'
@@ -137,6 +140,9 @@ class LogoutService(HydraService):
 
         return "OK"
 
+GENERIC_LOGIN_FAILURE = 'Invalid username or password'
+
+
 class AuthenticationService(ServiceBase):
     __tns__ = 'hydra.base'
 
@@ -146,16 +152,22 @@ class AuthenticationService(ServiceBase):
             if username is None:
                 raise HydraError("No Username specified.")
             if isinstance(username, bytes):
-                username = username.encode('utf-8')
+                username = username.decode('utf-8')
 
             if password is None:
                 raise HydraError("No password specified")
             if isinstance(password, bytes):
-                password = password.encode('utf-8')
-            log.debug("%s, %s",username, password)
-            user_id = hb.hdb.login_user(username, password)
+                password = password.decode('utf-8')
         except HydraError as e:
             raise AuthenticationError(e)
+
+        try:
+            user_id = hb.hdb.login_user(username, password)
+        except HydraError as e:
+            # The cause (unknown user, wrong password, locked account) is only logged here:
+            # the client gets one message so that it cannot tell which usernames exist.
+            log.info("Login failed for %r: %s", username, type(e).__name__)
+            raise AuthenticationError(None, GENERIC_LOGIN_FAILURE)
 
         if hasattr(ctx.transport, 'req_env'):
             ctx.transport.req_env['beaker.session']['user_id'] = user_id

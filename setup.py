@@ -29,13 +29,9 @@ with open(os.path.join(os.path.dirname(__file__), "hydra_server", "__init__.py")
 install_requires=[
     "hydra-base",
     "lxml",
-    "spyne",
+    "spyne @ git+https://github.com/arskom/spyne.git@af96bf95feb7950617640671f8aba9654f31acd3",
     "click",
     ]
-
-dependency_links=[
-    "git+https://github.com/arskom/spyne.git@spyne-2.13.2-alpha#egg=spyne",
-]
 
 if platform.system() == "Windows":  # only add winpaths when platform is Windows so that setup.py is universal
     install_requires.append("winpaths")
