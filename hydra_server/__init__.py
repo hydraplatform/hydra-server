@@ -39,13 +39,13 @@ try:
 
     if six.PY3 and int(sub_version) < 13:
         log.warn("\nThe current version of spyne on PYPI does not work well with Python 3. Please run the following command to get the latest development version, which does.\n\n"+
-                        "pip install --upgrade git+https://github.com/arskom/spyne.git@spyne-2.13.2-alpha#egg=spyne\n\n")
+                        "pip install --upgrade git+https://github.com/arskom/spyne.git@af96bf95feb7950617640671f8aba9654f31acd3\n\n")
         sys.exit()
 
 except ModuleNotFoundError as e:
         log.warn("\nOne of the dependencies -- Spyne -- is not installed."+
                         " The current version of spyne on PYPI does not work well with Python 3. Please run the following command to get the latest development version, which does.\n\n"+
-                        "pip install git+https://github.com/arskom/spyne.git@spyne-2.13.2-alpha#egg=spyne\n\n")
+                        "pip install git+https://github.com/arskom/spyne.git@af96bf95feb7950617640671f8aba9654f31acd3\n\n")
         sys.exit()
 
 
@@ -268,7 +268,8 @@ class HydraServer():
         log.info("hydra_base_dir %s", hb.config.get('DEFAULT', 'hydra_base_dir'))
         log.info("common_app_data_folder %s", hb.config.get('DEFAULT', 'common_app_data_folder'))
         log.info("win_common_documents %s", hb.config.get('DEFAULT', 'win_common_documents'))
-        log.info("sqlite url %s", hb.config.get('mysqld', 'url'))
+        # Log only host/port/db: the credentials precede the last '@' in the URL
+        log.info("db url %s", hb.config.get('mysqld', 'url').rsplit('@', 1)[-1])
         log.info("layout_xsd_path %s", hb.config.get('hydra_server', 'layout_xsd_path'))
         log.info("default_directory %s", hb.config.get('plugin', 'default_directory'))
         log.info("result_file %s", hb.config.get('plugin', 'result_file'))

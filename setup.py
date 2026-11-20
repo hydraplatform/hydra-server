@@ -29,14 +29,10 @@ with open(os.path.join(os.path.dirname(__file__), "hydra_server", "__init__.py")
 install_requires=[
     "hydra-base",
     "lxml",
-    "spyne",
+    "spyne @ git+https://github.com/arskom/spyne.git@af96bf95feb7950617640671f8aba9654f31acd3",
     "click",
     "requests",
     ]
-
-dependency_links=[
-    "git+https://github.com/arskom/spyne.git@spyne-2.13.2-alpha#egg=spyne",
-]
 
 if platform.system() == "Windows":  # only add winpaths when platform is Windows so that setup.py is universal
     install_requires.append("winpaths")
@@ -50,7 +46,6 @@ setup(
     url='https://github.com/hydraplatform/hydra-server',
     packages=find_packages(exclude=['ez_setup']),
     install_requires=install_requires,
-    dependency_links=dependency_links,
     include_package_data=True,
     entry_points={
         'console_scripts': ['hydra-server=hydra_server.cli:start_cli']
