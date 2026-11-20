@@ -2,3 +2,4 @@ spyne @ git+https://github.com/arskom/spyne.git@af96bf95feb7950617640671f8aba965
 hydra-base
 lxml
 click
+requests
