@@ -45,7 +45,6 @@ setup(
     url='https://github.com/hydraplatform/hydra-server',
     packages=find_packages(exclude=['ez_setup']),
     install_requires=install_requires,
-    dependency_links=dependency_links,
     include_package_data=True,
     entry_points={
         'console_scripts': ['hydra-server=hydra_server.cli:start_cli']
