@@ -31,6 +31,7 @@ def _login(monkeypatch, result):
             raise result
         return result
     monkeypatch.setattr(hb.hdb, "login_user", fake_login_user)
+    monkeypatch.setattr(service.users, "is_password_login_disabled", lambda username: False)
     return AuthenticationService.login(FakeCtx(), "someone", PASSWORD)
 
 
@@ -66,5 +67,6 @@ def test_successful_login_still_returns_the_user(monkeypatch):
 def test_bytes_credentials_are_decoded(monkeypatch):
     seen = {}
     monkeypatch.setattr(hb.hdb, "login_user", lambda u, p: seen.update(u=u, p=p) or 1)
+    monkeypatch.setattr(service.users, "is_password_login_disabled", lambda username: False)
     AuthenticationService.login(FakeCtx(), b"someone", b"pw")
     assert seen == {"u": "someone", "p": "pw"}

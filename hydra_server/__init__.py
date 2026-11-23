@@ -94,6 +94,7 @@ from spyne.util.wsgi_wrapper import WsgiMounter
 import socket
 
 from beaker.middleware import SessionMiddleware
+from hydra_server.server import bearer
 
 applications = [
     AuthenticationService,
@@ -145,8 +146,12 @@ def _on_method_call(ctx):
     session = env.get('beaker.session', {})
 
     if session.get('user_id') is None:
-
-        raise Fault("No Session!")
+        # No session: a bearer token from the configured OAuth provider can authenticate the request instead
+        who = bearer.authenticate(env.get('HTTP_AUTHORIZATION'))
+        if who is None:
+            raise Fault("No Session!")
+        ctx.in_header.user_id, ctx.in_header.username = who
+        return
 
     ctx.in_header.user_id = session['user_id']
     ctx.in_header.username = session['username']

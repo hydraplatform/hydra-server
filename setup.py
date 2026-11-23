@@ -31,6 +31,7 @@ install_requires=[
     "lxml",
     "spyne @ git+https://github.com/arskom/spyne.git@af96bf95feb7950617640671f8aba9654f31acd3",
     "click",
+    "requests",
     ]
 
 if platform.system() == "Windows":  # only add winpaths when platform is Windows so that setup.py is universal
