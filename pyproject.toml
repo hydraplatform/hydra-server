@@ -1,8 +1,39 @@
+[project]
+name="hydra-server"
+description="A JSON RPC web server to interact with the Hydra Platform Base Library"
+readme="README.md"
+dynamic = ["version"]
+authors = [
+  {name = "Stephen Knox", email = "knoxsp@gmail.com"},
+]
+requires-python=">=3.10"
+license-files = ["LICENSE"]
+dependencies=[
+    "hydra-base",
+    "lxml",
+    # PyPI spyne 2.14.0 does not import on Python 3.13; this commit does.
+    "spyne @ git+https://github.com/arskom/spyne.git@af96bf95feb7950617640671f8aba9654f31acd3",
+    "click",
+    "requests",
+    "winpaths; platform_system == 'Windows'",
+]
+
+
+[project.urls]
+Documentation="https://hydraplatform.org"
+Repository="https://github.com/hydraplatform/hydra-server"
+
 [build-system]
-requires = ["setuptools>=64", "setuptools_scm>=8", "wheel"]
+requires = ["setuptools>=77", "setuptools_scm>=8", "wheel"]
 build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["hydra_server*"]
 
 [tool.setuptools_scm]
 version_scheme = "post-release"
 local_scheme = "no-local-version"
 fallback_version = "0.0.0"
+
+[project.scripts]
+hydra-server = "hydra_server.cli:start_cli"
