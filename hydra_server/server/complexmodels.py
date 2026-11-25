@@ -491,7 +491,9 @@ class ResourceAttr(HydraComplexModel):
     _type_info = [
         ('id',      Integer(min_occurs=0, default=None)),
         ('name',    Unicode(default=None)),
+        ('attr_name', Unicode(default=None)),
         ('attr_id', Integer(default=None)),
+        ('dimension_id', Integer(default=None)),
         ('ref_id',  Integer(min_occurs=0, default=None)),
         ('ref_key', Unicode(min_occurs=0, default=None)),
         ('attr_is_var', Unicode(min_occurs=0, default='N')),
@@ -507,10 +509,21 @@ class ResourceAttr(HydraComplexModel):
         if hasattr(parent, 'name'):
             self.name = parent.name
 
-        if hasattr(parent, 'attr'):
+        if hasattr(parent, 'attr_name') and parent.attr_name is not None:
+            self.attr_name = parent.attr_name
+            self.name = parent.attr_name
+
+        if hasattr(parent, 'attr') and parent.attr is not None:
             self.name = parent.attr.name
+            self.attr_name = parent.attr.name
+            self.dimension_id = parent.attr.dimension_id
+
+        if self.attr_name is None:
+            self.attr_name = self.name
 
         self.attr_id = parent.attr_id
+        if hasattr(parent, 'dimension_id') and parent.dimension_id is not None:
+            self.dimension_id = parent.dimension_id
         self.ref_key  = parent.ref_key
         self.cr_date = str(parent.cr_date)
         if parent.ref_key == 'NETWORK':
@@ -566,12 +579,18 @@ class ResourceAttrMap(HydraComplexModel):
 
         self.ref_key_a = parent.resourceattr_a.ref_key
         self.ref_id_a  = parent.resourceattr_a.get_resource_id()
-        self.attr_a_name = parent.resourceattr_a.attr.name
+        if parent.resourceattr_a.attr is not None:
+            self.attr_a_name = parent.resourceattr_a.attr.name
+        else:
+            self.attr_a_name = getattr(parent.resourceattr_a, 'attr_name', None)
         self.resource_a_name = parent.resourceattr_a.get_resource().get_name()
 
         self.ref_key_b = parent.resourceattr_b.ref_key
         self.ref_id_b  = parent.resourceattr_b.get_resource_id()
-        self.attr_b_name = parent.resourceattr_b.attr.name
+        if parent.resourceattr_b.attr is not None:
+            self.attr_b_name = parent.resourceattr_b.attr.name
+        else:
+            self.attr_b_name = getattr(parent.resourceattr_b, 'attr_name', None)
         self.resource_b_name = parent.resourceattr_b.get_resource().get_name()
 
         self.network_a_id = parent.network_a_id
@@ -610,6 +629,7 @@ class TypeAttr(HydraComplexModel):
         ('id', Integer(default=None)),
         ('parent_id', Integer(default=None)),
         ('attr_id', Integer(default=None)),
+        ('attr_name', Unicode(default=None)),
         ('attr', Attr),
         ('type_id', Integer(default=None)),
         ('data_type', Unicode(default=None)),
@@ -631,16 +651,21 @@ class TypeAttr(HydraComplexModel):
 
         self.id = parent.id
         self.parent_id = parent.parent_id
-        self.attr_id = int(parent.attr_id)
+        self.attr_id = int(parent.attr_id) if parent.attr_id is not None else None
+        self.attr_name = getattr(parent, 'attr_name', None)
         self.status = parent.status
 
         attr = parent.attr
         if attr:
             self.attr = Attr(attr)
+            self.attr_name = attr.name
+            self.dimension_id = attr.dimension_id
 
         self.type_id = parent.type_id
         self.data_type = parent.data_type
         self.unit_id = parent.unit_id
+        if self.dimension_id is None:
+            self.dimension_id = getattr(parent, 'dimension_id', None)
 
         if parent.default_dataset is not None:
             self.default_dataset = Dataset(parent.default_dataset)
