@@ -17,7 +17,12 @@
 # along with HydraPlatform.  If not, see <http://www.gnu.org/licenses/>
 #
 
-__version__ = '0.1.4'
+try:
+    from importlib.metadata import version as _dist_version
+    # The version comes from the git tag at build time (setuptools_scm)
+    __version__ = _dist_version('hydra-server')
+except Exception:  # not installed as a distribution
+    __version__ = '0+unknown'
 
 import bcrypt
 password = ''
