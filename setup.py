@@ -9,7 +9,6 @@ except:
 import platform
 import sys
 import os
-from packaging.version import Version
 
 py_version = sys.version_info[:2]
 
@@ -19,12 +18,6 @@ except ImportError:
     from ez_setup import use_setuptools
     use_setuptools()
     from setuptools import setup, find_packages
-
-# get version string from __init__.py
-with open(os.path.join(os.path.dirname(__file__), "hydra_server", "__init__.py")) as f:
-    for line in f:
-        if line.startswith("__version__"):
-            version = Version(line.split("=")[1].strip().strip("\"'"))
 
 install_requires=[
     "hydra-base",
@@ -39,7 +32,7 @@ if platform.system() == "Windows":  # only add winpaths when platform is Windows
 
 setup(
     name='hydra-server',
-    version=str(version),
+    use_scm_version=True,  # from the git tag; see pyproject.toml
     description='A JSON RPC server front end for the hydra-base network manager',
     author='Stephen Knox',
     author_email='stephen.knox@manchester.ac.uk',
