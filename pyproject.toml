@@ -1,6 +1,6 @@
 [project]
 name="hydra-server"
-description="A JSON RPC web server to interact with the Hydra Platform Base Libary"
+description="A JSON RPC web server to interact with the Hydra Platform Base Library"
 readme="README.md"
 dynamic = ["version"]
 authors = [
