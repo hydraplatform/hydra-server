@@ -1250,6 +1250,10 @@ class Rule(HydraComplexModel):
        - **value** Unicode
        - **types** RuleTypeLink Array
        - **cr_date** Unicode(default=None)
+       - **status** Unicode
+       - **created_by** Integer
+       - **updated_by** Integer
+       - **updated_at** Unicode(default=None)
     """
     _type_info = [
         ('id', Integer),
@@ -1268,6 +1272,9 @@ class Rule(HydraComplexModel):
         ('types', SpyneArray(AnyDict)),
         ('owners', SpyneArray(AnyDict)),
         ('cr_date', Unicode(default=None)),
+        ('created_by', Integer),
+        ('updated_by', Integer),
+        ('updated_at', Unicode(default=None)),
     ]
 
     def __init__(self, parent=None):
@@ -1285,6 +1292,10 @@ class Rule(HydraComplexModel):
         self.template_id=parent.template_id
         self.value = parent.value
         self.cr_date = str(parent.cr_date)
+        self.status = parent.status
+        self.created_by = parent.created_by
+        self.updated_by = parent.updated_by
+        self.updated_at = str(parent.updated_at) if parent.updated_at is not None else None
         self.types = [JSONObject(t) for t in parent.types]
         self.owners = [JSONObject(t) for t in parent.owners]
 
