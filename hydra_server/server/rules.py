@@ -123,6 +123,16 @@ class RuleService(HydraService):
 
         return [Rule(r) for r in rules_i]
 
+    @rpc(_returns=SpyneArray(Integer))
+    def get_rule_authors(ctx):
+        """
+            The ids of the users who may write rule code (they hold the permission `author_rules`).
+            Rule code is run by job runners, which use this to check who wrote or last edited a rule.
+            Returns:
+                List of user ids
+        """
+        return rules.get_rule_authors(**ctx.in_header.__dict__)
+
     @rpc(RuleTypeDefinition,
          _returns=RuleTypeDefinition)
     def add_rule_type_definition(ctx, ruletypedefinition, **kwargs):
